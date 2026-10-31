@@ -16,6 +16,8 @@ import { Safety } from './pages/Safety'
 import { Community } from './pages/Community'
 import { Work } from './pages/Work'
 import { Settings } from './pages/Settings'
+import { Share } from './pages/Share'
+import { AllyCards, AllyForMe, AllyHome, AllyLearn, AllyPractice, Receive } from './pages/Ally'
 
 function Shell() {
   const { status, vault } = useVault()
@@ -31,11 +33,27 @@ function Shell() {
   if (status === 'locked') return <Lock />
   if (!vault.settings.onboarded) return <Onboarding />
 
+  const ally = vault.settings.profile === 'ally'
   return (
     <HashRouter>
       <Layout>
+        {ally ? (
+        <Routes>
+          <Route path="/" element={<AllyHome />} />
+          <Route path="/aprender" element={<AllyLearn />} />
+          <Route path="/praticar" element={<AllyPractice />} />
+          <Route path="/cartoes" element={<AllyCards />} />
+          <Route path="/para-mim" element={<AllyForMe />} />
+          <Route path="/receber/:data" element={<Receive />} />
+          <Route path="/comunidade" element={<Community />} />
+          <Route path="/definicoes" element={<Settings />} />
+          <Route path="*" element={<AllyHome />} />
+        </Routes>
+        ) : (
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/partilhar" element={<Share />} />
+          <Route path="/receber/:data" element={<Receive />} />
           <Route path="/documentos" element={<Documents />} />
           <Route path="/nome" element={<NameRehearsal />} />
           <Route path="/saude" element={<Health />} />
@@ -47,6 +65,7 @@ function Shell() {
           <Route path="/definicoes" element={<Settings />} />
           <Route path="*" element={<Home />} />
         </Routes>
+        )}
       </Layout>
     </HashRouter>
   )

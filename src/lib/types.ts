@@ -1,4 +1,7 @@
+import type { AllyRole } from '../data/allies'
+
 export type Theme = 'system' | 'light' | 'dark'
+export type Profile = 'trans' | 'ally'
 export type PanicTarget = 'calculator' | 'weather'
 
 export interface Settings {
@@ -15,6 +18,9 @@ export interface Settings {
   birthYear?: number
   organs: ('colo' | 'mama' | 'prostata')[]
   interests: string[]
+  /** Perfil: pessoa trans ou pessoa que apoia (família, amigues, trabalho, escola) */
+  profile: Profile
+  allyRole?: AllyRole
 }
 
 export interface Reminder {
@@ -82,6 +88,38 @@ export interface SavedPlace extends Place {}
 
 export interface SavedEvent { id: string; title: string; date: string; place?: string; url?: string }
 
+export type KnowState = 'sim' | 'nao' | 'ainda'
+
+/** Cartão "Como me podes apoiar", criado pela pessoa trans. */
+export interface SupportCard {
+  name: string
+  pronouns: string
+  message: string
+  helps: string[]
+  hurts: string[]
+  whoKnows: { id: string; who: string; state: KnowState }[]
+}
+
+/** Plano de transição no trabalho ou na escola. */
+export interface TransitionPlan {
+  context: 'trabalho' | 'escola'
+  org: string
+  startDate: string
+  whoTells: 'eu' | 'outra' | 'juntos'
+  howTell: string
+  systems: { id: string; label: string }[]
+  facilities: string
+  confidential: string
+  contact: string
+}
+
+/** O que viaja na ligação ou no QR (nunca passa por um servidor). */
+export interface SharedPayload { v: 1; card?: SupportCard; plan?: TransitionPlan; sentAt: string }
+
+export interface ReceivedCard { id: string; receivedAt: string; payload: SharedPayload; checks: Record<string, boolean> }
+
+export interface FeelingEntry { id: string; date: string; prompt: string; text: string }
+
 export interface Vault {
   version: 1
   settings: Settings
@@ -103,6 +141,15 @@ export interface Vault {
   events: SavedEvent[]
   /** Testemunhos a que já deste apoio */
   supported: string[]
+  /* Pessoa trans: o que partilha com quem a apoia */
+  supportCard?: SupportCard
+  workPlan?: TransitionPlan
+  /* Pessoa que apoia */
+  received: ReceivedCard[]
+  lessonsDone: string[]
+  practiceDays: string[]
+  practiceBest: number
+  feelings: FeelingEntry[]
 }
 
 export function emptyVault(): Vault {
@@ -120,6 +167,7 @@ export function emptyVault(): Vault {
       onboarded: false,
       organs: [],
       interests: [],
+      profile: 'trans',
     },
     checklist: {},
     guideSteps: {},
@@ -136,6 +184,11 @@ export function emptyVault(): Vault {
     checkins: [],
     events: [],
     supported: [],
+    received: [],
+    lessonsDone: [],
+    practiceDays: [],
+    practiceBest: 0,
+    feelings: [],
   }
 }
 

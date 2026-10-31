@@ -13,6 +13,14 @@ const tabs = [
   { to: '/comunidade', label: 'Apoio', icon: 'people' },
 ]
 
+const allyTabs = [
+  { to: '/', label: 'Início', icon: 'home', end: true },
+  { to: '/aprender', label: 'Aprender', icon: 'book' },
+  { to: '/praticar', label: 'Praticar', icon: 'chat' },
+  { to: '/cartoes', label: 'Cartões', icon: 'heart' },
+  { to: '/para-mim', label: 'Para mim', icon: 'people' },
+]
+
 export function Layout({ children }: { children: ReactNode }) {
   const { panic, vault } = useVault()
   const escPresses = useRef<number[]>([])
@@ -36,7 +44,7 @@ export function Layout({ children }: { children: ReactNode }) {
       {children}
       <nav className="bottomnav" aria-label="Navegação principal">
         <div className="inner">
-          {tabs.map(t => (
+          {(vault.settings.profile === 'ally' ? allyTabs : tabs).map(t => (
             <NavLink key={t.to} to={t.to} end={t.end} className={({ isActive }) => (isActive ? 'active' : '')}>
               <span className="pill"><Icon name={t.icon} /></span>
               {t.label}
@@ -62,9 +70,9 @@ export function TopBar({ title, back, right }: { title?: string; back?: boolean;
       {vault.settings.disguise && (
         <button className="icon-btn" onClick={panic} aria-label="Modo privado: mostrar calculadora"><Icon name="eyeOff" /></button>
       )}
-      <button className="panic" onClick={() => setSos(true)} aria-label="SOS: pedir ajuda urgente">
+      {vault.settings.profile !== 'ally' && <button className="panic" onClick={() => setSos(true)} aria-label="SOS: pedir ajuda urgente">
         <Icon name="alert" size={18} /> SOS
-      </button>
+      </button>}
     </header>
     {/* Fora do cabeçalho: o backdrop-filter dele prenderia o painel fixo. */}
     <Sheet open={sos} onClose={() => setSos(false)} title="Pedir ajuda">

@@ -6,6 +6,7 @@ import { Seg, useToast } from '../components/ui'
 import { exportBackup, importBackup } from '../lib/storage'
 import type { PanicTarget, Theme } from '../lib/types'
 import { pronounOptions } from './Onboarding'
+import { allyRoles } from '../data/allies'
 
 export function Settings() {
   const { vault, update, mode, setPin, removePin, lock, wipe, replaceVault } = useVault()
@@ -38,7 +39,17 @@ export function Settings() {
         <section className="card">
           <h3>Sobre ti</h3>
           <label className="field">Nome<input className="input" value={s.displayName} onChange={e => set('displayName', e.target.value)} /></label>
-          <div className="row wrap">{pronounOptions.map(p => <button key={p} className={'chip' + (s.pronouns === p ? ' on' : '')} onClick={() => set('pronouns', p)}>{p}</button>)}</div>
+          {s.profile === 'ally' ? (
+            <div className="row wrap">{allyRoles.map(r => <button key={r.id} className={'chip' + (s.allyRole === r.id ? ' on' : '')} onClick={() => set('allyRole', r.id)}>{r.emoji} {r.label}</button>)}</div>
+          ) : (
+            <div className="row wrap">{pronounOptions.map(p => <button key={p} className={'chip' + (s.pronouns === p ? ' on' : '')} onClick={() => set('pronouns', p)}>{p}</button>)}</div>
+          )}
+        </section>
+
+        <section className="card">
+          <h3>Perfil</h3>
+          <Seg<'trans' | 'ally'> value={s.profile} onChange={v => { set('profile', v); if (v === 'ally' && !s.allyRole) set('allyRole', 'amigue'); location.hash = '#/' }} options={[{ id: 'trans', label: 'Sou pessoa trans' }, { id: 'ally', label: 'Apoio alguém' }]} />
+          <p className="xs muted">Os teus dados dos dois perfis ficam guardados. Mudar de perfil só muda o que vês.</p>
         </section>
 
         <section className="card">

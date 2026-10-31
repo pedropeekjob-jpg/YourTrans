@@ -152,6 +152,11 @@ export function Home() {
           )}
         </section>
 
+        <Link to="/partilhar" className="card tint-sky" style={{ textDecoration: 'none', color: 'inherit' }}>
+          <div className="row"><Icon name="heart" /><h3 className="grow">Pessoas que me apoiam</h3><Icon name="chevron" /></div>
+          <p className="small">{vault.supportCard ? 'Atualiza e volta a enviar o teu cartão ou o plano para o trabalho ou a escola.' : 'Cria um cartão para família, amigues, colegas ou professores: o que te ajuda, o que te magoa e quem já sabe.'}</p>
+        </Link>
+
         <Link to="/comunidade?tab=testemunhos" className="card tint-rose" style={{ textDecoration: 'none', color: 'inherit' }}>
           <div className="row"><Icon name="people" /><h3 className="grow">Como é depois?</h3><Icon name="chevron" /></div>
           <p className="small">Testemunhos de quem já passou pelas hormonas e pelas cirurgias, fase a fase.</p>

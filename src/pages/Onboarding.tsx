@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useVault } from '../lib/vault-context'
 import { Icon } from '../components/Icon'
+import { allyRoles, type AllyRole } from '../data/allies'
 
 export const pronounOptions = ['ela/dela', 'ele/dele', 'elu/delu', 'sem preferência']
 export const interestOptions = [
@@ -13,7 +14,102 @@ export const interestOptions = [
   { id: 'emprego', label: 'Trabalho' },
 ]
 
+/** Primeiro ecrã: quem está a abrir a app. */
 export function Onboarding() {
+  const fromLink = location.hash.startsWith('#/receber/')
+  const [profile, setProfile] = useState<'trans' | 'ally' | null>(fromLink ? 'ally' : null)
+  if (profile === 'trans') return <TransOnboarding onBack={() => setProfile(null)} />
+  if (profile === 'ally') return <AllyOnboarding fromLink={fromLink} onBack={() => setProfile(null)} />
+  return (
+    <div className="onb">
+      <div />
+      <div className="stack-lg pop" style={{ alignContent: 'center' }}>
+        <div className="art" style={{ aspectRatio: 2 }}><Icon name="sparkle" size={72} /></div>
+        <h1>Olá! Quem és?</h1>
+        <p className="muted">Há um percurso para pessoas trans e outro para quem as rodeia: família, amigues, colegas, chefias e professores.</p>
+      </div>
+      <div className="stack">
+        <button className="choice card" onClick={() => setProfile('trans')}>
+          <span className="lead-ico" style={{ background: 'var(--sky-soft)', color: 'var(--accent)' }}><Icon name="sparkle" /></span>
+          <span className="grow stack" style={{ gap: 2 }}><b>Sou uma pessoa trans</b><span className="small muted">Ou estou a questionar a minha identidade</span></span>
+          <Icon name="chevron" />
+        </button>
+        <button className="choice card" onClick={() => setProfile('ally')}>
+          <span className="lead-ico" style={{ background: 'var(--rose-soft)', color: 'var(--rose)' }}><Icon name="heart" /></span>
+          <span className="grow stack" style={{ gap: 2 }}><b>Apoio alguém trans</b><span className="small muted">Família, amigue, colega, chefia ou professor/a</span></span>
+          <Icon name="chevron" />
+        </button>
+        <p className="xs muted" style={{ textAlign: 'center' }}>Sem conta. Tudo fica cifrado neste telemóvel.</p>
+      </div>
+    </div>
+  )
+}
+
+function AllyOnboarding({ fromLink, onBack }: { fromLink: boolean; onBack: () => void }) {
+  const { update, setPin } = useVault()
+  const [step, setStep] = useState(0)
+  const [name, setName] = useState('')
+  const [role, setRole] = useState<AllyRole | null>(null)
+  const [pin, setPinValue] = useState('')
+
+  const finish = async (withPin: boolean) => {
+    if (withPin && /^\d{4,8}$/.test(pin)) await setPin(pin)
+    update(v => ({ ...v, settings: { ...v.settings, displayName: name.trim(), profile: 'ally', allyRole: role ?? 'amigue', onboarded: true } }))
+  }
+
+  return (
+    <div className="onb">
+      <div className="steps-dots" aria-hidden="true">{[0, 1, 2].map(i => <span key={i} className={i === step ? 'on' : ''} />)}</div>
+      {step === 0 && (
+        <div className="stack-lg pop" style={{ alignContent: 'center' }}>
+          <div className="art"><Icon name="heart" size={96} /></div>
+          <h1>{fromLink ? 'Alguém confia em ti' : 'Obrigado por estares aqui'}</h1>
+          <p className="muted">{fromLink
+            ? 'Recebeste um cartão com o que ajuda esta pessoa e o que a magoa. Vamos guardá-lo num espaço só teu, cifrado neste telemóvel.'
+            : 'Apoiar uma pessoa trans muda tudo para ela. Aqui aprendes em poucos minutos por dia, treinas o nome e os pronomes, e tens um espaço para o que tu sentes.'}</p>
+        </div>
+      )}
+      {step === 1 && (
+        <div className="stack-lg" style={{ alignContent: 'start' }}>
+          <h1>Quem és para essa pessoa?</h1>
+          <label className="field">O teu nome <span className="muted xs">(opcional)</span>
+            <input className="input" value={name} onChange={e => setName(e.target.value)} autoComplete="off" />
+          </label>
+          <div className="grid2">
+            {allyRoles.map(r => (
+              <button key={r.id} className={'chip role' + (role === r.id ? ' on' : '')} onClick={() => setRole(r.id)}>
+                <span aria-hidden="true">{r.emoji}</span> {r.label}
+              </button>
+            ))}
+          </div>
+          <p className="xs muted">Os conteúdos adaptam-se: em casa, entre amigos, no trabalho ou na escola.</p>
+        </div>
+      )}
+      {step === 2 && (
+        <div className="stack-lg" style={{ alignContent: 'start' }}>
+          <h1>Proteger com um código</h1>
+          <p className="muted">O que a pessoa partilhou contigo é privado. Um código garante que só tu o vês.</p>
+          <label className="field">Código (4 a 8 algarismos)
+            <input className="input" inputMode="numeric" type="password" value={pin} onChange={e => setPinValue(e.target.value.replace(/\D/g, ''))} maxLength={8} />
+          </label>
+        </div>
+      )}
+      <div className="stack">
+        {step < 2 ? (
+          <button className="btn block" disabled={step === 1 && !role} onClick={() => setStep(step + 1)}>Seguinte</button>
+        ) : (
+          <>
+            <button className="btn block" onClick={() => finish(true)} disabled={pin.length < 4}>Ativar código e começar</button>
+            <button className="btn secondary block" onClick={() => finish(false)}>Agora não</button>
+          </>
+        )}
+        <button className="btn ghost" onClick={() => (step === 0 ? onBack() : setStep(step - 1))}>Voltar</button>
+      </div>
+    </div>
+  )
+}
+
+function TransOnboarding({ onBack }: { onBack: () => void }) {
   const { update, setPin } = useVault()
   const [disguise, setDisguise] = useState(false)
   const [step, setStep] = useState(0)
@@ -30,7 +126,7 @@ export function Onboarding() {
       if (pin !== pin2) { setError('Os códigos não coincidem.'); return }
       await setPin(pin)
     }
-    update(v => ({ ...v, settings: { ...v.settings, displayName: name.trim(), pronouns, interests, disguise, onboarded: true } }))
+    update(v => ({ ...v, settings: { ...v.settings, displayName: name.trim(), pronouns, interests, disguise, profile: 'trans', onboarded: true } }))
   }
 
   const slides = [
@@ -123,7 +219,7 @@ export function Onboarding() {
             <button className="btn secondary block" onClick={() => finish(false)}>Agora não</button>
           </>
         )}
-        {step > 0 && <button className="btn ghost" onClick={() => setStep(step - 1)}>Voltar</button>}
+        <button className="btn ghost" onClick={() => (step === 0 ? onBack() : setStep(step - 1))}>Voltar</button>
       </div>
     </div>
   )

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { useVault } from '../lib/vault-context'
 import { TopBar } from '../components/Layout'
 import { Icon } from '../components/Icon'
@@ -31,6 +31,7 @@ export function Community() {
 }
 
 function Support() {
+  const ally = useVault().vault.settings.profile === 'ally'
   const urgent = supportOrgs.filter(o => o.phone)
   const orgs = supportOrgs.filter(o => o.kind === 'associação')
   return (
@@ -48,6 +49,10 @@ function Support() {
           ))}
         </div>
       </section>
+      {!ally && <Link to="/partilhar" className="card tint-sky" style={{ textDecoration: 'none', color: 'inherit' }}>
+        <div className="row"><Icon name="heart" /><h3 className="grow">Pessoas que me apoiam</h3><Icon name="chevron" /></div>
+        <p className="small">Envia à família, amigues, colegas ou professores um cartão com o que te ajuda, ou um plano de transição para o trabalho ou a escola.</p>
+      </Link>}
       <section className="stack">
         <h2>Associações</h2>
         <p className="small muted">Apoio psicológico, jurídico e grupos de partilha moderados por pessoas da comunidade.</p>
