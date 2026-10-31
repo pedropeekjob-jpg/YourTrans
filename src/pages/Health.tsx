@@ -139,6 +139,7 @@ function Pathway() {
               <h3>{s.title}</h3>
               <p className="small">{s.body}</p>
               {s.tip && <p className="small card tint-amber" style={{ padding: 10 }}>💡 {s.tip}</p>}
+              {s.stories && <button className="btn ghost sm" style={{ justifySelf: 'start', paddingLeft: 0 }} onClick={() => nav(`/comunidade?tab=testemunhos&tema=${s.stories}`)}><Icon name="people" size={16} />Como foi para outras pessoas</button>}
             </div>
           </div>
         ))}

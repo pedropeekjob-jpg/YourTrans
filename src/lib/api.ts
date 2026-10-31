@@ -2,6 +2,7 @@
 // toda em modo local e as funcionalidades comunitárias ficam só de leitura.
 import type { Provider, ReviewQuestion } from '../data/health'
 import type { Place } from './types'
+import type { Story } from '../data/stories'
 
 const BASE = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '')
 
@@ -36,6 +37,12 @@ export const api = {
   employerReview: (r: { company: string; answers: Record<string, boolean>; comment: string }) =>
     req<{ ok: true }>('/api/employers', { method: 'POST', body: JSON.stringify(r) }),
   employers: () => req<{ company: string; score: number; reviews: number }[]>('/api/employers'),
+  stories: () => req<Story[]>('/api/stories'),
+  postStory: (s: Pick<Story, 'kind' | 'topic' | 'phase' | 'title' | 'body' | 'nickname' | 'warning'>) =>
+    req<{ ok: true }>('/api/stories', { method: 'POST', body: JSON.stringify(s) }),
+  reply: (storyId: string, body: string, nickname?: string) =>
+    req<{ ok: true }>('/api/replies', { method: 'POST', body: JSON.stringify({ storyId, body, nickname }) }),
+  support: (storyId: string) => req<{ ok: true; support: number }>(`/api/stories/${encodeURIComponent(storyId)}/support`, { method: 'POST', body: '{}' }),
   suggestPlace: (p: Omit<Place, 'id' | 'source'>) =>
     req<{ ok: true }>('/api/places', { method: 'POST', body: JSON.stringify(p) }),
 }

@@ -64,7 +64,7 @@ export function Settings() {
             </select>
           </label>
           <div className="stack">
-            <b className="small">O botão Sair abre</b>
+            <b className="small">O botão Esconder abre</b>
             <Seg<PanicTarget> value={s.panicTarget} onChange={v => set('panicTarget', v)} options={[{ id: 'calculator', label: 'Calculadora' }, { id: 'weather', label: 'Site do tempo' }]} />
             <p className="xs muted">{s.panicTarget === 'calculator' ? (mode === 'pin' ? 'Para voltar, escreve o teu código e carrega em "=".' : 'Para voltar, mantém "=" carregado 2 segundos. Com código ativo é mais seguro.') : 'Abre o site do IPMA. Voltas a entrar pelo ícone "Notas".'}</p>
           </div>

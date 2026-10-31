@@ -40,3 +40,22 @@ test('estatísticas de incidentes respeitam k-anonimato', async () => {
   s = await (await fetch(base + '/api/incidents/stats')).json()
   assert.equal(s.byDistrict.Faro, 5)
 })
+
+test('testemunhos: moderados, com respostas moderadas e apoio', async () => {
+  const H = { authorization: 'Bearer segredo-de-teste' }
+  const story = { kind: 'testemunho', topic: 'mastectomia', phase: 'semanas', title: 'Duas semanas depois', body: 'O mais difícil foi dormir de costas, mas a sensação de liberdade é enorme.' }
+  assert.equal((await post('/api/stories', story)).status, 201)
+  assert.deepEqual(await (await fetch(base + '/api/stories')).json(), [])
+  const q = await (await fetch(base + '/api/mod/queue', { headers: H })).json()
+  const sid = q.find(x => x.type === 'story').id
+  await post('/api/mod/' + sid, { action: 'approve' }, 'segredo-de-teste')
+  assert.equal((await post('/api/replies', { storyId: sid, body: 'Obrigade por partilhares!' })).status, 201)
+  assert.equal((await post('/api/replies', { storyId: 'nao-existe', body: 'olá' })).status, 404)
+  const rq = await (await fetch(base + '/api/mod/queue', { headers: H })).json()
+  await post('/api/mod/' + rq.find(x => x.type === 'reply').id, { action: 'approve' }, 'segredo-de-teste')
+  const s = await (await post(`/api/stories/${sid}/support`, {})).json()
+  assert.equal(s.support, 1)
+  const list = await (await fetch(base + '/api/stories')).json()
+  assert.equal(list[0].replies.length, 1)
+  assert.equal(list[0].support, 1)
+})

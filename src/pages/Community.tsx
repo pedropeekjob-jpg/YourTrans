@@ -9,8 +9,9 @@ import { annualEvents, nextOccurrence } from '../data/events'
 import { api, apiEnabled } from '../lib/api'
 import { downloadIcs, icsEvent } from '../lib/ics'
 import { uid } from '../lib/types'
+import { Stories } from './Stories'
 
-type Tab = 'apoio' | 'agenda' | 'mentoria'
+type Tab = 'apoio' | 'testemunhos' | 'agenda' | 'mentoria'
 
 export function Community() {
   const [params, setParams] = useSearchParams()
@@ -19,8 +20,9 @@ export function Community() {
     <>
       <TopBar title="Apoio e comunidade" />
       <div className="page">
-        <Seg value={tab} onChange={t => setParams({ tab: t }, { replace: true })} options={[{ id: 'apoio', label: 'Apoio' }, { id: 'agenda', label: 'Agenda' }, { id: 'mentoria', label: 'Mentoria' }]} />
+        <Seg value={tab} onChange={t => setParams({ tab: t }, { replace: true })} options={[{ id: 'apoio', label: 'Apoio' }, { id: 'testemunhos', label: 'Partilhas' }, { id: 'agenda', label: 'Agenda' }, { id: 'mentoria', label: 'Mentoria' }]} />
         {tab === 'apoio' && <Support />}
+        {tab === 'testemunhos' && <Stories initialTopic={params.get('tema') ?? undefined} />}
         {tab === 'agenda' && <Agenda />}
         {tab === 'mentoria' && <Mentoring />}
       </div>

@@ -99,6 +99,8 @@ export interface Vault {
   /** Dias com check-in feito (YYYY-MM-DD) */
   checkins: string[]
   events: SavedEvent[]
+  /** Testemunhos a que já deste apoio */
+  supported: string[]
 }
 
 export function emptyVault(): Vault {
@@ -130,6 +132,7 @@ export function emptyVault(): Vault {
     names: [],
     checkins: [],
     events: [],
+    supported: [],
   }
 }
 

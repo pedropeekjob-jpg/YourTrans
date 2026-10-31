@@ -53,8 +53,8 @@ export function TopBar({ title, back, right }: { title?: string; back?: boolean;
       {back && <button className="icon-btn" onClick={() => nav(-1)} aria-label="Voltar"><Icon name="back" /></button>}
       <div className="title">{title}</div>
       {right}
-      <button className="panic" onClick={panic} aria-label="Sair rapidamente">
-        <Icon name="eyeOff" size={18} /> Sair
+      <button className="panic" onClick={panic} aria-label="Esconder a app">
+        <Icon name="eyeOff" size={18} /> Esconder
       </button>
     </header>
   )

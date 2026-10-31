@@ -95,7 +95,7 @@ export const publicProviders: Provider[] = [
   },
 ]
 
-export interface PathStep { id: string; title: string; body: string; tip?: string }
+export interface PathStep { id: string; title: string; body: string; tip?: string; stories?: string }
 
 /** Percurso típico no SNS (pode variar entre regiões e unidades). */
 export const snsPathway: PathStep[] = [
@@ -115,11 +115,13 @@ export const snsPathway: PathStep[] = [
     id: 'hormonas',
     title: 'Terapia hormonal',
     body: 'Início e acompanhamento pela endocrinologia, com análises regulares. A app lembra-te das tomas e das análises.',
+    stories: 'hormonas-t',
   },
   {
     id: 'cirurgia',
     title: 'Cirurgias (se quiseres)',
     body: 'Nem todas as pessoas querem ou precisam. No SNS são feitas em unidades de referência, mediante referenciação.',
+    stories: 'mastectomia',
   },
   {
     id: 'outros',

@@ -100,7 +100,7 @@ function Alert() {
       <section className="card tint-amber">
         <h3>Dicas rápidas</h3>
         <ul className="small" style={{ margin: 0, paddingLeft: 18, display: 'grid', gap: 4 }}>
-          <li>Botão <b>Sair</b> (em cima) ou <b>Esc 3 vezes</b>: a app esconde-se numa calculadora.</li>
+          <li>Botão vermelho <b>Esconder</b> (em cima) ou <b>Esc 3 vezes</b>: a app esconde-se numa calculadora.</li>
           <li>Partilha a tua localização em tempo real com alguém de confiança quando fores a um encontro.</li>
           <li>Vítima de crime de ódio? A APAV (116 006) apoia gratuitamente.</li>
         </ul>

@@ -27,6 +27,7 @@ db.exec(`
     month TEXT NOT NULL
   );
   CREATE INDEX IF NOT EXISTS idx_type_status ON submissions(type, status);
+  CREATE TABLE IF NOT EXISTS support (story_id TEXT PRIMARY KEY, count INTEGER NOT NULL DEFAULT 0);
 `)
 
 /* ---------- validação ---------- */
@@ -36,12 +37,17 @@ const opt = (v, max) => v === undefined || v === null || (typeof v === 'string' 
 const bool = v => typeof v === 'boolean'
 const PROVIDER_KINDS = ['Medicina geral', 'Endocrinologia', 'Psicologia', 'Psiquiatria', 'Cirurgia', 'Terapia da fala', 'Sexologia', 'Clínica']
 const SHOWERS = ['individuais', 'comuns', 'ambos', 'sem']
+const STORY_TOPICS = ['hormonas-e', 'hormonas-t', 'mastectomia', 'mamoplastia', 'vaginoplastia', 'faloplastia', 'histerectomia', 'ffs', 'voz', 'emocional', 'outro']
+const STORY_PHASES = ['antes', 'primeiros-dias', 'semanas', 'meses', 'ano']
 
 const validators = {
   provider: b => str(b.name, 3, 160) && PROVIDER_KINDS.includes(b.kind) && str(b.district, 2, 40) && ['SNS', 'Privado', 'Associação'].includes(b.sector) && opt(b.notes, 600),
   review: b => str(b.providerId, 1, 80) && b.answers && ['nomeCerto', 'semJulgamento', 'conhecimento', 'recomendaria'].every(k => bool(b.answers[k])) && opt(b.comment, 600),
   place: b => str(b.name, 2, 160) && str(b.kind, 2, 40) && str(b.district, 2, 40) && opt(b.notes, 600) &&
     typeof b.facilities === 'object' && (b.facilities.duches === undefined || SHOWERS.includes(b.facilities.duches)),
+  story: b => ['testemunho', 'pergunta'].includes(b.kind) && STORY_TOPICS.includes(b.topic) && STORY_PHASES.includes(b.phase) &&
+    str(b.title, 3, 120) && str(b.body, 20, 4000) && opt(b.nickname, 40) && opt(b.warning, 120),
+  reply: b => str(b.storyId, 1, 40) && str(b.body, 2, 1500) && opt(b.nickname, 40),
   event: b => str(b.title, 3, 160) && !isNaN(Date.parse(b.date)) && opt(b.place, 160) && opt(b.url, 300),
   incident: b => str(b.kind, 2, 60) && str(b.setting, 2, 60) && str(b.district, 2, 40) && opt(b.description, 1000) && bool(b.reported),
   mentorship: b => ['mentee', 'mentor'].includes(b.role) && str(b.nickname, 1, 40) && str(b.stage, 2, 60) && Array.isArray(b.topics) && b.topics.length <= 12 && str(b.contact, 5, 120),
@@ -54,6 +60,8 @@ const pick = {
   review: b => ({ providerId: b.providerId, answers: b.answers, comment: b.comment?.trim() || undefined }),
   place: b => ({ name: b.name.trim(), kind: b.kind, district: b.district, notes: b.notes?.trim() || undefined,
     facilities: { wcNeutro: !!b.facilities.wcNeutro, vestiarioNeutro: !!b.facilities.vestiarioNeutro, cabinesIndividuais: !!b.facilities.cabinesIndividuais, duches: b.facilities.duches } }),
+  story: b => ({ kind: b.kind, topic: b.topic, phase: b.phase, title: b.title.trim(), body: b.body.trim(), nickname: b.nickname?.trim() || undefined, warning: b.warning?.trim() || undefined }),
+  reply: b => ({ storyId: b.storyId, body: b.body.trim(), nickname: b.nickname?.trim() || undefined }),
   event: b => ({ title: b.title.trim(), date: new Date(b.date).toISOString(), place: b.place?.trim() || undefined, url: b.url?.trim() || undefined }),
   incident: b => ({ kind: b.kind, setting: b.setting, district: b.district, description: b.description?.trim() || undefined, reported: b.reported }),
   mentorship: b => ({ role: b.role, nickname: b.nickname.trim(), stage: b.stage, topics: b.topics.map(String).slice(0, 12), contact: b.contact.trim() }),
@@ -94,6 +102,19 @@ function limited(req) {
 }
 
 /* ---------- leitura pública (só aprovado) ---------- */
+
+function stories() {
+  const rows = db.prepare("SELECT id, payload, month FROM submissions WHERE type = 'story' AND status = 'approved' ORDER BY rowid DESC").all()
+  const replies = db.prepare("SELECT id, payload, month FROM submissions WHERE type = 'reply' AND status = 'approved' ORDER BY rowid").all()
+    .map(r => ({ id: r.id, month: r.month, ...JSON.parse(r.payload) }))
+  const support = new Map(db.prepare('SELECT story_id, count FROM support').all().map(r => [r.story_id, r.count]))
+  return rows.map(r => ({
+    id: r.id, month: r.month, ...JSON.parse(r.payload), support: support.get(r.id) ?? 0,
+    replies: replies.filter(x => x.storyId === r.id).map(({ id, body, nickname, month }) => ({ id, body, nickname, month })),
+  }))
+}
+
+const isApprovedStory = id => !!db.prepare("SELECT 1 FROM submissions WHERE id = ? AND type = 'story' AND status = 'approved'").get(id)
 
 const approved = type => db.prepare("SELECT id, payload FROM submissions WHERE type = ? AND status = 'approved'").all(type)
   .map(r => ({ id: r.id, ...JSON.parse(r.payload) }))
@@ -164,7 +185,7 @@ function isMod(req) {
   return timingSafeEqual(Buffer.from(token), Buffer.from(MOD_TOKEN))
 }
 
-const postRoutes = { '/api/providers': 'provider', '/api/reviews': 'review', '/api/places': 'place', '/api/events': 'event', '/api/incidents': 'incident', '/api/mentorship': 'mentorship', '/api/employers': 'employer' }
+const postRoutes = { '/api/stories': 'story', '/api/replies': 'reply', '/api/providers': 'provider', '/api/reviews': 'review', '/api/places': 'place', '/api/events': 'event', '/api/incidents': 'incident', '/api/mentorship': 'mentorship', '/api/employers': 'employer' }
 
 export const server = createServer(async (req, res) => {
   const url = new URL(req.url ?? '/', 'http://x')
@@ -178,6 +199,7 @@ export const server = createServer(async (req, res) => {
       if (path === '/api/places') return send(res, 200, approved('place').map(p => ({ ...p, source: 'comunidade' })))
       if (path === '/api/events') return send(res, 200, approved('event').filter(e => Date.parse(e.date) > Date.now() - 86_400_000))
       if (path === '/api/employers') return send(res, 200, employers())
+      if (path === '/api/stories') return send(res, 200, stories())
       if (path === '/api/incidents/stats') return send(res, 200, incidentStats())
       if (path === '/mod') {
         res.writeHead(200, { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store', 'x-frame-options': 'DENY' })
@@ -201,6 +223,7 @@ export const server = createServer(async (req, res) => {
         if (type === 'review' && !db.prepare("SELECT 1 FROM submissions WHERE id = ? AND type = 'provider' AND status = 'approved'").get(payload.providerId) && !payload.providerId.startsWith('pub-')) {
           return send(res, 404, { error: 'Profissional não encontrado' })
         }
+        if (type === 'reply' && !isApprovedStory(payload.storyId)) return send(res, 404, { error: 'Testemunho não encontrado' })
         const flags = autoFlags(payload)
         // Relatos de incidentes contam logo para estatísticas (agregadas, k-anonimato);
         // as descrições só são vistas pela moderação.
@@ -208,6 +231,13 @@ export const server = createServer(async (req, res) => {
         db.prepare('INSERT INTO submissions (id, type, payload, status, flags, month) VALUES (?, ?, ?, ?, ?, ?)')
           .run(randomBytes(9).toString('base64url'), type, JSON.stringify(payload), status, JSON.stringify(flags), new Date().toISOString().slice(0, 7))
         return send(res, 201, { ok: true })
+      }
+      const sup = path.match(/^\/api\/stories\/([\w-]+)\/support$/)
+      if (sup) {
+        if (limited(req)) return send(res, 429, { error: 'Demasiados pedidos. Tenta mais tarde.' })
+        if (!isApprovedStory(sup[1])) return send(res, 404, { error: 'Testemunho não encontrado' })
+        db.prepare('INSERT INTO support (story_id, count) VALUES (?, 1) ON CONFLICT(story_id) DO UPDATE SET count = count + 1').run(sup[1])
+        return send(res, 200, { ok: true, support: db.prepare('SELECT count FROM support WHERE story_id = ?').get(sup[1]).count })
       }
       const m = path.match(/^\/api\/mod\/([\w-]+)$/)
       if (m) {

@@ -14,7 +14,7 @@ export const interestOptions = [
 ]
 
 export function Onboarding() {
-  const { update, setPin } = useVault()
+  const { update, setPin, panic } = useVault()
   const [step, setStep] = useState(0)
   const [name, setName] = useState('')
   const [pronouns, setPronouns] = useState('')
@@ -41,14 +41,17 @@ export function Onboarding() {
     {
       art: 'lock',
       title: 'Ninguém mais vê',
-      body: 'Não precisas de conta. Tudo fica cifrado neste telemóvel. No ecrã inicial a app chama-se apenas "Notas", e o botão Sair transforma-a numa calculadora num toque.',
+      body: 'Não precisas de conta. Tudo fica cifrado neste telemóvel. No ecrã inicial a app chama-se apenas "Notas", e o botão vermelho "Esconder", sempre no canto superior direito, transforma-a numa calculadora num toque. Experimenta-o aqui em cima.',
     },
   ]
 
   return (
     <div className="onb">
-      <div className="steps-dots" aria-hidden="true">
-        {[0, 1, 2, 3].map(i => <span key={i} className={i === step ? 'on' : ''} />)}
+      <div className="row between">
+        <div className="steps-dots" aria-hidden="true">
+          {[0, 1, 2, 3].map(i => <span key={i} className={i === step ? 'on' : ''} />)}
+        </div>
+        <button className="panic" onClick={panic} aria-label="Esconder a app"><Icon name="eyeOff" size={18} /> Esconder</button>
       </div>
 
       {step < 2 && (

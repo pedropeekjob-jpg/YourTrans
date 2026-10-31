@@ -80,9 +80,9 @@ export function Home() {
             <div className="stack" style={{ gap: 4 }}>
               <span className="small muted">{greeting()}</span>
               <h1>{s.displayName || 'Olá'} 👋</h1>
-              {days > 1 && <span className="badge" style={{ background: 'rgba(255,255,255,.25)', color: '#fff', width: 'fit-content' }}>🔥 {days} dias seguidos</span>}
+              {days > 1 && <span className="badge" style={{ background: 'var(--hero-glass)', color: 'var(--hero-ink)', width: 'fit-content' }}>🔥 {days} dias seguidos</span>}
             </div>
-            <Ring value={progress} />
+            <Ring value={progress} color="var(--accent)" track="var(--hero-glass)" />
           </div>
           <div className="stack" style={{ position: 'relative', zIndex: 1 }}>
             <span className="small" style={{ fontWeight: 650 }}>{checkedIn ? 'Hoje sentes-te…' : 'Como te sentes hoje?'}</span>
@@ -151,6 +151,11 @@ export function Home() {
             </div>
           )}
         </section>
+
+        <Link to="/comunidade?tab=testemunhos" className="card tint-rose" style={{ textDecoration: 'none', color: 'inherit' }}>
+          <div className="row"><Icon name="people" /><h3 className="grow">Como é depois?</h3><Icon name="chevron" /></div>
+          <p className="small">Testemunhos de quem já passou pelas hormonas e pelas cirurgias, fase a fase.</p>
+        </Link>
 
         <section className="card tint-amber">
           <div className="row"><Icon name="sparkle" /><h3>Sabias que…</h3></div>
