@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex">
+<title>Moderação</title>
+<style>
+  :root { --bg:#f7f5f1; --card:#fff; --text:#1f1d2b; --muted:#6c6878; --line:#e6e1d8; --accent:#6d5ce8; --danger:#d9434b; --ok:#3fb98a; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#14131b; --card:#1e1d28; --text:#f1eff8; --muted:#a19db0; --line:#33313f; --accent:#9c8ff7; } }
+  body { margin:0; font-family: system-ui, sans-serif; background:var(--bg); color:var(--text); }
+  main { max-width: 760px; margin: 0 auto; padding: 16px; display: grid; gap: 12px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px; display: grid; gap: 8px; }
+  pre { white-space: pre-wrap; word-break: break-word; margin: 0; font-size: .85rem; }
+  button, input, select { font: inherit; padding: 8px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--card); color: var(--text); }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .ok { background: var(--ok); color: #fff; border: 0; } .no { background: var(--danger); color: #fff; border: 0; }
+  .tag { font-size: .75rem; padding: 2px 8px; border-radius: 99px; background: #fde4e5; color: #8a1d23; }
+  .muted { color: var(--muted); font-size: .85rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Fila de moderação</h1>
+  <div class="row">
+    <input id="token" type="password" placeholder="Token de moderação" autocomplete="off">
+    <select id="status"><option value="pending">Pendentes</option><option value="received">Relatos de incidentes</option><option value="approved">Aprovados</option><option value="rejected">Rejeitados</option></select>
+    <button id="load">Carregar</button>
+  </div>
+  <div id="list"></div>
+</main>
+<script>
+  const $ = id => document.getElementById(id)
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
+  async function load() {
+    const res = await fetch('/api/mod/queue?status=' + $('status').value, { headers: { authorization: 'Bearer ' + $('token').value } })
+    if (!res.ok) { $('list').innerHTML = '<p>Sem autorização.</p>'; return }
+    const rows = await res.json()
+    $('list').innerHTML = rows.length ? '' : '<p class="muted">Nada aqui.</p>'
+    for (const r of rows) {
+      const el = document.createElement('div')
+      el.className = 'card'
+      el.innerHTML = '<div class="row"><b>' + esc(r.type) + '</b><span class="muted">' + esc(r.month) + '</span>' +
+        r.flags.map(f => '<span class="tag">' + esc(f) + '</span>').join('') + '</div><pre>' + esc(JSON.stringify(r.payload, null, 2)) + '</pre>' +
+        '<div class="row"><button class="ok" data-a="approve">Aprovar</button><button data-a="reject">Rejeitar</button><button class="no" data-a="delete">Apagar</button></div>'
+      el.querySelectorAll('button').forEach(b => b.onclick = async () => {
+        await fetch('/api/mod/' + r.id, { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer ' + $('token').value }, body: JSON.stringify({ action: b.dataset.a }) })
+        el.remove()
+      })
+      $('list').appendChild(el)
+    }
+  }
+  $('load').onclick = load
+</script>
+</body>
+</html>

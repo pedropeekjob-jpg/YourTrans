@@ -1,0 +1,87 @@
+import { useEffect, useState } from 'react'
+import { TopBar } from '../components/Layout'
+import { Icon } from '../components/Icon'
+import { Progress, useToast } from '../components/ui'
+import { api, apiEnabled } from '../lib/api'
+
+export const employerCriteria = [
+  { id: 'politica', label: 'Tem uma política escrita de inclusão que inclui identidade de género' },
+  { id: 'nome', label: 'Atualiza nome e e-mail sem exigir a mudança legal' },
+  { id: 'wc', label: 'Há casas de banho e balneários neutros ou individuais' },
+  { id: 'saude', label: 'O seguro de saúde cobre cuidados de afirmação de género' },
+  { id: 'licenca', label: 'Dá dias de ausência para consultas e cirurgias sem perguntas' },
+  { id: 'formacao', label: 'Faz formação de chefias sobre inclusão trans' },
+  { id: 'denuncia', label: 'Tem um canal de denúncia confidencial que funciona' },
+  { id: 'respeito', label: 'No dia a dia, colegas e chefias usam o nome e pronomes certos' },
+]
+
+const rights = [
+  'O Código do Trabalho proíbe a discriminação com base na identidade de género, no acesso ao emprego e no trabalho.',
+  'Não és obrigade a revelar que és trans numa entrevista nem a justificar o teu nome.',
+  'Podes pedir a atualização dos teus dados ao empregador ao abrigo do RGPD (tens a carta pronta em Documentos).',
+  'Em caso de discriminação, podes recorrer à ACT, à CITE ou ao apoio jurídico da ILGA.',
+]
+
+export function Work() {
+  const toast = useToast()
+  const [company, setCompany] = useState('')
+  const [answers, setAnswers] = useState<Record<string, boolean>>({})
+  const [comment, setComment] = useState('')
+  const [ranking, setRanking] = useState<{ company: string; score: number; reviews: number }[]>([])
+  const score = employerCriteria.filter(c => answers[c.id]).length / employerCriteria.length
+
+  useEffect(() => { if (apiEnabled) api.employers().then(setRanking).catch(() => {}) }, [])
+
+  const submit = async () => {
+    if (!apiEnabled) { toast('A partilha fica disponível quando o servidor estiver ligado'); return }
+    try { await api.employerReview({ company: company.trim(), answers, comment }); toast('Obrigado! Vai ser revisto pela moderação.'); setCompany(''); setAnswers({}); setComment('') }
+    catch (e) { toast((e as Error).message) }
+  }
+
+  return (
+    <>
+      <TopBar title="Trabalho" back />
+      <div className="page">
+        <section className="card tint-sky">
+          <h3>Empresas com inclusão trans real</h3>
+          <p className="small">Avaliações feitas por pessoas trans, com critérios concretos e não só declarações. As melhores recebem o selo <b>Inclusão Trans</b> no ranking de empregadores.</p>
+        </section>
+
+        {ranking.length > 0 && (
+          <section className="stack">
+            <h2>Mais bem avaliadas</h2>
+            <div className="list">
+              {ranking.slice(0, 10).map((r, i) => (
+                <div key={r.company} className="item">
+                  <div className="lead" style={{ background: 'var(--accent-soft)', color: 'var(--accent)', fontWeight: 800 }}>{i + 1}</div>
+                  <div className="grow"><h3>{r.company}</h3><p className="xs muted">{r.reviews} avaliações</p></div>
+                  {r.score >= 0.75 && <span className="badge mint">Selo Inclusão Trans</span>}
+                  <b>{Math.round(r.score * 100)}%</b>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        <section className="card">
+          <h3>Avaliar o meu local de trabalho</h3>
+          <input className="input" placeholder="Nome da empresa" value={company} onChange={e => setCompany(e.target.value)} />
+          {employerCriteria.map(c => (
+            <button key={c.id} className="item" style={{ padding: '8px 0' }} onClick={() => setAnswers({ ...answers, [c.id]: !answers[c.id] })}>
+              <span className={'check' + (answers[c.id] ? ' on' : '')}><Icon name="check" size={18} /></span>
+              <span className="small grow">{c.label}</span>
+            </button>
+          ))}
+          <div className="row"><div className="grow"><Progress value={score} /></div><b className="small">{Math.round(score * 100)}%</b></div>
+          <textarea className="input" style={{ minHeight: 70 }} placeholder="Comentário (opcional, sem nomes de pessoas)" value={comment} onChange={e => setComment(e.target.value)} />
+          <button className="btn" disabled={company.trim().length < 2} onClick={submit}>Partilhar anonimamente</button>
+        </section>
+
+        <section className="card tint-amber">
+          <h3>Os teus direitos</h3>
+          <ul className="small" style={{ margin: 0, paddingLeft: 18, display: 'grid', gap: 6 }}>{rights.map(r => <li key={r}>{r}</li>)}</ul>
+        </section>
+      </div>
+    </>
+  )
+}
