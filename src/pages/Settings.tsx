@@ -42,7 +42,7 @@ export function Settings() {
         </section>
 
         <section className="card">
-          <h3>Privacidade e modo discreto</h3>
+          <h3>Privacidade</h3>
           <div className="stack">
             <b className="small">Código de acesso</b>
             {mode === 'pin' ? (
@@ -63,11 +63,20 @@ export function Settings() {
               <option value={0}>Imediatamente</option><option value={1}>Após 1 minuto</option><option value={5}>Após 5 minutos</option><option value={30}>Após 30 minutos</option>
             </select>
           </label>
-          <div className="stack">
-            <b className="small">O botão Esconder abre</b>
-            <Seg<PanicTarget> value={s.panicTarget} onChange={v => set('panicTarget', v)} options={[{ id: 'calculator', label: 'Calculadora' }, { id: 'weather', label: 'Site do tempo' }]} />
-            <p className="xs muted">{s.panicTarget === 'calculator' ? (mode === 'pin' ? 'Para voltar, escreve o teu código e carrega em "=".' : 'Para voltar, mantém "=" carregado 2 segundos. Com código ativo é mais seguro.') : 'Abre o site do IPMA. Voltas a entrar pelo ícone "Notas".'}</p>
-          </div>
+          <label className="row" style={{ gap: 10, alignItems: 'flex-start' }}>
+            <input type="checkbox" checked={s.disguise} onChange={e => set('disguise', e.target.checked)} style={{ marginTop: 4 }} />
+            <span className="stack" style={{ gap: 2 }}>
+              <b className="small">Modo privado</b>
+              <span className="xs muted">Para quem ainda não pode estar à vontade em casa. Mostra um ícone discreto (olho riscado) que transforma a app numa calculadora num toque.</span>
+            </span>
+          </label>
+          {s.disguise && (
+            <div className="stack">
+              <b className="small">O ícone de modo privado abre</b>
+              <Seg<PanicTarget> value={s.panicTarget} onChange={v => set('panicTarget', v)} options={[{ id: 'calculator', label: 'Calculadora' }, { id: 'weather', label: 'Site do tempo' }]} />
+              <p className="xs muted">{s.panicTarget === 'calculator' ? (mode === 'pin' ? 'Para voltar, escreve o teu código e carrega em "=".' : 'Para voltar, mantém "=" carregado 2 segundos. Com código ativo é mais seguro.') : 'Abre o site do IPMA. Voltas a entrar pelo ícone da app.'}</p>
+            </div>
+          )}
           <label className="row small" style={{ gap: 8 }}><input type="checkbox" checked={s.discreetNotifications} onChange={e => set('discreetNotifications', e.target.checked)} /> Notificações e calendário com texto neutro</label>
         </section>
 

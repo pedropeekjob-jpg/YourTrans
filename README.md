@@ -19,8 +19,9 @@ No ecrã inicial chama-se apenas **"Notas"** e tem um ícone neutro, de propósi
 
 - **Sem conta.** Tudo funciona offline e fica no dispositivo.
 - **Cifragem AES-GCM 256** de todos os dados e fotos no IndexedDB. Sem código, a chave é aleatória e não exportável; com código, é derivada por PBKDF2 (310 000 iterações) e nunca é guardada. Bloqueio progressivo após 5 tentativas falhadas.
-- **Modo discreto:** nome e ícone neutros, notificações e eventos de calendário com texto neutro, bloqueio automático ao sair.
-- **Botão de pânico** ("Sair" no topo de cada ecrã, ou Esc 3 vezes): esquece a chave em memória e mostra uma calculadora que funciona. Para voltar, escreve o código e carrega em "=" (sem código: manter "=" 2 segundos). Alternativa: abrir o site do IPMA.
+- **Botão SOS** no topo de cada ecrã: manter carregado envia uma SMS com a localização às pessoas de confiança; também liga para o 112.
+- **Modo privado (opcional, desligado por omissão):** para quem ainda não pode estar à vontade em casa. Um ícone discreto (ou Esc 3 vezes) esquece a chave em memória e mostra uma calculadora que funciona. Para voltar, escreve o código e carrega em "=" (sem código: manter "=" 2 segundos). Alternativa: abrir o site do IPMA.
+- Notificações e eventos de calendário com texto neutro, bloqueio automático ao sair.
 - **Cópias de segurança** cifradas com palavra-passe; **apagar tudo** num toque.
 - O servidor comunitário só recebe o que a pessoa escolhe partilhar, sem conta, sem IP guardado, e publica apenas o que a moderação humana aprova. Estatísticas de incidentes só aparecem com 5 ou mais relatos (k-anonimato).
 

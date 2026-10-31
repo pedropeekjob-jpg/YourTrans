@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useVault } from '../lib/vault-context'
 import { TopBar } from '../components/Layout'
 import { Icon } from '../components/Icon'
 import { Empty, Seg, Sheet, copyText, useToast } from '../components/ui'
+import { SosPanel } from '../components/Sos'
 import { districts } from '../data/health'
 import { api, apiEnabled } from '../lib/api'
 import { uid, type Facilities, type Place, type ShowerType } from '../lib/types'
@@ -27,82 +28,17 @@ export function Safety() {
 /* ---------- Alerta ---------- */
 
 function Alert() {
-  const { vault, update } = useVault()
-  const toast = useToast()
-  const [holding, setHolding] = useState(false)
-  const timer = useRef<number | undefined>(undefined)
-  const [name, setName] = useState('')
-  const [phone, setPhone] = useState('')
-
-  const send = () => {
-    setHolding(false)
-    const numbers = vault.contacts.map(c => c.phone.replace(/\s/g, '')).join(',')
-    const go = (loc?: string) => {
-      const body = `Preciso de ajuda.${loc ? ` Estou aqui: ${loc}` : ''}`
-      if (!numbers) { toast('Adiciona primeiro um contacto de confiança'); return }
-      // iOS usa "&body", Android "?body"; "?" funciona na maioria dos casos.
-      location.href = `sms:${numbers}?body=${encodeURIComponent(body)}`
-    }
-    if (!navigator.geolocation) return go()
-    navigator.geolocation.getCurrentPosition(
-      p => go(`https://maps.google.com/?q=${p.coords.latitude.toFixed(5)},${p.coords.longitude.toFixed(5)}`),
-      () => go(),
-      { enableHighAccuracy: true, timeout: 6000 },
-    )
-  }
-  const start = () => { setHolding(true); timer.current = window.setTimeout(send, 1500) }
-  const cancel = () => { setHolding(false); window.clearTimeout(timer.current) }
-  useEffect(() => () => window.clearTimeout(timer.current), [])
-
+  const { vault } = useVault()
   return (
     <>
-      <section className="card tint-danger" style={{ justifyItems: 'center', textAlign: 'center', padding: 24 }}>
-        <button
-          onPointerDown={start} onPointerUp={cancel} onPointerLeave={cancel} onContextMenu={e => e.preventDefault()}
-          aria-label="Manter carregado para enviar alerta"
-          style={{
-            width: 156, height: 156, borderRadius: '50%', border: 0, background: 'var(--danger)', color: '#fff', fontWeight: 800, fontSize: '1.1rem',
-            boxShadow: holding ? '0 0 0 18px rgba(217,67,75,.25)' : '0 10px 30px rgba(217,67,75,.35)', transition: 'box-shadow 1.5s, transform .2s',
-            transform: holding ? 'scale(.96)' : 'none', cursor: 'pointer', userSelect: 'none', touchAction: 'none',
-          }}>
-          <Icon name="alert" size={40} /><br />{holding ? 'A enviar…' : 'Alerta'}
-        </button>
-        <p className="small">Mantém carregado 1,5 s para enviar uma SMS com a tua localização a {vault.contacts.length ? `${vault.contacts.length} contacto(s) de confiança` : 'quem escolheres'}.</p>
-        <a className="btn danger" href="tel:112"><Icon name="phone" size={18} />Ligar 112</a>
-      </section>
-
-      <section className="stack">
-        <h3>Contactos de confiança</h3>
-        {vault.contacts.length > 0 && (
-          <div className="list">
-            {vault.contacts.map(c => (
-              <div key={c.id} className="item">
-                <div className="lead" style={{ background: 'var(--accent-soft)', color: 'var(--accent)' }}>{c.name.slice(0, 1).toUpperCase()}</div>
-                <div className="grow"><h3>{c.name}</h3><p className="small muted">{c.phone}</p></div>
-                <a className="btn sm secondary" href={`tel:${c.phone}`} aria-label={`Ligar a ${c.name}`}><Icon name="phone" size={16} /></a>
-                <button className="btn sm ghost" onClick={() => update(v => ({ ...v, contacts: v.contacts.filter(x => x.id !== c.id) }))} aria-label="Remover"><Icon name="trash" size={16} /></button>
-              </div>
-            ))}
-          </div>
-        )}
-        <div className="card flat">
-          <div className="grid2">
-            <input className="input" placeholder="Nome" value={name} onChange={e => setName(e.target.value)} />
-            <input className="input" placeholder="Telemóvel" inputMode="tel" value={phone} onChange={e => setPhone(e.target.value)} />
-          </div>
-          <button className="btn secondary" disabled={!name.trim() || phone.replace(/\D/g, '').length < 9}
-            onClick={() => { update(v => ({ ...v, contacts: [...v.contacts, { id: uid(), name: name.trim(), phone: phone.trim() }] })); setName(''); setPhone('') }}>
-            <Icon name="plus" size={18} />Adicionar contacto
-          </button>
-        </div>
-      </section>
-
+      <SosPanel />
       <section className="card tint-amber">
         <h3>Dicas rápidas</h3>
         <ul className="small" style={{ margin: 0, paddingLeft: 18, display: 'grid', gap: 4 }}>
-          <li>Botão vermelho <b>Esconder</b> (em cima) ou <b>Esc 3 vezes</b>: a app esconde-se numa calculadora.</li>
+          <li>O botão <b>SOS</b> está sempre no canto superior direito.</li>
           <li>Partilha a tua localização em tempo real com alguém de confiança quando fores a um encontro.</li>
           <li>Vítima de crime de ódio? A APAV (116 006) apoia gratuitamente.</li>
+          {vault.settings.disguise && <li>Modo privado ativo: o ícone do olho (ou Esc 3 vezes) mostra uma calculadora.</li>}
         </ul>
       </section>
     </>

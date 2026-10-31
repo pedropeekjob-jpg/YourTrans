@@ -14,7 +14,8 @@ export const interestOptions = [
 ]
 
 export function Onboarding() {
-  const { update, setPin, panic } = useVault()
+  const { update, setPin } = useVault()
+  const [disguise, setDisguise] = useState(false)
   const [step, setStep] = useState(0)
   const [name, setName] = useState('')
   const [pronouns, setPronouns] = useState('')
@@ -29,7 +30,7 @@ export function Onboarding() {
       if (pin !== pin2) { setError('Os códigos não coincidem.'); return }
       await setPin(pin)
     }
-    update(v => ({ ...v, settings: { ...v.settings, displayName: name.trim(), pronouns, interests, onboarded: true } }))
+    update(v => ({ ...v, settings: { ...v.settings, displayName: name.trim(), pronouns, interests, disguise, onboarded: true } }))
   }
 
   const slides = [
@@ -40,8 +41,8 @@ export function Onboarding() {
     },
     {
       art: 'lock',
-      title: 'Ninguém mais vê',
-      body: 'Não precisas de conta. Tudo fica cifrado neste telemóvel. No ecrã inicial a app chama-se apenas "Notas", e o botão vermelho "Esconder", sempre no canto superior direito, transforma-a numa calculadora num toque. Experimenta-o aqui em cima.',
+      title: 'Os teus dados são só teus',
+      body: 'Não precisas de conta. Tudo fica cifrado neste telemóvel e és tu quem decide o que partilhar. Se alguma vez te sentires em perigo, o botão SOS, sempre no canto superior direito, avisa as tuas pessoas de confiança com a tua localização.',
     },
   ]
 
@@ -51,7 +52,6 @@ export function Onboarding() {
         <div className="steps-dots" aria-hidden="true">
           {[0, 1, 2, 3].map(i => <span key={i} className={i === step ? 'on' : ''} />)}
         </div>
-        <button className="panic" onClick={panic} aria-label="Esconder a app"><Icon name="eyeOff" size={18} /> Esconder</button>
       </div>
 
       {step < 2 && (
@@ -95,7 +95,7 @@ export function Onboarding() {
       {step === 3 && (
         <div className="stack-lg" style={{ alignContent: 'start' }}>
           <h1>Proteger com um código</h1>
-          <p className="muted">Recomendado se outras pessoas usam o teu telemóvel. O código também desbloqueia a app a partir da calculadora: escreve-o e carrega em "=".</p>
+          <p className="muted">Recomendado se outras pessoas usam o teu telemóvel.</p>
           <label className="field">Código (4 a 8 algarismos)
             <input className="input" inputMode="numeric" type="password" value={pin} onChange={e => setPinValue(e.target.value.replace(/\D/g, ''))} maxLength={8} />
           </label>
@@ -104,6 +104,13 @@ export function Onboarding() {
           </label>
           {error && <p className="small" style={{ color: 'var(--danger)' }} role="alert">{error}</p>}
           <p className="xs muted">Se esqueceres o código não há forma de recuperar os dados. É essa a garantia de que ninguém mais lhes chega.</p>
+          <label className="card flat row" style={{ gap: 12, alignItems: 'flex-start', cursor: 'pointer' }}>
+            <input type="checkbox" checked={disguise} onChange={e => setDisguise(e.target.checked)} style={{ marginTop: 4 }} />
+            <span className="stack" style={{ gap: 2 }}>
+              <b className="small">Modo privado</b>
+              <span className="xs muted">Para quem ainda não pode estar à vontade em casa: um ícone discreto transforma a app numa calculadora. Podes mudar isto nas Definições.</span>
+            </span>
+          </label>
         </div>
       )}
 

@@ -5,6 +5,8 @@ export interface Settings {
   displayName: string
   pronouns: string
   theme: Theme
+  /** Modo privado: botão de disfarce (calculadora). Opcional, desligado por omissão. */
+  disguise: boolean
   panicTarget: PanicTarget
   autoLockMinutes: number
   discreetNotifications: boolean
@@ -110,6 +112,7 @@ export function emptyVault(): Vault {
       displayName: '',
       pronouns: '',
       theme: 'system',
+      disguise: false,
       panicTarget: 'calculator',
       autoLockMinutes: 5,
       discreetNotifications: true,
