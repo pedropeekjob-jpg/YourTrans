@@ -44,6 +44,11 @@ VITE_API_URL=http://localhost:8787 npm run dev
 
 Sem `VITE_API_URL` a app funciona toda em modo local e as partilhas com a comunidade ficam desativadas.
 
+## Publicação
+
+Cada push para `main` corre os testes e publica a app no GitHub Pages (`.github/workflows/pages.yml`).
+Para ligar o servidor comunitário, define a variável de repositório `VITE_API_URL` em Settings → Secrets and variables → Actions → Variables.
+
 ## Converter em app móvel (Capacitor)
 
 ```bash
