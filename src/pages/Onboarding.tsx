@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useVault } from '../lib/vault-context'
 import { Icon } from '../components/Icon'
 import { LangPicker } from '../components/LangPicker'
+import { CasuloIntro } from '../components/CasuloIntro'
 import { allyRoles, type AllyRole } from '../data/allies'
 import { tr } from '../i18n'
 
@@ -25,7 +26,7 @@ export function Onboarding() {
   return (
     <div className="onb onb-start">
       <div className="stack-lg pop" style={{ alignContent: 'center' }}>
-        <div className="art" style={{ aspectRatio: 2 }}><Icon name="sparkle" size={72} /></div>
+        <CasuloIntro className="casulo-intro" />
         <h1>{tr('Olá! Quem és?')}</h1>
         <p className="muted">{tr('Há um percurso para pessoas trans e outro para quem as rodeia: família, amigues, colegas, chefias e professores.')}</p>
       </div>

@@ -3,6 +3,7 @@ import { useVault } from '../lib/vault-context'
 import { TopBar } from '../components/Layout'
 import { Icon } from '../components/Icon'
 import { LangPicker } from '../components/LangPicker'
+import { CasuloLogo } from '../components/CasuloLogo'
 import { Seg, useToast } from '../components/ui'
 import { exportBackup, importBackup } from '../lib/storage'
 import type { PanicTarget, Theme } from '../lib/types'
@@ -129,7 +130,10 @@ export function Settings() {
             <li>{tr('Dados de saúde e de identidade de género são categorias especiais no RGPD: tratamo-los com o mínimo possível.')}</li>
           </ul>
         </section>
-        <p className="xs muted" style={{ textAlign: 'center' }}>{tr('Versão 0.1 · feito com a comunidade')}</p>
+        <div className="stack" style={{ justifyItems: 'center', gap: 4, marginTop: 8 }}>
+          <CasuloLogo size={36} />
+          <p className="xs muted" style={{ textAlign: 'center' }}><b>Casulo</b> · {tr('Versão 0.1 · feito com a comunidade')}</p>
+        </div>
       </div>
     </>
   )
