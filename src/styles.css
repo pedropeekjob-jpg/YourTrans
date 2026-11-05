@@ -308,3 +308,4 @@ textarea.input { min-height: 110px; resize: vertical; }
 .tag-list li { display: flex; gap: 10px; align-items: flex-start; }
 .chip { white-space: normal; max-width: 100%; text-align: left; }
 .chips .chip { white-space: nowrap; flex: none; }
+.lang-compact { width: auto; padding: 6px 10px; font-size: .85rem; border-radius: 99px; }

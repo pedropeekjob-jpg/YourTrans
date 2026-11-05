@@ -6,6 +6,7 @@ import { Icon } from '../components/Icon'
 import { Check, Progress, Seg, copyText, useToast } from '../components/ui'
 import { checklistPT, guides, type ChecklistItem } from '../data/guides'
 import { buildLetter, letterKinds, type LetterFields, type LetterKind } from '../lib/letters'
+import { tr } from '../i18n'
 
 type Tab = 'passos' | 'checklist' | 'pedidos'
 
@@ -23,12 +24,12 @@ export function Documents() {
 
   return (
     <>
-      <TopBar title="Documentos" />
+      <TopBar title={tr('Documentos')} />
       <div className="page">
         <Seg value={tab} onChange={setTab} options={[
-          { id: 'passos', label: 'Passo a passo' },
-          { id: 'checklist', label: 'Checklist' },
-          { id: 'pedidos', label: 'Pedidos' },
+          { id: 'passos', label: tr('Passo a passo') },
+          { id: 'checklist', label: tr('Checklist') },
+          { id: 'pedidos', label: tr('Pedidos') },
         ]} />
         {tab === 'passos' && <Steps />}
         {tab === 'checklist' && <Checklist onLetter={openLetter} />}
@@ -63,7 +64,7 @@ function Steps() {
       </section>
 
       <details className="card flat">
-        <summary style={{ fontWeight: 650, cursor: 'pointer' }}>Quem pode pedir?</summary>
+        <summary style={{ fontWeight: 650, cursor: 'pointer' }}>{tr('Quem pode pedir?')}</summary>
         <ul className="small" style={{ margin: '8px 0 0', paddingLeft: 18, display: 'grid', gap: 6 }}>
           {guide.eligibility.map(e => <li key={e}>{e}</li>)}
         </ul>
@@ -71,7 +72,7 @@ function Steps() {
 
       <Link to="/nome" className="card tint-accent row" style={{ textDecoration: 'none', color: 'inherit' }}>
         <Icon name="sparkle" />
-        <div className="grow"><h3>Ainda a escolher o nome?</h3><p className="small muted">Experimenta-o antes de o oficializar.</p></div>
+        <div className="grow"><h3>{tr('Ainda a escolher o nome?')}</h3><p className="small muted">{tr('Experimenta-o antes de o oficializar.')}</p></div>
         <Icon name="chevron" />
       </Link>
 
@@ -94,12 +95,12 @@ function Steps() {
                 {isOpen && (
                   <div className="card" style={{ gap: 10 }}>
                     <p className="small">{s.body}</p>
-                    {s.where && <p className="small"><b>Onde:</b> {s.where}</p>}
-                    {s.cost && <p className="small"><b>Custo:</b> {s.cost}</p>}
-                    {s.time && <p className="small"><b>Prazo:</b> {s.time}</p>}
+                    {s.where && <p className="small"><b>{tr('Onde:')}</b> {s.where}</p>}
+                    {s.cost && <p className="small"><b>{tr('Custo:')}</b> {s.cost}</p>}
+                    {s.time && <p className="small"><b>{tr('Prazo:')}</b> {s.time}</p>}
                     {s.docs && (
                       <div className="stack" style={{ gap: 4 }}>
-                        <b className="small">Leva contigo:</b>
+                        <b className="small">{tr('Leva contigo:')}</b>
                         {s.docs.map(d => <span key={d} className="small">• {d}</span>)}
                       </div>
                     )}
@@ -109,7 +110,7 @@ function Steps() {
                         update(v => ({ ...v, guideSteps: { ...v.guideSteps, [s.id]: !isDone } }))
                         if (!isDone) setOpen(guide.steps[i + 1]?.id ?? null)
                       }}>
-                      {isDone ? 'Marcar como por fazer' : 'Feito ✓'}
+                      {isDone ? tr('Marcar como por fazer') : tr('Feito ✓')}
                     </button>
                   </div>
                 )}
@@ -118,7 +119,7 @@ function Steps() {
           )
         })}
       </div>
-      <p className="xs muted">Informação revista em {guide.reviewedAt}. Não substitui aconselhamento jurídico: confirma valores e prazos nas fontes oficiais. A ILGA Portugal tem apoio jurídico gratuito.</p>
+      <p className="xs muted">{tr('Informação revista em')}{' '}{guide.reviewedAt}{tr('. Não substitui aconselhamento jurídico: confirma valores e prazos nas fontes oficiais. A ILGA Portugal tem apoio jurídico gratuito.')}</p>
     </>
   )
 }
@@ -135,14 +136,14 @@ function Checklist({ onLetter }: { onLetter: (i: ChecklistItem) => void }) {
   return (
     <>
       <section className="card tint-mint">
-        <h3>Depois do novo Cartão de Cidadão</h3>
-        <p className="small">Tudo o que costuma ser preciso atualizar. Em cada entidade podes gerar o pedido já escrito.</p>
+        <h3>{tr('Depois do novo Cartão de Cidadão')}</h3>
+        <p className="small">{tr('Tudo o que costuma ser preciso atualizar. Em cada entidade podes gerar o pedido já escrito.')}</p>
         <div className="row"><div className="grow"><Progress value={done / checklistPT.length} /></div><span className="xs muted">{done}/{checklistPT.length}</span></div>
-        {done === checklistPT.length && <p className="small" style={{ fontWeight: 650 }}>🎉 Tudo atualizado. Que conquista!</p>}
+        {done === checklistPT.length && <p className="small" style={{ fontWeight: 650 }}>{tr('🎉 Tudo atualizado. Que conquista!')}</p>}
       </section>
       {groups.map(([group, items]) => (
         <section key={group} className="stack">
-          <h3 className="muted small" style={{ textTransform: 'uppercase', letterSpacing: '.05em' }}>{group}</h3>
+          <h3 className="muted small" style={{ textTransform: 'uppercase', letterSpacing: '.05em' }}>{tr(group)}</h3>
           <div className="list">
             {items.map(item => {
               const on = !!vault.checklist[item.id]
@@ -154,8 +155,7 @@ function Checklist({ onLetter }: { onLetter: (i: ChecklistItem) => void }) {
                     <p className="small muted">{item.how}</p>
                     {item.letter && !on && (
                       <button className="btn ghost sm" style={{ justifySelf: 'start', paddingLeft: 0 }} onClick={() => onLetter(item)}>
-                        <Icon name="doc" size={16} /> Gerar pedido
-                      </button>
+                        <Icon name="doc" size={16} /> {tr('Gerar pedido')}</button>
                     )}
                   </div>
                 </div>
@@ -184,17 +184,17 @@ function Letters({ preset }: { preset: { kind: LetterKind; entity: string } | nu
   }
   const setStored = (k: keyof LetterFields, val: string) => update(v => ({ ...v, letterFields: { ...v.letterFields, [k]: val } }))
   const letter = buildLetter(kind, fields)
-  const full = `Assunto: ${letter.subject}\n\n${letter.body}`
+  const full = tr('Assunto: {0}\n\n{1}', letter.subject, letter.body)
 
   const share = async () => {
     if (navigator.share) { try { await navigator.share({ title: letter.subject, text: letter.body }) } catch { /* cancelado */ } }
-    else if (await copyText(full)) toast('Copiado')
+    else if (await copyText(full)) toast(tr('Copiado'))
   }
   const download = () => {
     const blob = new Blob([full], { type: 'text/plain;charset=utf-8' })
     const a = document.createElement('a')
     a.href = URL.createObjectURL(blob)
-    a.download = `pedido-${(entity || 'entidade').toLowerCase().replace(/[^a-z0-9]+/g, '-')}.txt`
+    a.download = tr('pedido-{0}.txt', (entity || 'entidade').toLowerCase().replace(/[^a-z0-9]+/g, '-'))
     a.click()
     URL.revokeObjectURL(a.href)
   }
@@ -202,38 +202,37 @@ function Letters({ preset }: { preset: { kind: LetterKind; entity: string } | nu
   return (
     <>
       <section className="card tint-accent">
-        <h3>Pedidos já escritos</h3>
-        <p className="small">Com base no direito de retificação do RGPD. Os teus dados ficam guardados só neste telemóvel para não teres de os escrever outra vez.</p>
+        <h3>{tr('Pedidos já escritos')}</h3>
+        <p className="small">{tr('Com base no direito de retificação do RGPD. Os teus dados ficam guardados só neste telemóvel para não teres de os escrever outra vez.')}</p>
       </section>
       <div className="chips">
         {letterKinds.map(k => <button key={k.id} className={'chip' + (kind === k.id ? ' on' : '')} onClick={() => setKind(k.id)}>{k.label}</button>)}
       </div>
       <div className="stack-lg">
         {kind !== 'referral' && (
-          <label className="field">Nome anterior
-            <input className="input" value={fields.oldName} onChange={e => setStored('oldName', e.target.value)} autoComplete="off" />
+          <label className="field">{tr('Nome anterior')}<input className="input" value={fields.oldName} onChange={e => setStored('oldName', e.target.value)} autoComplete="off" />
           </label>
         )}
-        <label className="field">{kind === 'referral' ? 'O teu nome' : 'Nome atual'}
+        <label className="field">{kind === 'referral' ? tr('O teu nome') : tr('Nome atual')}
           <input className="input" value={fields.newName} onChange={e => setStored('newName', e.target.value)} autoComplete="off" />
         </label>
-        <label className="field">{kind === 'referral' ? 'Nome do/a médico/a' : 'Entidade'}
-          <input className="input" value={entity} onChange={e => setEntity(e.target.value)} placeholder={kind === 'referral' ? 'Dr./Dra. …' : 'Ex.: Banco X'} />
+        <label className="field">{kind === 'referral' ? tr('Nome do/a médico/a') : tr('Entidade')}
+          <input className="input" value={entity} onChange={e => setEntity(e.target.value)} placeholder={kind === 'referral' ? tr('Dr./Dra. …') : tr('Ex.: Banco X')} />
         </label>
-        <label className="field">{kind === 'referral' ? 'N.º de utente (opcional)' : 'N.º de cliente, aluno/a ou processo (opcional)'}
+        <label className="field">{kind === 'referral' ? tr('N.º de utente (opcional)') : tr('N.º de cliente, aluno/a ou processo (opcional)')}
           <input className="input" value={reference} onChange={e => setReference(e.target.value)} autoComplete="off" />
         </label>
         <div className="grid2">
-          <label className="field">Localidade<input className="input" value={fields.city} onChange={e => setStored('city', e.target.value)} /></label>
-          <label className="field">E-mail (opcional)<input className="input" type="email" value={fields.email} onChange={e => setStored('email', e.target.value)} /></label>
+          <label className="field">{tr('Localidade')}<input className="input" value={fields.city} onChange={e => setStored('city', e.target.value)} /></label>
+          <label className="field">{tr('E-mail (opcional)')}<input className="input" type="email" value={fields.email} onChange={e => setStored('email', e.target.value)} /></label>
         </div>
       </div>
-      <div className="letter" aria-label="Pré-visualização do pedido"><b>Assunto: {letter.subject}</b>{'\n\n'}{letter.body}</div>
+      <div className="letter" aria-label={tr('Pré-visualização do pedido')}><b>{tr('Assunto:')}{' '}{letter.subject}</b>{'\n\n'}{letter.body}</div>
       <div className="grid2">
-        <button className="btn" onClick={async () => toast((await copyText(full)) ? 'Copiado' : 'Não foi possível copiar')}><Icon name="copy" size={18} />Copiar</button>
-        <button className="btn secondary" onClick={share}><Icon name="share" size={18} />Partilhar</button>
-        <a className="btn secondary" href={`mailto:?subject=${encodeURIComponent(letter.subject)}&body=${encodeURIComponent(letter.body)}`}>E-mail</a>
-        <button className="btn secondary" onClick={download}>Descarregar</button>
+        <button className="btn" onClick={async () => toast((await copyText(full)) ? tr('Copiado') : tr('Não foi possível copiar'))}><Icon name="copy" size={18} />{tr('Copiar')}</button>
+        <button className="btn secondary" onClick={share}><Icon name="share" size={18} />{tr('Partilhar')}</button>
+        <a className="btn secondary" href={`mailto:?subject=${encodeURIComponent(letter.subject)}&body=${encodeURIComponent(letter.body)}`}>{tr('E-mail')}</a>
+        <button className="btn secondary" onClick={download}>{tr('Descarregar')}</button>
       </div>
     </>
   )

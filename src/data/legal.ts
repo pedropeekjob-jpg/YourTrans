@@ -1,7 +1,8 @@
+import { tr } from '../i18n'
 // Informação jurídica geral sobre direitos de pessoas trans em Portugal.
 // Não é aconselhamento jurídico. Rever as fontes periodicamente.
 
-export const LEGAL_REVIEWED = 'novembro de 2026'
+export const LEGAL_REVIEWED = tr('novembro de 2026')
 
 export interface Source { label: string; url: string }
 
@@ -29,65 +30,65 @@ const DR = {
 
 export const rightTopics: RightTopic[] = [
   {
-    id: 'identidade', icon: 'doc', title: 'Identidade e documentos',
-    summary: 'O direito a seres reconhecide como és, sem diagnósticos.',
+    id: 'identidade', icon: 'doc', title: tr('Identidade e documentos'),
+    summary: tr('O direito a seres reconhecide como és, sem diagnósticos.'),
     points: [
-      'A Lei n.º 38/2018 reconhece o direito à autodeterminação da identidade e expressão de género e à proteção das características sexuais.',
-      'A partir dos 18 anos, a mudança do nome próprio e da menção do sexo no registo civil faz-se na conservatória, sem relatório médico nem cirurgias.',
-      'Entre os 16 e os 18 anos, o pedido é feito através dos representantes legais, com um relatório de médico/a ou psicólogo/a que ateste apenas a vontade livre e esclarecida.',
-      'Depois do averbamento, todas as entidades devem atualizar os teus dados. O RGPD dá-te o direito à retificação (art. 16.º).',
+      tr('A Lei n.º 38/2018 reconhece o direito à autodeterminação da identidade e expressão de género e à proteção das características sexuais.'),
+      tr('A partir dos 18 anos, a mudança do nome próprio e da menção do sexo no registo civil faz-se na conservatória, sem relatório médico nem cirurgias.'),
+      tr('Entre os 16 e os 18 anos, o pedido é feito através dos representantes legais, com um relatório de médico/a ou psicólogo/a que ateste apenas a vontade livre e esclarecida.'),
+      tr('Depois do averbamento, todas as entidades devem atualizar os teus dados. O RGPD dá-te o direito à retificação (art. 16.º).'),
     ],
     sources: [DR.l38, DR.rgpd],
   },
   {
-    id: 'trabalho', icon: 'briefcase', title: 'Trabalho',
-    summary: 'Ninguém te pode recusar emprego ou tratar pior por seres trans.',
+    id: 'trabalho', icon: 'briefcase', title: tr('Trabalho'),
+    summary: tr('Ninguém te pode recusar emprego ou tratar pior por seres trans.'),
     points: [
-      'O Código do Trabalho proíbe a discriminação com base na identidade de género, no acesso ao emprego, na formação, no salário, na progressão e no despedimento.',
-      'Podes pedir que o teu nome seja atualizado em todos os sistemas internos. Os dados sobre a transição são sensíveis e só devem ser conhecidos por quem precisa.',
-      'Se fores discriminade, podes apresentar queixa à ACT. Em caso de discriminação, a lei inverte o ónus da prova: cabe à entidade empregadora provar que a diferença de tratamento não foi discriminatória.',
-      'Guarda provas: e-mails, mensagens, nomes de testemunhas e datas. O Registo de ocorrências desta app ajuda.',
+      tr('O Código do Trabalho proíbe a discriminação com base na identidade de género, no acesso ao emprego, na formação, no salário, na progressão e no despedimento.'),
+      tr('Podes pedir que o teu nome seja atualizado em todos os sistemas internos. Os dados sobre a transição são sensíveis e só devem ser conhecidos por quem precisa.'),
+      tr('Se fores discriminade, podes apresentar queixa à ACT. Em caso de discriminação, a lei inverte o ónus da prova: cabe à entidade empregadora provar que a diferença de tratamento não foi discriminatória.'),
+      tr('Guarda provas: e-mails, mensagens, nomes de testemunhas e datas. O Registo de ocorrências desta app ajuda.'),
     ],
     sources: [DR.act, DR.cig],
   },
   {
-    id: 'saude', icon: 'heart', title: 'Saúde',
-    summary: 'Respeito pelo teu nome e acesso a cuidados sem discriminação.',
+    id: 'saude', icon: 'heart', title: tr('Saúde'),
+    summary: tr('Respeito pelo teu nome e acesso a cuidados sem discriminação.'),
     points: [
-      'Tens direito a ser tratade pelo teu nome e pronomes em qualquer serviço de saúde, público ou privado.',
-      'Podes reclamar no Livro de Reclamações (físico ou eletrónico) ou diretamente na Entidade Reguladora da Saúde (ERS). No SNS, também no Gabinete do Cidadão da unidade.',
-      'Ninguém te pode exigir cirurgias, esterilização ou diagnósticos para mudares os documentos.',
+      tr('Tens direito a ser tratade pelo teu nome e pronomes em qualquer serviço de saúde, público ou privado.'),
+      tr('Podes reclamar no Livro de Reclamações (físico ou eletrónico) ou diretamente na Entidade Reguladora da Saúde (ERS). No SNS, também no Gabinete do Cidadão da unidade.'),
+      tr('Ninguém te pode exigir cirurgias, esterilização ou diagnósticos para mudares os documentos.'),
     ],
     sources: [DR.ers, DR.lr, DR.l38],
   },
   {
-    id: 'escola', icon: 'book', title: 'Escola e universidade',
-    summary: 'Usar o nome escolhido e estar em segurança na escola.',
+    id: 'escola', icon: 'book', title: tr('Escola e universidade'),
+    summary: tr('Usar o nome escolhido e estar em segurança na escola.'),
     points: [
-      'A Lei n.º 38/2018 prevê medidas nas escolas para respeitar a identidade de género, como o uso do nome escolhido e o acesso a casas de banho e balneários.',
-      'As regras concretas para as escolas têm sido alvo de debate legislativo e de decisões do Tribunal Constitucional. Confirma o que está em vigor junto da direção e da ILGA.',
-      'Bullying e discriminação podem ser comunicados à direção, à Inspeção-Geral da Educação e Ciência e, se forem crime, às autoridades.',
+      tr('A Lei n.º 38/2018 prevê medidas nas escolas para respeitar a identidade de género, como o uso do nome escolhido e o acesso a casas de banho e balneários.'),
+      tr('As regras concretas para as escolas têm sido alvo de debate legislativo e de decisões do Tribunal Constitucional. Confirma o que está em vigor junto da direção e da ILGA.'),
+      tr('Bullying e discriminação podem ser comunicados à direção, à Inspeção-Geral da Educação e Ciência e, se forem crime, às autoridades.'),
     ],
     sources: [DR.l38],
   },
   {
-    id: 'odio', icon: 'shield', title: 'Violência e crimes de ódio',
-    summary: 'Agressões, ameaças ou incitamento ao ódio são crime.',
+    id: 'odio', icon: 'shield', title: tr('Violência e crimes de ódio'),
+    summary: tr('Agressões, ameaças ou incitamento ao ódio são crime.'),
     points: [
-      'O Código Penal pune a discriminação e o incitamento ao ódio e à violência, incluindo em razão da identidade de género (art. 240.º).',
-      'A motivação pela identidade de género é uma circunstância que agrava crimes como ofensas à integridade física ou homicídio.',
-      'Desde 2024, as práticas de conversão (tentativas de alterar ou reprimir a identidade de género) são crime.',
-      'Podes apresentar queixa em qualquer esquadra da PSP, posto da GNR ou no Ministério Público. A APAV dá apoio gratuito e confidencial.',
+      tr('O Código Penal pune a discriminação e o incitamento ao ódio e à violência, incluindo em razão da identidade de género (art. 240.º).'),
+      tr('A motivação pela identidade de género é uma circunstância que agrava crimes como ofensas à integridade física ou homicídio.'),
+      tr('Desde 2024, as práticas de conversão (tentativas de alterar ou reprimir a identidade de género) são crime.'),
+      tr('Podes apresentar queixa em qualquer esquadra da PSP, posto da GNR ou no Ministério Público. A APAV dá apoio gratuito e confidencial.'),
     ],
     sources: [DR.l15, DR.apav],
   },
   {
-    id: 'dados', icon: 'lock', title: 'Dados pessoais',
-    summary: 'O teu nome antigo e a tua transição são dados protegidos.',
+    id: 'dados', icon: 'lock', title: tr('Dados pessoais'),
+    summary: tr('O teu nome antigo e a tua transição são dados protegidos.'),
     points: [
-      'Informação sobre a tua identidade de género e saúde é uma categoria especial de dados no RGPD.',
-      'Tens direito à retificação (art. 16.º) e ao apagamento (art. 17.º). A entidade tem, em regra, um mês para responder.',
-      'Se não responderem ou recusarem sem razão, podes apresentar queixa à CNPD.',
+      tr('Informação sobre a tua identidade de género e saúde é uma categoria especial de dados no RGPD.'),
+      tr('Tens direito à retificação (art. 16.º) e ao apagamento (art. 17.º). A entidade tem, em regra, um mês para responder.'),
+      tr('Se não responderem ou recusarem sem razão, podes apresentar queixa à CNPD.'),
     ],
     sources: [DR.rgpd, DR.cnpd],
   },
@@ -99,43 +100,43 @@ export interface Route { id: string; label: string; steps: string[]; who: Source
 
 export const routes: Route[] = [
   {
-    id: 'trabalho', label: 'No trabalho',
-    steps: ['Regista o que aconteceu, com data, local e testemunhas.', 'Se te sentires em segurança, comunica por escrito à chefia ou ao RH.', 'Sem resposta ou se continuar, apresenta queixa à ACT e/ou à CIG.', 'Fala com o sindicato ou com o apoio jurídico da ILGA.'],
+    id: 'trabalho', label: tr('No trabalho'),
+    steps: [tr('Regista o que aconteceu, com data, local e testemunhas.'), tr('Se te sentires em segurança, comunica por escrito à chefia ou ao RH.'), tr('Sem resposta ou se continuar, apresenta queixa à ACT e/ou à CIG.'), tr('Fala com o sindicato ou com o apoio jurídico da ILGA.')],
     who: [DR.act, DR.cig], template: 'empregador',
   },
   {
-    id: 'saude', label: 'Num serviço de saúde',
-    steps: ['Pede o Livro de Reclamações no local ou usa o eletrónico.', 'No SNS, podes também escrever ao Gabinete do Cidadão.', 'Podes reclamar diretamente na ERS.'],
+    id: 'saude', label: tr('Num serviço de saúde'),
+    steps: [tr('Pede o Livro de Reclamações no local ou usa o eletrónico.'), tr('No SNS, podes também escrever ao Gabinete do Cidadão.'), tr('Podes reclamar diretamente na ERS.')],
     who: [DR.lr, DR.ers], template: 'reclamacao',
   },
   {
-    id: 'servico', label: 'Numa loja, banco ou serviço',
-    steps: ['Pede o Livro de Reclamações (é obrigatório existir).', 'Se o problema for o nome nos dados, envia um pedido de retificação (RGPD).', 'Discriminação pode ser comunicada à CIG.'],
+    id: 'servico', label: tr('Numa loja, banco ou serviço'),
+    steps: [tr('Pede o Livro de Reclamações (é obrigatório existir).'), tr('Se o problema for o nome nos dados, envia um pedido de retificação (RGPD).'), tr('Discriminação pode ser comunicada à CIG.')],
     who: [DR.lr, DR.cig], template: 'reclamacao',
   },
   {
-    id: 'escola', label: 'Na escola',
-    steps: ['Fala com o/a diretor/a de turma ou com a direção, de preferência por escrito.', 'Pede uma reunião com alguém de confiança presente.', 'Se não houver resposta, contacta a Inspeção-Geral da Educação e Ciência e a ILGA.'],
+    id: 'escola', label: tr('Na escola'),
+    steps: [tr('Fala com o/a diretor/a de turma ou com a direção, de preferência por escrito.'), tr('Pede uma reunião com alguém de confiança presente.'), tr('Se não houver resposta, contacta a Inspeção-Geral da Educação e Ciência e a ILGA.')],
     who: [DR.cig],
   },
   {
-    id: 'rua', label: 'Na rua ou online (agressão, ameaça, ódio)',
-    steps: ['Se houver perigo, liga 112.', 'Guarda provas: capturas de ecrã, fotos de ferimentos, relatório médico.', 'Apresenta queixa na PSP, GNR ou no Ministério Público.', 'Pede apoio à APAV (116 006).'],
+    id: 'rua', label: tr('Na rua ou online (agressão, ameaça, ódio)'),
+    steps: [tr('Se houver perigo, liga 112.'), tr('Guarda provas: capturas de ecrã, fotos de ferimentos, relatório médico.'), tr('Apresenta queixa na PSP, GNR ou no Ministério Público.'), tr('Pede apoio à APAV (116 006).')],
     who: [DR.apav],
   },
   {
-    id: 'dados', label: 'Não atualizam o meu nome',
-    steps: ['Envia um pedido de retificação por escrito (o modelo está em Documentos).', 'Espera até um mês pela resposta.', 'Sem resposta, apresenta queixa à CNPD.'],
+    id: 'dados', label: tr('Não atualizam o meu nome'),
+    steps: [tr('Envia um pedido de retificação por escrito (o modelo está em Documentos).'), tr('Espera até um mês pela resposta.'), tr('Sem resposta, apresenta queixa à CNPD.')],
     who: [DR.cnpd, DR.rgpd], template: 'cnpd',
   },
 ]
 
 export const freeLegalHelp: { name: string; desc: string; url?: string; phone?: string }[] = [
-  { name: 'ILGA Portugal: apoio jurídico', desc: 'Atendimento jurídico gratuito para pessoas LGBTI+.', url: 'https://ilga-portugal.pt' },
-  { name: 'Proteção jurídica (Segurança Social)', desc: 'Se não puderes pagar, pedes advogado/a oficioso/a e isenção de custas.', url: 'https://www.seg-social.pt/protecao-juridica' },
-  { name: 'APAV', desc: 'Apoio jurídico e emocional a vítimas de crime, gratuito.', phone: '116006', url: 'https://apav.pt' },
-  { name: 'Opus Diversidades', desc: 'Apoio e encaminhamento para pessoas LGBTI+.', url: 'https://opusdiversidades.org' },
-  { name: 'Sindicato', desc: 'Se fores sindicalizade, o sindicato tem apoio jurídico laboral.' },
+  { name: tr('ILGA Portugal: apoio jurídico'), desc: tr('Atendimento jurídico gratuito para pessoas LGBTI+.'), url: 'https://ilga-portugal.pt' },
+  { name: tr('Proteção jurídica (Segurança Social)'), desc: tr('Se não puderes pagar, pedes advogado/a oficioso/a e isenção de custas.'), url: 'https://www.seg-social.pt/protecao-juridica' },
+  { name: tr('APAV'), desc: tr('Apoio jurídico e emocional a vítimas de crime, gratuito.'), phone: '116006', url: 'https://apav.pt' },
+  { name: tr('Opus Diversidades'), desc: tr('Apoio e encaminhamento para pessoas LGBTI+.'), url: 'https://opusdiversidades.org' },
+  { name: tr('Sindicato'), desc: tr('Se fores sindicalizade, o sindicato tem apoio jurídico laboral.') },
 ]
 
 /* ---------- Modelos ---------- */
@@ -143,10 +144,10 @@ export const freeLegalHelp: { name: string; desc: string; url?: string; phone?: 
 export type TemplateId = 'reclamacao' | 'empregador' | 'cig' | 'cnpd'
 
 export const templateLabels: Record<TemplateId, string> = {
-  reclamacao: 'Reclamação (loja, serviço ou saúde)',
-  empregador: 'Exposição à entidade empregadora',
-  cig: 'Queixa por discriminação à CIG',
-  cnpd: 'Queixa à CNPD (dados não retificados)',
+  reclamacao: tr('Reclamação (loja, serviço ou saúde)'),
+  empregador: tr('Exposição à entidade empregadora'),
+  cig: tr('Queixa por discriminação à CIG'),
+  cnpd: tr('Queixa à CNPD (dados não retificados)'),
 }
 
 export interface TemplateFields { name: string; entity: string; date: string; place: string; what: string; witnesses: string }

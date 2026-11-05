@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import { useVault } from '../lib/vault-context'
+import { tr } from '../i18n'
 
 // Calculadora funcional usada como disfarce após o botão de pânico.
 // Modo PIN: escrever o PIN e carregar em "=" volta à app.
@@ -66,7 +67,7 @@ export function Decoy() {
   }
 
   return (
-    <div className="calc" aria-label="Calculadora">
+    <div className="calc" aria-label={tr('Calculadora')}>
       <div className="display">{display}</div>
       <div className="keys">
         {keys.map(([k, cls]) => (

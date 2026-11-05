@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useState, type ReactNode } from 'react'
 import { Icon } from './Icon'
+import { locale, tr } from '../i18n'
 
 export function Sheet({ open, onClose, title, children }: { open: boolean; onClose: () => void; title: string; children: ReactNode }) {
   if (!open) return null
@@ -9,7 +10,7 @@ export function Sheet({ open, onClose, title, children }: { open: boolean; onClo
         <div className="grab" />
         <div className="row between">
           <h2>{title}</h2>
-          <button className="icon-btn" onClick={onClose} aria-label="Fechar"><Icon name="x" /></button>
+          <button className="icon-btn" onClick={onClose} aria-label={tr('Fechar')}><Icon name="x" /></button>
         </div>
         {children}
       </div>
@@ -89,5 +90,5 @@ export async function copyText(text: string): Promise<boolean> {
 }
 
 export function fmtDate(iso: string, opts: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short' }): string {
-  return new Date(iso).toLocaleDateString('pt-PT', opts)
+  return new Date(iso).toLocaleDateString(locale, opts)
 }

@@ -1,25 +1,26 @@
+import { tr } from '../i18n'
 // Temas e fases para os testemunhos. A ideia é encontrar alguém que passou
 // pela mesma coisa, no mesmo momento do caminho.
 export const storyTopics = [
-  { id: 'hormonas-e', label: 'Estrogénio e bloqueadores' },
-  { id: 'hormonas-t', label: 'Testosterona' },
-  { id: 'mastectomia', label: 'Mastectomia' },
-  { id: 'mamoplastia', label: 'Mamoplastia de aumento' },
-  { id: 'vaginoplastia', label: 'Vaginoplastia' },
-  { id: 'faloplastia', label: 'Faloplastia / metoidioplastia' },
-  { id: 'histerectomia', label: 'Histerectomia' },
-  { id: 'ffs', label: 'Cirurgia facial' },
-  { id: 'voz', label: 'Voz' },
-  { id: 'emocional', label: 'Emoções e saúde mental' },
-  { id: 'outro', label: 'Outro' },
+  { id: 'hormonas-e', label: tr('Estrogénio e bloqueadores') },
+  { id: 'hormonas-t', label: tr('Testosterona') },
+  { id: 'mastectomia', label: tr('Mastectomia') },
+  { id: 'mamoplastia', label: tr('Mamoplastia de aumento') },
+  { id: 'vaginoplastia', label: tr('Vaginoplastia') },
+  { id: 'faloplastia', label: tr('Faloplastia / metoidioplastia') },
+  { id: 'histerectomia', label: tr('Histerectomia') },
+  { id: 'ffs', label: tr('Cirurgia facial') },
+  { id: 'voz', label: tr('Voz') },
+  { id: 'emocional', label: tr('Emoções e saúde mental') },
+  { id: 'outro', label: tr('Outro') },
 ] as const
 
 export const storyPhases = [
-  { id: 'antes', label: 'Antes de começar' },
-  { id: 'primeiros-dias', label: 'Primeiros dias' },
-  { id: 'semanas', label: 'Primeiras semanas' },
-  { id: 'meses', label: '3 a 6 meses' },
-  { id: 'ano', label: '1 ano ou mais' },
+  { id: 'antes', label: tr('Antes de começar') },
+  { id: 'primeiros-dias', label: tr('Primeiros dias') },
+  { id: 'semanas', label: tr('Primeiras semanas') },
+  { id: 'meses', label: tr('3 a 6 meses') },
+  { id: 'ano', label: tr('1 ano ou mais') },
 ] as const
 
 export type StoryTopic = (typeof storyTopics)[number]['id']
