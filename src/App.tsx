@@ -17,6 +17,7 @@ import { Community } from './pages/Community'
 import { Work } from './pages/Work'
 import { Settings } from './pages/Settings'
 import { Share } from './pages/Share'
+import { Rights } from './pages/Rights'
 import { AllyCards, AllyForMe, AllyHome, AllyLearn, AllyPractice, Receive } from './pages/Ally'
 
 function Shell() {
@@ -53,6 +54,7 @@ function Shell() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/partilhar" element={<Share />} />
+          <Route path="/direitos" element={<Rights />} />
           <Route path="/receber/:data" element={<Receive />} />
           <Route path="/documentos" element={<Documents />} />
           <Route path="/nome" element={<NameRehearsal />} />

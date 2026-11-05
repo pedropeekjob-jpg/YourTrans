@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { MentalHealth } from './MentalHealth'
 import { useVault } from '../lib/vault-context'
 import { TopBar } from '../components/Layout'
 import { Icon } from '../components/Icon'
@@ -9,21 +10,25 @@ import { useProviders } from '../lib/useProviders'
 import { api, apiEnabled } from '../lib/api'
 import { uid } from '../lib/types'
 
-type Tab = 'diretorio' | 'percurso' | 'rastreios'
+type Tab = 'diretorio' | 'mente' | 'percurso' | 'rastreios'
 const kinds: ProviderKind[] = ['Medicina geral', 'Endocrinologia', 'Psicologia', 'Psiquiatria', 'Sexologia', 'Cirurgia', 'Terapia da fala', 'Clínica']
 
 export function Health() {
-  const [tab, setTab] = useState<Tab>('diretorio')
+  const [params, setParams] = useSearchParams()
+  const tab = (params.get('tab') as Tab) || 'diretorio'
+  const setTab = (t: Tab, extra: Record<string, string> = {}) => setParams({ tab: t, ...extra }, { replace: true })
   return (
     <>
       <TopBar title="Saúde" />
       <div className="page">
         <Seg value={tab} onChange={setTab} options={[
           { id: 'diretorio', label: 'Profissionais' },
+          { id: 'mente', label: 'Mente' },
           { id: 'percurso', label: 'Percurso SNS' },
           { id: 'rastreios', label: 'Rastreios' },
         ]} />
-        {tab === 'diretorio' && <Directory />}
+        {tab === 'diretorio' && <Directory initialKind={(params.get('tipo') as ProviderKind) ?? ''} />}
+        {tab === 'mente' && <MentalHealth onDirectory={() => setTab('diretorio', { tipo: 'Psicologia' })} />}
         {tab === 'percurso' && <Pathway />}
         {tab === 'rastreios' && <Screenings />}
       </div>
@@ -37,11 +42,11 @@ export function scoreBadge(p: Provider) {
   return <span className={'badge ' + (pct >= 80 ? 'mint' : 'amber')}>{pct}% nome certo · {p.reviewCount}</span>
 }
 
-function Directory() {
+function Directory({ initialKind = '' }: { initialKind?: ProviderKind | '' }) {
   const { providers, online } = useProviders()
   const { vault, update } = useVault()
   const [q, setQ] = useState('')
-  const [kind, setKind] = useState<ProviderKind | ''>('')
+  const [kind, setKind] = useState<ProviderKind | ''>(initialKind)
   const [district, setDistrict] = useState('')
   const [suggest, setSuggest] = useState(false)
 

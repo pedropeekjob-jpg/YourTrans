@@ -120,6 +120,12 @@ export interface ReceivedCard { id: string; receivedAt: string; payload: SharedP
 
 export interface FeelingEntry { id: string; date: string; prompt: string; text: string }
 
+/** Registo privado de uma ocorrência (prova para uma queixa). */
+export interface Incident { id: string; date: string; where: string; who: string; what: string; witnesses: string; evidence: string; reportedTo: string }
+
+/** Registo do que foi partilhado com terapeuta (para saberes o que deste e a quem). */
+export interface SharedSummary { id: string; at: string; to: string; from: string; until: string; sections: string[] }
+
 export interface Vault {
   version: 1
   settings: Settings
@@ -150,6 +156,8 @@ export interface Vault {
   practiceDays: string[]
   practiceBest: number
   feelings: FeelingEntry[]
+  incidents: Incident[]
+  summaries: SharedSummary[]
 }
 
 export function emptyVault(): Vault {
@@ -189,6 +197,8 @@ export function emptyVault(): Vault {
     practiceDays: [],
     practiceBest: 0,
     feelings: [],
+    incidents: [],
+    summaries: [],
   }
 }
 

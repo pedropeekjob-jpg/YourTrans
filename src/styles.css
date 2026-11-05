@@ -307,3 +307,4 @@ textarea.input { min-height: 110px; resize: vertical; }
 .tag-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
 .tag-list li { display: flex; gap: 10px; align-items: flex-start; }
 .chip { white-space: normal; max-width: 100%; text-align: left; }
+.chips .chip { white-space: nowrap; flex: none; }

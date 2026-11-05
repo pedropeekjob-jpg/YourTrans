@@ -69,6 +69,8 @@ export function Home() {
     { to: '/comunidade?tab=agenda', icon: 'calendar', title: 'Agenda', sub: 'Marchas e eventos', tint: 'tint-rose' },
     { to: '/emprego', icon: 'briefcase', title: 'Trabalho', sub: 'Empresas inclusivas', tint: 'tint-sky' },
     { to: '/documentos?tab=pedidos', icon: 'copy', title: 'Cartas prontas', sub: 'Banco, escola, trabalho…', tint: 'tint-mint' },
+    { to: '/direitos', icon: 'book', title: 'Direitos e lei', sub: 'O que fazer e a quem recorrer', tint: 'tint-amber' },
+    { to: '/saude?tab=mente', icon: 'chat', title: 'Saúde mental', sub: 'Apoio informado', tint: 'tint-rose' },
   ]
 
   return (

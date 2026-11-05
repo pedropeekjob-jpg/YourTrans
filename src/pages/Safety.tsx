@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useVault } from '../lib/vault-context'
 import { TopBar } from '../components/Layout'
 import { Icon } from '../components/Icon'
@@ -192,6 +193,7 @@ function Report() {
       <section className="card tint-accent">
         <h3>Reportar de forma anónima</h3>
         <p className="small">Não pedimos nome, contacto, data exata nem morada. Os relatos ajudam associações a mostrar o que está a acontecer e a exigir mudanças.</p>
+        <Link to="/direitos?tab=agir" className="btn sm secondary" style={{ justifySelf: 'start' }}>Queres apresentar queixa? Vê o que fazer</Link>
       </section>
       <div className="stack"><b className="small">O que aconteceu?</b><div className="chips" style={{ flexWrap: 'wrap' }}>{incidentKinds.map(k => <button key={k} className={'chip' + (form.kind === k ? ' on' : '')} onClick={() => setForm({ ...form, kind: k })}>{k}</button>)}</div></div>
       <div className="stack"><b className="small">Onde?</b><div className="chips" style={{ flexWrap: 'wrap' }}>{settings.map(k => <button key={k} className={'chip' + (form.setting === k ? ' on' : '')} onClick={() => setForm({ ...form, setting: k })}>{k}</button>)}</div></div>
