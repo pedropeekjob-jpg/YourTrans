@@ -23,8 +23,7 @@ export function Onboarding() {
   if (profile === 'trans') return <TransOnboarding onBack={() => setProfile(null)} />
   if (profile === 'ally') return <AllyOnboarding fromLink={fromLink} onBack={() => setProfile(null)} />
   return (
-    <div className="onb">
-      <div className="row" style={{ justifyContent: 'flex-end' }}><LangPicker compact /></div>
+    <div className="onb onb-start">
       <div className="stack-lg pop" style={{ alignContent: 'center' }}>
         <div className="art" style={{ aspectRatio: 2 }}><Icon name="sparkle" size={72} /></div>
         <h1>{tr('Olá! Quem és?')}</h1>
@@ -41,7 +40,7 @@ export function Onboarding() {
           <span className="grow stack" style={{ gap: 2 }}><b>{tr('Apoio alguém trans')}</b><span className="small muted">{tr('Família, amigue, colega, chefia ou professor/a')}</span></span>
           <Icon name="chevron" />
         </button>
-        <p className="xs muted" style={{ textAlign: 'center' }}>{tr('Sem conta. Tudo fica cifrado neste telemóvel.')}</p>
+        <p className="xs muted" style={{ textAlign: 'center' }}>{tr('Sem conta. Tudo fica cifrado neste telemóvel.')}<br /><LangPicker subtle /></p>
       </div>
     </div>
   )
