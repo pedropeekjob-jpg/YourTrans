@@ -9,6 +9,8 @@ import { districts } from '../data/health'
 import { api, apiEnabled } from '../lib/api'
 import { uid, type Facilities, type Place, type ShowerType } from '../lib/types'
 import { tr } from '../i18n'
+import { SafeMap, type MapPlace } from '../components/SafeMap'
+import { directionsUrl, distance, formatDistance, inPortugal, locateOnce, round4, wazeUrl, type LatLng } from '../lib/geo'
 
 type Tab = 'alerta' | 'locais' | 'reportar'
 
@@ -73,6 +75,30 @@ export function FacilityBadges({ f }: { f: Facilities }) {
   )
 }
 
+function PlaceCard({ p, me, onRemove, onShow }: { p: Place; me: LatLng | null; onRemove: (id: string) => void; onShow?: () => void }) {
+  const pos = typeof p.lat === 'number' && typeof p.lng === 'number' ? { lat: p.lat, lng: p.lng } : null
+  return (
+    <article className="card">
+      <div className="row between" style={{ alignItems: 'flex-start' }}>
+        <div className="stack" style={{ gap: 2 }}>
+          <h3>{p.name}</h3>
+          <span className="small muted">{tr(p.kind)} · {p.district}{p.source === 'comunidade' ? tr(' · comunidade') : ''}{me && pos ? ' · ' + formatDistance(distance(me, pos)) : ''}</span>
+        </div>
+        {p.source === 'meu' && <button className="btn ghost sm" aria-label={tr('Remover')} onClick={() => onRemove(p.id)}><Icon name="trash" size={16} /></button>}
+      </div>
+      <FacilityBadges f={p.facilities ?? {}} />
+      {p.notes && <p className="small">{p.notes}</p>}
+      {pos && (
+        <div className="row wrap" style={{ gap: 8 }}>
+          <a className="btn sm" href={directionsUrl(pos, p.name)} target="_blank" rel="noopener noreferrer"><Icon name="map" size={16} />{tr('Ir para lá')}</a>
+          <a className="btn ghost sm" href={wazeUrl(pos)} target="_blank" rel="noopener noreferrer">{tr('Abrir no Waze')}</a>
+          {onShow && <button className="btn ghost sm" onClick={onShow}><Icon name="pin" size={16} />{tr('Ver no mapa')}</button>}
+        </div>
+      )}
+    </article>
+  )
+}
+
 export function Places() {
   const { vault, update } = useVault()
   const toast = useToast()
@@ -82,8 +108,23 @@ export function Places() {
   const [district, setDistrict] = useState('')
   const [open, setOpen] = useState(false)
   const [share, setShare] = useState(true)
-  const empty = { name: '', kind: 'Ginásio', district: 'Lisboa', notes: '', facilities: {} as Facilities }
+  const empty = { name: '', kind: 'Ginásio', district: 'Lisboa', notes: '', facilities: {} as Facilities, pos: null as LatLng | null }
   const [form, setForm] = useState(empty)
+  const [view, setView] = useState<'mapa' | 'lista'>('mapa')
+  const [me, setMe] = useState<LatLng | null>(null)
+  const [locating, setLocating] = useState(false)
+  const [selected, setSelected] = useState<string | null>(null)
+
+  // A posição só é usada aqui, em memória: não é guardada nem enviada.
+  const locate = async (forForm = false) => {
+    setLocating(true)
+    try {
+      const p = await locateOnce()
+      if (forForm) setForm(f => ({ ...f, pos: { lat: round4(p.lat), lng: round4(p.lng) } }))
+      else setMe(p)
+    } catch { toast(tr('Não foi possível obter a localização. Confirma a permissão nas definições do telemóvel.')) }
+    finally { setLocating(false) }
+  }
 
   useEffect(() => { if (apiEnabled) api.safePlaces().then(setRemote).catch(() => {}) }, [])
 
@@ -91,17 +132,24 @@ export function Places() {
     ...vault.places.map(p => ({ ...p, source: 'meu' as const })),
     ...remote.map(p => ({ ...p, source: 'comunidade' as const })),
   ], [vault.places, remote])
-  const list = all.filter(p => (!kind || p.kind === kind) && (!district || p.district === district) && filters.every(f => matches(p.facilities ?? {}, f)))
+  const filtered = all.filter(p => (!kind || p.kind === kind) && (!district || p.district === district) && filters.every(f => matches(p.facilities ?? {}, f)))
+  const hasPos = (p: Place): p is MapPlace => typeof p.lat === 'number' && typeof p.lng === 'number'
+  const dist = (p: Place) => (me && hasPos(p) ? distance(me, p) : Infinity)
+  const list = me ? [...filtered].sort((a, b) => dist(a) - dist(b)) : filtered
+  const onMap = useMemo(() => filtered.filter(hasPos), [filtered])
+  const sel = list.find(p => p.id === selected)
 
   const save = async () => {
-    const place: Place = { id: uid(), ...form, name: form.name.trim(), notes: form.notes.trim() || undefined }
+    const { pos, ...rest } = form
+    const place: Place = { id: uid(), ...rest, name: form.name.trim(), notes: form.notes.trim() || undefined, ...(pos ? { lat: round4(pos.lat), lng: round4(pos.lng) } : {}) }
     update(v => ({ ...v, places: [place, ...v.places] }))
     if (share && apiEnabled) {
-      try { await api.suggestPlace({ name: place.name, kind: place.kind, district: place.district, notes: place.notes, facilities: place.facilities }); toast(tr('Guardado e enviado para moderação')) }
+      try { await api.suggestPlace({ name: place.name, kind: place.kind, district: place.district, notes: place.notes, facilities: place.facilities, lat: place.lat, lng: place.lng }); toast(tr('Guardado e enviado para moderação')) }
       catch { toast(tr('Guardado só neste telemóvel')) }
     } else toast(tr('Guardado'))
     setOpen(false); setForm(empty)
   }
+  const remove = (id: string) => { update(v => ({ ...v, places: v.places.filter(x => x.id !== id) })); setSelected(null) }
   const setF = (k: keyof Facilities, v: Facilities[keyof Facilities]) => setForm({ ...form, facilities: { ...form.facilities, [k]: v } })
 
   return (
@@ -119,25 +167,30 @@ export function Places() {
         <select className="input" value={kind} onChange={e => setKind(e.target.value)} aria-label={tr('Tipo de local')}><option value="">{tr('Todos os tipos')}</option>{placeKinds.map(k => <option key={k} value={k}>{tr(k)}</option>)}</select>
         <select className="input" value={district} onChange={e => setDistrict(e.target.value)} aria-label={tr('Distrito')}><option value="">{tr('Todo o país')}</option>{districts.map(d => <option key={d}>{d}</option>)}</select>
       </div>
-      {list.length === 0 ? (
+      <div className="row between" style={{ gap: 8 }}>
+        <Seg value={view} onChange={setView} options={[{ id: 'mapa', label: tr('Mapa') }, { id: 'lista', label: tr('Lista') }]} />
+        <button className={'btn sm' + (me ? '' : ' ghost')} disabled={locating} onClick={() => (me ? setMe(null) : locate())}>
+          <Icon name="pin" size={16} />{locating ? tr('A localizar…') : me ? tr('Perto de mim ✓') : tr('Perto de mim')}
+        </button>
+      </div>
+      {view === 'mapa' && (
+        <>
+          <SafeMap places={onMap} user={me} selected={selected} onSelect={setSelected} height="min(60vh, 460px)" />
+          {sel ? <PlaceCard p={sel} me={me} onRemove={remove} /> : (
+            <p className="small muted" style={{ margin: 0 }}>
+              {onMap.length ? tr('Toca num marcador para ver os detalhes.') : tr('Ainda não há locais com posição no mapa.')}{' '}
+              {tr('A tua localização é usada só neste telemóvel e nunca é guardada nem enviada.')}
+            </p>
+          )}
+        </>
+      )}
+      {view === 'lista' && (list.length === 0 ? (
         <Empty icon="pin" title={all.length ? tr('Nenhum local com estes filtros') : tr('Ainda não há locais')} text={tr('Conheces um ginásio, piscina ou café onde te sentiste em segurança? Adiciona-o.')} />
       ) : (
         <div className="stack">
-          {list.map(p => (
-            <article key={p.id} className="card">
-              <div className="row between" style={{ alignItems: 'flex-start' }}>
-                <div className="stack" style={{ gap: 2 }}>
-                  <h3>{p.name}</h3>
-                  <span className="small muted">{tr(p.kind)} · {p.district}{p.source === 'comunidade' ? tr(' · comunidade') : ''}</span>
-                </div>
-                {p.source === 'meu' && <button className="btn ghost sm" aria-label={tr('Remover')} onClick={() => update(v => ({ ...v, places: v.places.filter(x => x.id !== p.id) }))}><Icon name="trash" size={16} /></button>}
-              </div>
-              <FacilityBadges f={p.facilities ?? {}} />
-              {p.notes && <p className="small">{p.notes}</p>}
-            </article>
-          ))}
+          {list.map(p => <PlaceCard key={p.id} p={p} me={me} onRemove={remove} onShow={hasPos(p) ? () => { setSelected(p.id); setView('mapa') } : undefined} />)}
         </div>
-      )}
+      ))}
       <button className="btn block" onClick={() => setOpen(true)}><Icon name="plus" size={18} />{tr('Adicionar local')}</button>
 
       <Sheet open={open} onClose={() => setOpen(false)} title={tr('Novo local seguro')}>
@@ -157,6 +210,13 @@ export function Places() {
           <div className="chips" style={{ flexWrap: 'wrap' }}>
             {(Object.keys(showerLabels) as ShowerType[]).map(s => <button key={s} className={'chip' + (form.facilities.duches === s ? ' on' : '')} onClick={() => setF('duches', s)}>{showerLabels[s]}</button>)}
           </div>
+        </div>
+        <div className="stack" style={{ gap: 8 }}>
+          <div className="row between"><b className="small">{tr('Onde fica')}</b>
+            <button className="btn ghost sm" disabled={locating} onClick={() => locate(true)}><Icon name="pin" size={16} />{tr('Estou lá agora')}</button>
+          </div>
+          <SafeMap pick={form.pos} onPick={p => setForm(f => ({ ...f, pos: { lat: round4(p.lat), lng: round4(p.lng) } }))} height={220} />
+          <span className="small muted">{form.pos ? (inPortugal(form.pos) ? tr('Local marcado. Toca no mapa para corrigir.') : tr('Este ponto parece estar fora de Portugal.')) : tr('Toca no mapa para marcar o local (opcional).')}</span>
         </div>
         <label className="field">{tr('Notas')}<textarea className="input" style={{ minHeight: 70 }} value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} placeholder={tr('Ex.: staff respeitoso, pede-se a chave na receção')} /></label>
         {apiEnabled && <label className="row small" style={{ gap: 8 }}><input type="checkbox" checked={share} onChange={e => setShare(e.target.checked)} /> {tr('Partilhar com a comunidade (anónimo, moderado)')}</label>}

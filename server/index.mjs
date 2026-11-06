@@ -35,6 +35,10 @@ db.exec(`
 const str = (v, min, max) => typeof v === 'string' && v.trim().length >= min && v.trim().length <= max
 const opt = (v, max) => v === undefined || v === null || (typeof v === 'string' && v.length <= max)
 const bool = v => typeof v === 'boolean'
+/** Coordenadas opcionais, só em Portugal (continente, Açores e Madeira). */
+const coord = (lat, lng) => (lat === undefined && lng === undefined) ||
+  (Number.isFinite(lat) && Number.isFinite(lng) && lat >= 29.5 && lat <= 42.5 && lng >= -31.8 && lng <= -6)
+const r4 = n => (Number.isFinite(n) ? Math.round(n * 1e4) / 1e4 : undefined)
 const PROVIDER_KINDS = ['Medicina geral', 'Endocrinologia', 'Psicologia', 'Psiquiatria', 'Cirurgia', 'Terapia da fala', 'Sexologia', 'Clínica']
 const SHOWERS = ['individuais', 'comuns', 'ambos', 'sem']
 const STORY_TOPICS = ['hormonas-e', 'hormonas-t', 'mastectomia', 'mamoplastia', 'vaginoplastia', 'faloplastia', 'histerectomia', 'ffs', 'voz', 'emocional', 'outro']
@@ -44,7 +48,7 @@ const validators = {
   provider: b => str(b.name, 3, 160) && PROVIDER_KINDS.includes(b.kind) && str(b.district, 2, 40) && ['SNS', 'Privado', 'Associação'].includes(b.sector) && opt(b.notes, 600),
   review: b => str(b.providerId, 1, 80) && b.answers && ['nomeCerto', 'semJulgamento', 'conhecimento', 'recomendaria'].every(k => bool(b.answers[k])) && opt(b.comment, 600),
   place: b => str(b.name, 2, 160) && str(b.kind, 2, 40) && str(b.district, 2, 40) && opt(b.notes, 600) &&
-    typeof b.facilities === 'object' && (b.facilities.duches === undefined || SHOWERS.includes(b.facilities.duches)),
+    typeof b.facilities === 'object' && (b.facilities.duches === undefined || SHOWERS.includes(b.facilities.duches)) && coord(b.lat, b.lng),
   story: b => ['testemunho', 'pergunta'].includes(b.kind) && STORY_TOPICS.includes(b.topic) && STORY_PHASES.includes(b.phase) &&
     str(b.title, 3, 120) && str(b.body, 20, 4000) && opt(b.nickname, 40) && opt(b.warning, 120),
   reply: b => str(b.storyId, 1, 40) && str(b.body, 2, 1500) && opt(b.nickname, 40),
@@ -59,7 +63,8 @@ const pick = {
   provider: b => ({ name: b.name.trim(), kind: b.kind, district: b.district, sector: b.sector, notes: b.notes?.trim() || undefined }),
   review: b => ({ providerId: b.providerId, answers: b.answers, comment: b.comment?.trim() || undefined }),
   place: b => ({ name: b.name.trim(), kind: b.kind, district: b.district, notes: b.notes?.trim() || undefined,
-    facilities: { wcNeutro: !!b.facilities.wcNeutro, vestiarioNeutro: !!b.facilities.vestiarioNeutro, cabinesIndividuais: !!b.facilities.cabinesIndividuais, duches: b.facilities.duches } }),
+    facilities: { wcNeutro: !!b.facilities.wcNeutro, vestiarioNeutro: !!b.facilities.vestiarioNeutro, cabinesIndividuais: !!b.facilities.cabinesIndividuais, duches: b.facilities.duches },
+    lat: r4(b.lat), lng: r4(b.lng) }),
   story: b => ({ kind: b.kind, topic: b.topic, phase: b.phase, title: b.title.trim(), body: b.body.trim(), nickname: b.nickname?.trim() || undefined, warning: b.warning?.trim() || undefined }),
   reply: b => ({ storyId: b.storyId, body: b.body.trim(), nickname: b.nickname?.trim() || undefined }),
   event: b => ({ title: b.title.trim(), date: new Date(b.date).toISOString(), place: b.place?.trim() || undefined, url: b.url?.trim() || undefined }),

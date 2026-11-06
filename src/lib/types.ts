@@ -82,6 +82,9 @@ export interface Place {
   notes?: string
   facilities: Facilities
   source?: 'meu' | 'comunidade'
+  /** Coordenadas do local (opcionais, arredondadas a ~11 m). */
+  lat?: number
+  lng?: number
 }
 
 export interface SavedPlace extends Place {}
