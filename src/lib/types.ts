@@ -19,6 +19,8 @@ export interface Settings {
   /** Perfil: pessoa trans ou pessoa que apoia (família, amigues, trabalho, escola) */
   profile: Profile
   allyRole?: AllyRole
+  /** ISO da última cópia de segurança exportada neste aparelho */
+  lastBackup?: string
 }
 
 export interface Reminder {

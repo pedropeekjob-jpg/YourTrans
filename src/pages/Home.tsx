@@ -6,6 +6,8 @@ import { Progress, Ring, fmtDate, useToast } from '../components/ui'
 import { annualEvents, nextOccurrence } from '../data/events'
 import { useMilestones } from './Journey'
 import { todayKey, uid } from '../lib/types'
+import { daysSinceBackup, hasRecords } from './DataCare'
+import { useState } from 'react'
 import { tr } from '../i18n'
 
 export const moods = ['😞', '😕', '😐', '🙂', '🤩']
@@ -41,6 +43,9 @@ export function Home() {
   const today = todayKey()
   const checkedIn = vault.checkins.includes(today)
   const todayMood = vault.journal.find(j => j.date.slice(0, 10) === today && j.mood !== undefined)?.mood
+  const backupDays = daysSinceBackup(vault)
+  const [nudgeHidden, setNudgeHidden] = useState(() => { try { return Date.now() - Number(localStorage.getItem('backupNudge') ?? 0) < 7 * 86_400_000 } catch { return false } })
+  const showNudge = !nudgeHidden && hasRecords(vault) && (backupDays === null || backupDays > 30)
   const fact = facts[Math.floor(Date.now() / 86_400_000) % facts.length]
   const heardDays = vault.checkins.filter(d => d.startsWith(today.slice(0, 7))).length
   const milestones = useMilestones()
@@ -143,6 +148,15 @@ export function Home() {
             <Icon name="chevron" />
           </Link>
         </section>
+
+        {showNudge && (
+          <section className="card tint-mint">
+            <div className="row between"><div className="row"><Icon name="shield" /><h3>{tr('Protege os teus registos')}</h3></div>
+              <button className="icon-btn" aria-label={tr('Fechar')} onClick={() => { try { localStorage.setItem('backupNudge', String(Date.now())) } catch { /* ignorado */ } setNudgeHidden(true) }}><Icon name="x" size={18} /></button></div>
+            <p className="small">{backupDays === null ? tr('Os teus registos só existem neste aparelho. Faz uma cópia de segurança para não os perderes.') : tr('A tua última cópia de segurança foi há {0} dias.', backupDays)}</p>
+            <Link to="/dados" className="btn sm secondary" style={{ justifySelf: 'start' }}>{tr('Fazer cópia agora')}</Link>
+          </section>
+        )}
 
         <section className="card tint-amber">
           <div className="row"><Icon name="sparkle" /><h3>{tr('Sabias que…')}</h3></div>

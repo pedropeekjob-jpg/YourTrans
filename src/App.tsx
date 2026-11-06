@@ -22,6 +22,7 @@ import { Rights } from './pages/Rights'
 import { Journey } from './pages/Journey'
 import { Me } from './pages/Me'
 import { Help } from './pages/Help'
+import { DataCare } from './pages/DataCare'
 import { AllyCards, AllyForMe, AllyHome, AllyLearn, AllyPractice, Receive } from './pages/Ally'
 
 function Shell() {
@@ -61,6 +62,7 @@ function Screen() {
           <Route path="/receber/:data" element={<Receive />} />
           <Route path="/comunidade" element={<Community />} />
           <Route path="/definicoes" element={<Settings />} />
+          <Route path="/dados" element={<DataCare />} />
           <Route path="*" element={<AllyHome />} />
         </Routes>
         ) : (
@@ -81,6 +83,7 @@ function Screen() {
           <Route path="/comunidade" element={<Community />} />
           <Route path="/emprego" element={<Work />} />
           <Route path="/definicoes" element={<Settings />} />
+          <Route path="/dados" element={<DataCare />} />
           <Route path="*" element={<Home />} />
         </Routes>
         )}

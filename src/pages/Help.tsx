@@ -12,6 +12,7 @@ export function Help() {
     { to: '/comunidade?tab=apoio', icon: 'phone', title: tr('Linhas de apoio 24 horas'), sub: tr('SNS 24, SOS Voz Amiga, APAV e associações'), color: 'var(--danger)', bg: 'var(--danger-soft)' },
     { to: '/direitos', icon: 'book', title: tr('Os meus direitos'), sub: tr('O que diz a lei e o que fazer'), color: 'var(--amber)', bg: 'var(--amber-soft)' },
     { to: '/direitos?tab=registo', icon: 'doc', title: tr('Registar o que aconteceu'), sub: tr('Fica cifrado, para uma queixa'), color: 'var(--rose)', bg: 'var(--rose-soft)' },
+    { to: '/dados', icon: 'shield', title: tr('Não perder os meus registos'), sub: tr('Cópias de segurança e outro aparelho'), color: 'var(--mint)', bg: 'var(--mint-soft)' },
     { to: '/seguranca?tab=reportar', icon: 'shield', title: tr('Reportar discriminação'), sub: tr('De forma anónima'), color: 'var(--accent)', bg: 'var(--accent-soft)' },
   ]
   return (

@@ -5,6 +5,7 @@ import { Icon } from '../components/Icon'
 import { ThemePicker } from '../components/ThemePicker'
 import { LangPicker } from '../components/LangPicker'
 import { CasuloLogo } from '../components/CasuloLogo'
+import { daysSinceBackup } from './DataCare'
 import { tr } from '../i18n'
 
 /** Separador "Eu": o diário pessoal, a aparência e as definições. */
@@ -16,6 +17,8 @@ export function Me() {
   const entries = vault.journal.filter(j => j.text || j.photoIds.length).length
   const euphoria = vault.journal.filter(j => j.euphoria).length
   const photos = vault.journal.reduce((n, j) => n + j.photoIds.length, 0)
+  const days = daysSinceBackup(vault)
+  const backupOk = days !== null && days <= 30
 
   return (
     <>
@@ -60,6 +63,11 @@ export function Me() {
         </section>
 
         <div className="list">
+          <Link to="/dados" className="item">
+            <div className="lead" style={{ background: backupOk ? 'var(--mint-soft)' : 'var(--amber-soft)', color: backupOk ? 'var(--mint)' : 'var(--amber)' }}><Icon name="shield" /></div>
+            <div className="grow"><h3>{tr('Os teus dados')}</h3><p className="small muted">{days === null ? tr('Ainda sem cópia de segurança') : tr('Última cópia de segurança há {0} dias', days)}</p></div>
+            <Icon name="chevron" />
+          </Link>
           <Link to="/definicoes" className="item">
             <div className="lead" style={{ background: 'var(--accent-soft)', color: 'var(--accent)' }}><Icon name="lock" /></div>
             <div className="grow"><h3>{tr('Privacidade e definições')}</h3><p className="small muted">{tr('Código, modo privado, cópia de segurança e perfil')}</p></div>

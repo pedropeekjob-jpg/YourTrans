@@ -94,6 +94,7 @@ function AllyOnboarding({ fromLink, onBack }: { fromLink: boolean; onBack: () =>
           <p className="muted">{tr('O que a pessoa partilhou contigo é privado. Um código garante que só tu o vês.')}</p>
           <label className="field">{tr('Código (4 a 8 algarismos)')}<input className="input" inputMode="numeric" type="password" value={pin} onChange={e => setPinValue(e.target.value.replace(/\D/g, ''))} maxLength={8} />
           </label>
+          <p className="xs muted">{tr('Os teus registos ficam só neste aparelho, sem conta nem servidor. Em Eu › Os teus dados vês como fazer cópias e passá-los para outro aparelho.')}</p>
         </div>
       )}
       <div className="stack">
@@ -198,6 +199,7 @@ function TransOnboarding({ onBack }: { onBack: () => void }) {
           <label className="field">{tr('Repetir código')}<input className="input" inputMode="numeric" type="password" value={pin2} onChange={e => setPin2(e.target.value.replace(/\D/g, ''))} maxLength={8} />
           </label>
           {error && <p className="small" style={{ color: 'var(--danger)' }} role="alert">{error}</p>}
+          <p className="xs muted">{tr('Os teus registos ficam só neste aparelho, sem conta nem servidor. Em Eu › Os teus dados vês como fazer cópias e passá-los para outro aparelho.')}</p>
           <p className="xs muted">{tr('A seguir recebes um código de recuperação, para o caso de te esqueceres deste. Guarda-o fora do telemóvel.')}</p>
           <label className="card flat row" style={{ gap: 12, alignItems: 'flex-start', cursor: 'pointer' }}>
             <input type="checkbox" checked={disguise} onChange={e => setDisguise(e.target.checked)} style={{ marginTop: 4 }} />

@@ -172,6 +172,12 @@ export function VaultProvider({ children }: { children: ReactNode }) {
     return () => document.removeEventListener('visibilitychange', onVis)
   }, [mode, status, vault?.settings.autoLockMinutes, flush, lock])
 
+  // Pede ao browser para não apagar os dados sozinho (é concedido sobretudo a apps instaladas).
+  useEffect(() => {
+    if (status !== 'open' || !vault?.settings.onboarded) return
+    navigator.storage?.persisted?.().then(p => { if (!p) void navigator.storage.persist?.() }).catch(() => {})
+  }, [status, vault?.settings.onboarded])
+
   // Gravar antes de fechar.
   useEffect(() => {
     const h = () => { void flush() }

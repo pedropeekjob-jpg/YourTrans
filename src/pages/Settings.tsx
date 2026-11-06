@@ -1,4 +1,5 @@
-import { useRef, useState } from 'react'
+import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useVault } from '../lib/vault-context'
 import { TopBar } from '../components/Layout'
 import { Icon } from '../components/Icon'
@@ -6,35 +7,18 @@ import { LangPicker } from '../components/LangPicker'
 import { ThemePicker } from '../components/ThemePicker'
 import { CasuloLogo } from '../components/CasuloLogo'
 import { Seg, useToast } from '../components/ui'
-import { exportBackup, importBackup } from '../lib/storage'
+import { BackupCard } from './DataCare'
 import { pronounOptions } from './Onboarding'
 import { allyRoles } from '../data/allies'
 import { tr } from '../i18n'
 
 export function Settings() {
-  const { vault, update, mode, setPin, removePin, lock, wipe, replaceVault, hasRecovery } = useVault()
+  const { vault, update, mode, setPin, removePin, lock, wipe, hasRecovery } = useVault()
   const [changing, setChanging] = useState(false)
   const toast = useToast()
   const s = vault.settings
   const [pin, setPinV] = useState('')
-  const [backupPass, setBackupPass] = useState('')
-  const fileRef = useRef<HTMLInputElement>(null)
   const set = <K extends keyof typeof s>(k: K, v: (typeof s)[K]) => update(x => ({ ...x, settings: { ...x.settings, [k]: v } }))
-
-  const doExport = async () => {
-    if (backupPass.length < 6) { toast(tr('Escolhe uma palavra-passe com 6+ caracteres')); return }
-    const text = await exportBackup(vault, backupPass)
-    const a = document.createElement('a')
-    a.href = URL.createObjectURL(new Blob([text], { type: 'application/json' }))
-    a.download = tr('notas-{0}.backup', new Date().toISOString().slice(0, 10))
-    a.click(); URL.revokeObjectURL(a.href)
-    toast(tr('Cópia cifrada criada (sem fotos)'))
-  }
-  const doImport = async (f: File | undefined) => {
-    if (!f) return
-    try { await replaceVault(await importBackup(await f.text(), backupPass)); toast(tr('Dados restaurados')) }
-    catch { toast(tr('Palavra-passe errada ou ficheiro inválido')) }
-  }
 
   return (
     <>
@@ -109,16 +93,11 @@ export function Settings() {
           <ThemePicker />
         </section>
 
-        <section className="card">
-          <h3>{tr('Cópia de segurança')}</h3>
-          <p className="small muted">{tr('Ficheiro cifrado com uma palavra-passe à tua escolha. As fotos não são incluídas.')}</p>
-          <input className="input" type="password" placeholder={tr('Palavra-passe da cópia')} value={backupPass} onChange={e => setBackupPass(e.target.value)} />
-          <div className="grid2">
-            <button className="btn secondary" onClick={doExport}>{tr('Exportar')}</button>
-            <button className="btn secondary" onClick={() => fileRef.current?.click()} disabled={!backupPass}>{tr('Importar')}</button>
-          </div>
-          <input ref={fileRef} type="file" hidden accept=".backup,application/json" onChange={e => doImport(e.target.files?.[0])} />
-        </section>
+        <BackupCard />
+        <Link to="/dados" className="item card flat" style={{ textDecoration: 'none', color: 'inherit' }}>
+          <div className="grow"><h3>{tr('Como não perder os teus registos')}</h3><p className="small muted">{tr('Onde ficam, quando se podem perder e como passá-los para outro aparelho')}</p></div>
+          <Icon name="chevron" />
+        </Link>
 
         <section className="card tint-danger">
           <h3>{tr('Apagar tudo')}</h3>
