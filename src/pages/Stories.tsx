@@ -4,6 +4,7 @@ import { Icon } from '../components/Icon'
 import { Empty, Sheet, useToast } from '../components/ui'
 import { api, apiEnabled } from '../lib/api'
 import { phaseLabel, storyPhases, storyTopics, topicLabel, type Story, type StoryPhase, type StoryTopic } from '../data/stories'
+import { ShareNote } from './Privacy'
 import { locale, tr } from '../i18n'
 
 function monthLabel(m: string) {
@@ -174,6 +175,7 @@ function WriteSheet({ kind, defaultTopic, onClose }: { kind: 'testemunho' | 'per
       <label className="row small" style={{ gap: 8 }}><input type="checkbox" checked={warn} onChange={e => setWarn(e.target.checked)} /> {tr('Tem conteúdo sensível (dor, complicações, momentos difíceis)')}</label>
       {warn && <input className="input" maxLength={120} value={form.warning} onChange={e => setForm({ ...form, warning: e.target.value })} placeholder={tr('Ex.: descreve dor no pós-operatório')} />}
       <label className="field">{tr('Alcunha (opcional)')}<input className="input" maxLength={40} value={form.nickname} onChange={e => setForm({ ...form, nickname: e.target.value })} /></label>
+      <ShareNote />
       <button className="btn block" disabled={form.title.trim().length < 3 || form.body.trim().length < 20} onClick={submit}>{tr('Enviar para moderação')}</button>
       <p className="xs muted">{tr('Anónimo: não guardamos quem publica. Lê tudo antes de enviar e não incluas dados que te identifiquem.')}</p>
     </Sheet>

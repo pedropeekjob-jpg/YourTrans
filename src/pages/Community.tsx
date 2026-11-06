@@ -11,6 +11,7 @@ import { downloadIcs, icsEvent } from '../lib/ics'
 import { uid } from '../lib/types'
 import { Stories } from './Stories'
 import { Places } from './Safety'
+import { ShareNote } from './Privacy'
 import { locale, tr } from '../i18n'
 
 type Tab = 'apoio' | 'testemunhos' | 'agenda' | 'locais' | 'mentoria'
@@ -152,6 +153,7 @@ function Agenda() {
         <label className="field">{tr('Data e hora')}<input className="input" type="datetime-local" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} /></label>
         <label className="field">{tr('Local')}<input className="input" value={form.place} onChange={e => setForm({ ...form, place: e.target.value })} /></label>
         {apiEnabled && <label className="row small" style={{ gap: 8 }}><input type="checkbox" checked={form.share} onChange={e => setForm({ ...form, share: e.target.checked })} /> {tr('Partilhar com a comunidade (moderado)')}</label>}
+        {apiEnabled && form.share && <ShareNote />}
         <button className="btn block" disabled={!form.title.trim() || !form.date} onClick={addMine}>{tr('Guardar')}</button>
       </Sheet>
     </>
@@ -197,6 +199,7 @@ function Mentoring() {
               <div className="stack"><b className="small">{tr('Em que fase estás?')}</b><div className="chips" style={{ flexWrap: 'wrap' }}>{stages.map(s => <button key={s} className={'chip' + (form.stage === s ? ' on' : '')} onClick={() => setForm({ ...form, stage: s })}>{s}</button>)}</div></div>
               <div className="stack"><b className="small">{tr('Temas')}</b><div className="chips" style={{ flexWrap: 'wrap' }}>{topics.map(t => { const on = form.topics.includes(t); return <button key={t} className={'chip' + (on ? ' on' : '')} onClick={() => setForm({ ...form, topics: on ? form.topics.filter(x => x !== t) : [...form.topics, t] })}>{t}</button> })}</div></div>
               <label className="field">{tr('Contacto (e-mail ou Signal)')}<input className="input" value={form.contact} onChange={e => setForm({ ...form, contact: e.target.value })} placeholder={tr('Usado só pela equipa de moderação')} /></label>
+              <p className="xs muted">{tr('O contacto só é visto pela moderação e é apagado ao fim de 6 meses.')} <Link to="/privacidade">{tr('Política de privacidade')}</Link></p>
               <button className="btn" disabled={!form.nickname.trim() || !form.stage || form.contact.trim().length < 5} onClick={submit}>{tr('Enviar pedido')}</button>
             </section>
           )}

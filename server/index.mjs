@@ -158,6 +158,16 @@ function incidentStats() {
   return { total: rows.length, byKind: count('kind'), bySetting: count('setting'), byDistrict: count('district'), byMonth: count('month') }
 }
 
+/* ---------- prazos de conservação ---------- */
+
+/** Pedidos de mentoria (têm contacto) são apagados ao fim de 6 meses. */
+function purgeOld() {
+  const d = new Date(); d.setMonth(d.getMonth() - 6)
+  db.prepare("DELETE FROM submissions WHERE type = 'mentorship' AND month < ?").run(d.toISOString().slice(0, 7))
+}
+purgeOld()
+setInterval(purgeOld, 86_400_000).unref()
+
 /* ---------- HTTP ---------- */
 
 function allowOrigin(req) {
@@ -256,8 +266,9 @@ export const server = createServer(async (req, res) => {
       if (m) {
         if (!isMod(req)) return send(res, 401, { error: 'Sem autorização' })
         const { action } = await readBody(req)
-        if (action === 'delete') db.prepare('DELETE FROM submissions WHERE id = ?').run(m[1])
-        else if (action === 'approve' || action === 'reject') db.prepare('UPDATE submissions SET status = ? WHERE id = ?').run(action === 'approve' ? 'approved' : 'rejected', m[1])
+        // Rejeitar apaga logo o conteúdo: não guardamos o que não vai ser publicado.
+        if (action === 'delete' || action === 'reject') db.prepare('DELETE FROM submissions WHERE id = ?').run(m[1])
+        else if (action === 'approve') db.prepare("UPDATE submissions SET status = 'approved' WHERE id = ?").run(m[1])
         else return send(res, 400, { error: 'Ação inválida' })
         return send(res, 200, { ok: true })
       }

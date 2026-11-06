@@ -8,6 +8,7 @@ import { SosPanel } from '../components/Sos'
 import { districts } from '../data/health'
 import { api, apiEnabled } from '../lib/api'
 import { uid, type Facilities, type Place, type ShowerType } from '../lib/types'
+import { ShareNote } from './Privacy'
 import { tr } from '../i18n'
 import { SafeMap, type MapPlace } from '../components/SafeMap'
 import { directionsUrl, distance, formatDistance, inPortugal, locateOnce, round4, wazeUrl, type LatLng } from '../lib/geo'
@@ -220,6 +221,7 @@ export function Places() {
         </div>
         <label className="field">{tr('Notas')}<textarea className="input" style={{ minHeight: 70 }} value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} placeholder={tr('Ex.: staff respeitoso, pede-se a chave na receção')} /></label>
         {apiEnabled && <label className="row small" style={{ gap: 8 }}><input type="checkbox" checked={share} onChange={e => setShare(e.target.checked)} /> {tr('Partilhar com a comunidade (anónimo, moderado)')}</label>}
+        {apiEnabled && share && <ShareNote />}
         <button className="btn block" disabled={form.name.trim().length < 2} onClick={save}>{tr('Guardar')}</button>
       </Sheet>
     </>
@@ -263,6 +265,7 @@ export function Report() {
       <select className="input" value={form.district} onChange={e => setForm({ ...form, district: e.target.value })} aria-label={tr('Distrito')}><option value="">{tr('Distrito')}</option>{districts.map(d => <option key={d}>{d}</option>)}</select>
       <label className="field">{tr('Descrição (opcional)')}<textarea className="input" maxLength={1000} value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder={tr('Não incluas nomes nem dados que te identifiquem')} /></label>
       <label className="row small" style={{ gap: 8 }}><input type="checkbox" checked={form.reported} onChange={e => setForm({ ...form, reported: e.target.checked })} /> {tr('Apresentei queixa às autoridades')}</label>
+      {apiEnabled && <ShareNote />}
       <button className="btn block" disabled={!form.kind || !form.setting || !form.district} onClick={submit}>{apiEnabled ? tr('Enviar anonimamente') : tr('Copiar relato')}</button>
       <a className="small" href="https://ilga-portugal.pt" target="_blank" rel="noreferrer noopener">{tr('Observatório da Discriminação da ILGA Portugal')}</a>
     </>

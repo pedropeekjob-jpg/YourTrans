@@ -158,7 +158,7 @@ export function DataCare() {
 
         <BackupCard />
 
-        <p className="xs muted" style={{ textAlign: 'center' }}><Link to="/definicoes">{tr('Privacidade e definições')}</Link></p>
+        <p className="xs muted" style={{ textAlign: 'center' }}><Link to="/privacidade">{tr('Política de privacidade')}</Link> · <Link to="/definicoes">{tr('Privacidade e definições')}</Link></p>
       </div>
     </>
   )

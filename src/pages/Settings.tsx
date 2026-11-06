@@ -113,6 +113,7 @@ export function Settings() {
             <li>{tr('Avaliações, locais e relatos que decidires partilhar são anónimos e moderados; não guardamos endereços IP.')}</li>
             <li>{tr('Dados de saúde e de identidade de género são categorias especiais no RGPD: tratamo-los com o mínimo possível.')}</li>
           </ul>
+          <Link to="/privacidade" className="small">{tr('Ler a política de privacidade')}</Link>
         </section>
         <div className="stack" style={{ justifyItems: 'center', gap: 4, marginTop: 8 }}>
           <CasuloLogo size={36} />

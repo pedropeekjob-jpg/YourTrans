@@ -22,7 +22,7 @@
   <h1>Fila de moderação</h1>
   <div class="row">
     <input id="token" type="password" placeholder="Token de moderação" autocomplete="off">
-    <select id="status"><option value="pending">Pendentes</option><option value="received">Relatos de incidentes</option><option value="approved">Aprovados</option><option value="rejected">Rejeitados</option></select>
+    <select id="status"><option value="pending">Pendentes</option><option value="received">Relatos de incidentes</option><option value="approved">Aprovados</option></select>
     <button id="load">Carregar</button>
   </div>
   <div id="list"></div>
@@ -40,7 +40,7 @@
       el.className = 'card'
       el.innerHTML = '<div class="row"><b>' + esc(r.type) + '</b><span class="muted">' + esc(r.month) + '</span>' +
         r.flags.map(f => '<span class="tag">' + esc(f) + '</span>').join('') + '</div><pre>' + esc(JSON.stringify(r.payload, null, 2)) + '</pre>' +
-        '<div class="row"><button class="ok" data-a="approve">Aprovar</button><button data-a="reject">Rejeitar</button><button class="no" data-a="delete">Apagar</button></div>'
+        '<div class="row"><button class="ok" data-a="approve">Aprovar</button><button class="no" data-a="reject">Rejeitar e apagar</button></div>'
       el.querySelectorAll('button').forEach(b => b.onclick = async () => {
         await fetch('/api/mod/' + r.id, { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer ' + $('token').value }, body: JSON.stringify({ action: b.dataset.a }) })
         el.remove()
