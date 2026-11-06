@@ -5,6 +5,8 @@ import { tr } from '../i18n'
 /** Política de privacidade. Atualizar a data sempre que o texto mudar. */
 export const PRIVACY_UPDATED = '2026-11-06'
 export const PRIVACY_CONTACT = 'privacidade@casulo.space'
+/** Responsável pelo tratamento (pessoa singular). */
+export const PRIVACY_CONTROLLER = 'Pedro Oliveira'
 
 function Section({ title, items }: { title: string; items: string[] }) {
   return (
@@ -26,6 +28,11 @@ export function Privacy() {
           <h3>{tr('Em resumo')}</h3>
           <p className="small">{tr('O que registas para ti fica só no teu aparelho, cifrado, e nós não lhe temos acesso. Só sai do aparelho o que escolhes partilhar com a comunidade: vai sem nome, sem conta e sem endereço IP guardado, e só é publicado depois de uma pessoa da moderação o aprovar.')}</p>
           <p className="xs muted">{tr('Última atualização: {0}', PRIVACY_UPDATED)}</p>
+        </section>
+
+        <section className="card">
+          <h3>{tr('Quem é responsável')}</h3>
+          <p className="small">{tr('O Casulo é um projeto independente. O responsável pelo tratamento dos dados partilhados com a comunidade é {0}, a título pessoal. Contacto: {1}.', PRIVACY_CONTROLLER, PRIVACY_CONTACT)}</p>
         </section>
 
         <Section title={tr('1. O que fica só no teu aparelho')} items={[
