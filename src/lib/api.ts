@@ -4,7 +4,9 @@ import type { Provider, ReviewQuestion } from '../data/health'
 import type { Place } from './types'
 import type { Story } from '../data/stories'
 
-const BASE = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '')
+/** Servidor da comunidade (Render, Frankfurt). VITE_API_URL sobrepõe-se; "off" desliga. */
+const RAW = (import.meta.env.VITE_API_URL as string | undefined) || 'https://casulo-comunidade.onrender.com'
+const BASE = RAW === 'off' ? undefined : RAW.replace(/\/$/, '')
 
 export const apiEnabled = Boolean(BASE)
 

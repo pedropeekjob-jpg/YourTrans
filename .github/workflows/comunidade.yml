@@ -1,0 +1,19 @@
+name: Verificar servidor da comunidade
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['src/lib/api.ts', 'server/**', '.github/workflows/comunidade.yml']
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Servidor responde e aceita pedidos de casulo.space
+        run: |
+          API=https://casulo-comunidade.onrender.com
+          curl -fsS --retry 12 --retry-delay 15 --retry-all-errors "$API/api/health"
+          echo
+          curl -fsS -D - -o /dev/null -H "Origin: https://casulo.space" "$API/api/stories" | grep -i "access-control-allow-origin: https://casulo.space"
+          curl -fsS "$API/api/places" | head -c 300; echo
+          test "$(curl -s -o /dev/null -w '%{http_code}' "$API/api/mod/queue")" = 401
+          echo "Tudo certo"
