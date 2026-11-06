@@ -3,6 +3,7 @@ import { HashRouter, Route, Routes } from 'react-router-dom'
 import { VaultProvider, useVault } from './lib/vault-context'
 import { ToastProvider } from './components/ui'
 import { Layout } from './components/Layout'
+import { allowSplash, hideSplash } from './lib/splash'
 import { Decoy } from './components/Decoy'
 import { Lock } from './components/Lock'
 import { Onboarding } from './pages/Onboarding'
@@ -21,7 +22,13 @@ import { Rights } from './pages/Rights'
 import { AllyCards, AllyForMe, AllyHome, AllyLearn, AllyPractice, Receive } from './pages/Ally'
 
 function Shell() {
-  const { status, vault } = useVault()
+  const { status, vault, mode } = useVault()
+
+  useEffect(() => {
+    if (status === 'loading') return
+    hideSplash()
+    allowSplash(mode === 'device' && status === 'open')
+  }, [status, mode])
 
   useEffect(() => {
     const theme = vault?.settings.theme ?? 'system'

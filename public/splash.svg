@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="200" height="200">
+  <!-- Casulo: animação curta de carregamento (1,6 s em ciclo). Os braços néon respiram,
+       a cabeça brilha e os olhos piscam. Fundo transparente. -->
+  <defs>
+    <filter id="g" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2.2" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <radialGradient id="h" cx="40%" cy="36%" r="70%">
+      <stop offset="0" stop-color="#ffffff"/><stop offset=".45" stop-color="#dff3ff"/><stop offset="1" stop-color="#dff3ff" stop-opacity=".55"/>
+    </radialGradient>
+    <mask id="m" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100">
+      <rect width="100" height="100" fill="#fff"/><circle cx="37" cy="36" r="18" fill="#000"/>
+    </mask>
+  </defs>
+  <style>
+    .arms { transform-origin: 50px 52px; animation: breathe 1.6s ease-in-out infinite; }
+    .arm { fill: none; stroke-width: 4.5; stroke-linecap: round; stroke-dasharray: 100; animation: draw 1.6s ease-in-out infinite; }
+    .p { animation-delay: .12s; }
+    .head { transform-origin: 37px 36px; animation: bob 1.6s ease-in-out infinite; }
+    .eye { transform-box: fill-box; transform-origin: center; animation: blink 1.6s infinite; }
+    @keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+    @keyframes draw { 0% { stroke-dashoffset: 100; opacity: .2; } 35%, 75% { stroke-dashoffset: 0; opacity: 1; } 100% { stroke-dashoffset: -100; opacity: .2; } }
+    @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
+    @keyframes blink { 0%, 58%, 66%, 100% { transform: scaleY(1); } 62% { transform: scaleY(.1); } }
+    @media (prefers-reduced-motion: reduce) { .arms, .arm, .head, .eye { animation: none; } }
+  </style>
+  <g class="arms" filter="url(#g)">
+    <path class="arm" pathLength="100" mask="url(#m)" stroke="#5bcefa" d="M24 30C6 46 14 82 62 82"/>
+    <path class="arm p" pathLength="100" stroke="#ff8fb1" d="M62 18C92 28 92 76 40 84"/>
+  </g>
+  <g class="head">
+    <circle cx="37" cy="36" r="13" fill="#dff3ff" opacity=".55" filter="url(#g)"/>
+    <circle cx="37" cy="36" r="13" fill="url(#h)"/>
+    <ellipse class="eye" cx="33.4" cy="35.5" rx="1.6" ry="2.2" fill="#06070c"/>
+    <ellipse class="eye" cx="40.6" cy="35.5" rx="1.6" ry="2.2" fill="#06070c"/>
+  </g>
+</svg>
