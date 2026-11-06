@@ -73,8 +73,8 @@ export function importDataKey(raw: Uint8Array<ArrayBuffer>): Promise<CryptoKey> 
 const RECOVERY_ALPHABET = '0123456789ABCDEFGHJKMNPQRSTVWXYZ'
 
 /** Código de recuperação com 100 bits: 20 caracteres em grupos de 4 (ex.: 7K2M-…). */
-export function generateRecoveryCode(): string {
-  const bytes = randomBytes(20)
+export function generateRecoveryCode(length = 20): string {
+  const bytes = randomBytes(length)
   const chars = Array.from(bytes, b => RECOVERY_ALPHABET[b % 32])
   return chars.join('').match(/.{4}/g)!.join('-')
 }

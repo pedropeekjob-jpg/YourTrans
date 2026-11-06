@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { Suspense, lazy, useEffect } from 'react'
 import { HashRouter, Route, Routes } from 'react-router-dom'
 import { VaultProvider, useVault } from './lib/vault-context'
 import { ToastProvider } from './components/ui'
@@ -23,6 +23,7 @@ import { Journey } from './pages/Journey'
 import { Me } from './pages/Me'
 import { Help } from './pages/Help'
 import { DataCare } from './pages/DataCare'
+const Transfer = lazy(() => import('./pages/Transfer').then(m => ({ default: m.Transfer })))
 import { AllyCards, AllyForMe, AllyHome, AllyLearn, AllyPractice, Receive } from './pages/Ally'
 
 function Shell() {
@@ -63,6 +64,7 @@ function Screen() {
           <Route path="/comunidade" element={<Community />} />
           <Route path="/definicoes" element={<Settings />} />
           <Route path="/dados" element={<DataCare />} />
+          <Route path="/passar" element={<Suspense fallback={null}><Transfer /></Suspense>} />
           <Route path="*" element={<AllyHome />} />
         </Routes>
         ) : (
@@ -84,6 +86,7 @@ function Screen() {
           <Route path="/emprego" element={<Work />} />
           <Route path="/definicoes" element={<Settings />} />
           <Route path="/dados" element={<DataCare />} />
+          <Route path="/passar" element={<Suspense fallback={null}><Transfer /></Suspense>} />
           <Route path="*" element={<Home />} />
         </Routes>
         )}

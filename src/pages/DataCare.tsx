@@ -145,13 +145,15 @@ export function DataCare() {
 
         <section className="card">
           <h3>{tr('Usar noutro aparelho (telemóvel e computador)')}</h3>
-          <p className="small muted">{tr('Por enquanto, os aparelhos não se sincronizam sozinhos. Para passar os registos de um para o outro:')}</p>
+          <p className="small muted">{tr('Por enquanto, os aparelhos não se sincronizam sozinhos. A forma mais simples de passar os registos é por código QR: um aparelho mostra, o outro lê com a câmara. Nada passa por servidores.')}</p>
+          <Link to="/passar" className="btn" style={{ justifySelf: 'start' }}><Icon name="share" size={18} /> {tr('Passar por QR')}</Link>
+          <p className="small muted">{tr('Sem câmara? Usa um ficheiro de cópia de segurança:')}</p>
           <ol className="small" style={{ margin: 0, paddingLeft: 18, display: 'grid', gap: 6 }}>
             <li>{tr('Neste aparelho, exporta uma cópia de segurança com uma palavra-passe.')}</li>
             <li>{tr('Envia o ficheiro para ti (e-mail, nuvem, cabo).')}</li>
             <li>{tr('No outro aparelho, abre a app no mesmo endereço, vai a Eu › Os teus dados e importa o ficheiro com a mesma palavra-passe.')}</li>
           </ol>
-          <p className="xs muted">{tr('Importar substitui o que estiver no outro aparelho. Depois disso, os dois seguem separados: usa um como principal e repete a cópia quando precisares. Estamos a preparar uma forma mais simples de passar os dados.')}</p>
+          <p className="xs muted">{tr('Receber dados substitui o que estiver no outro aparelho. Depois disso, os dois seguem separados: usa um como principal e repete a passagem quando precisares.')}</p>
         </section>
 
         <BackupCard />
