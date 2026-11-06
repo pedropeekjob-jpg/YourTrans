@@ -11,7 +11,8 @@ import { fileURLToPath } from 'node:url'
 const here = dirname(fileURLToPath(import.meta.url))
 const PORT = Number(process.env.PORT ?? 8787)
 const MOD_TOKEN = process.env.MOD_TOKEN ?? ''
-const ORIGIN = process.env.ALLOWED_ORIGIN ?? '*'
+/** Origens autorizadas, separadas por vírgulas (ex.: https://casulo.space,https://www.casulo.space). */
+const ORIGINS = (process.env.ALLOWED_ORIGIN ?? '*').split(',').map(s => s.trim()).filter(Boolean)
 const DB_PATH = process.env.DB_PATH ?? join(here, 'data', 'community.db')
 const K_ANON = 5 // mínimo de relatos para mostrar uma estatística
 
@@ -159,10 +160,17 @@ function incidentStats() {
 
 /* ---------- HTTP ---------- */
 
+function allowOrigin(req) {
+  if (ORIGINS.includes('*')) return '*'
+  const o = req?.headers.origin
+  return o && ORIGINS.includes(o) ? o : ORIGINS[0]
+}
+
 function send(res, status, body) {
   res.writeHead(status, {
     'content-type': 'application/json; charset=utf-8',
-    'access-control-allow-origin': ORIGIN,
+    'access-control-allow-origin': allowOrigin(res.req),
+    vary: 'Origin',
     'access-control-allow-headers': 'content-type, authorization',
     'access-control-allow-methods': 'GET, POST, OPTIONS',
     'referrer-policy': 'no-referrer',

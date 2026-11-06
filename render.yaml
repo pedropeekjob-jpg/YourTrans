@@ -1,0 +1,24 @@
+# Render Blueprint: cria o servidor comunitário do Casulo (New › Blueprint › escolher este repositório).
+services:
+  - type: web
+    name: casulo-comunidade
+    runtime: docker
+    dockerfilePath: ./server/Dockerfile
+    dockerContext: ./server
+    region: frankfurt
+    plan: starter
+    healthCheckPath: /api/health
+    autoDeploy: true
+    buildFilter:
+      paths: ["server/**"]
+    disk:
+      name: dados
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: MOD_TOKEN
+        generateValue: true
+      - key: ALLOWED_ORIGIN
+        value: https://casulo.space,https://www.casulo.space
+      - key: DB_PATH
+        value: /data/community.db
