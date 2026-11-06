@@ -4,7 +4,7 @@ import { VaultProvider, useVault } from './lib/vault-context'
 import { ToastProvider } from './components/ui'
 import { Layout } from './components/Layout'
 import { allowSplash, hideSplash } from './lib/splash'
-import { Decoy } from './components/Decoy'
+import { NewPinSheet, RecoveryCodeSheet } from './components/Recovery'
 import { Lock } from './components/Lock'
 import { Onboarding } from './pages/Onboarding'
 import { Home } from './pages/Home'
@@ -25,6 +25,10 @@ import { Help } from './pages/Help'
 import { AllyCards, AllyForMe, AllyHome, AllyLearn, AllyPractice, Receive } from './pages/Ally'
 
 function Shell() {
+  return <><Screen /><RecoveryCodeSheet /><NewPinSheet /></>
+}
+
+function Screen() {
   const { status, vault, mode } = useVault()
 
   useEffect(() => {
@@ -40,7 +44,6 @@ function Shell() {
   }, [vault?.settings.theme])
 
   if (status === 'loading') return null
-  if (status === 'decoy') return <Decoy />
   if (status === 'locked') return <Lock />
   if (!vault.settings.onboarded) return <Onboarding />
 

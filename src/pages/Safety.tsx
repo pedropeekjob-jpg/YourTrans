@@ -44,7 +44,7 @@ function Alert() {
           <li>{tr('O botão')}{' '}<b>{tr('SOS')}</b> {tr('está sempre no canto superior direito.')}</li>
           <li>{tr('Partilha a tua localização em tempo real com alguém de confiança quando fores a um encontro.')}</li>
           <li>{tr('Vítima de crime de ódio? A APAV (116 006) apoia gratuitamente.')}</li>
-          {vault.settings.disguise && <li>{tr('Modo privado ativo: o ícone do olho (ou Esc 3 vezes) mostra uma calculadora.')}</li>}
+          {vault.settings.disguise && <li>{tr('Modo privado ativo: o ícone do olho (ou Esc 3 vezes) abre o site do tempo e, se tiveres código, bloqueia a app.')}</li>}
         </ul>
       </section>
     </>

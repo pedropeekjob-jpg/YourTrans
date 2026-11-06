@@ -25,7 +25,7 @@ export function Layout({ children }: { children: ReactNode }) {
   const escPresses = useRef<number[]>([])
   const disguise = vault.settings.disguise
 
-  // Modo privado: carregar em Esc 3 vezes seguidas mostra a calculadora.
+  // Modo privado: carregar em Esc 3 vezes seguidas sai para o site do tempo (e bloqueia, se houver código).
   useEffect(() => {
     if (!disguise) return
     const onKey = (e: KeyboardEvent) => {
@@ -67,7 +67,7 @@ export function TopBar({ title, back, right }: { title?: string; back?: boolean;
       <div className="title">{title}</div>
       {right}
       {vault.settings.disguise && (
-        <button className="icon-btn" onClick={panic} aria-label={tr('Modo privado: mostrar calculadora')}><Icon name="eyeOff" /></button>
+        <button className="icon-btn" onClick={panic} aria-label={tr('Sair rapidamente')}><Icon name="eyeOff" /></button>
       )}
       {!ally && <button className="panic" onClick={() => nav('/ajuda')} aria-label={tr('Ajuda: SOS, linhas de apoio e direitos')}>
         <Icon name="alert" size={18} /> {tr('Ajuda')}</button>}

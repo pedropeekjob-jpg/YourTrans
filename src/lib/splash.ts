@@ -6,7 +6,7 @@ export function hideSplash() {
   window.setTimeout(() => { el.classList.add('out'); window.setTimeout(() => el.remove(), 400) }, Math.max(0, 900 - (Date.now() - at)))
 }
 
-/** Lembra se o próximo arranque pode mostrar o ecrã do Casulo (não com código nem em disfarce). */
+/** Lembra se o próximo arranque pode mostrar o ecrã do Casulo (não com código). */
 export function allowSplash(ok: boolean) {
   try { localStorage.setItem('splash', ok ? '1' : '0') } catch { /* ignorado */ }
 }

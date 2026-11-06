@@ -198,12 +198,12 @@ function TransOnboarding({ onBack }: { onBack: () => void }) {
           <label className="field">{tr('Repetir código')}<input className="input" inputMode="numeric" type="password" value={pin2} onChange={e => setPin2(e.target.value.replace(/\D/g, ''))} maxLength={8} />
           </label>
           {error && <p className="small" style={{ color: 'var(--danger)' }} role="alert">{error}</p>}
-          <p className="xs muted">{tr('Se esqueceres o código não há forma de recuperar os dados. É essa a garantia de que ninguém mais lhes chega.')}</p>
+          <p className="xs muted">{tr('A seguir recebes um código de recuperação, para o caso de te esqueceres deste. Guarda-o fora do telemóvel.')}</p>
           <label className="card flat row" style={{ gap: 12, alignItems: 'flex-start', cursor: 'pointer' }}>
             <input type="checkbox" checked={disguise} onChange={e => setDisguise(e.target.checked)} style={{ marginTop: 4 }} />
             <span className="stack" style={{ gap: 2 }}>
               <b className="small">{tr('Modo privado')}</b>
-              <span className="xs muted">{tr('Para quem ainda não pode estar à vontade em casa: um ícone discreto transforma a app numa calculadora. Podes mudar isto nas Definições.')}</span>
+              <span className="xs muted">{tr('Para quem precisa de mais privacidade: um ícone discreto (ou Esc 3 vezes) sai logo para o site do tempo e bloqueia a app. Podes mudar isto nas Definições.')}</span>
             </span>
           </label>
         </div>

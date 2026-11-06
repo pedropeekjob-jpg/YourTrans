@@ -2,15 +2,13 @@ import type { AllyRole } from '../data/allies'
 
 export type Theme = 'system' | 'light' | 'dark'
 export type Profile = 'trans' | 'ally'
-export type PanicTarget = 'calculator' | 'weather'
 
 export interface Settings {
   displayName: string
   pronouns: string
   theme: Theme
-  /** Modo privado: botão de disfarce (calculadora). Opcional, desligado por omissão. */
+  /** Modo privado: botão de saída rápida (abre o site do tempo). Opcional, desligado por omissão. */
   disguise: boolean
-  panicTarget: PanicTarget
   autoLockMinutes: number
   discreetNotifications: boolean
   country: 'PT' | 'BR'
@@ -171,7 +169,6 @@ export function emptyVault(): Vault {
       pronouns: '',
       theme: 'dark',
       disguise: false,
-      panicTarget: 'calculator',
       autoLockMinutes: 5,
       discreetNotifications: true,
       country: 'PT',

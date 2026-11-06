@@ -2,8 +2,8 @@
 // Metadados (modo, sal) não revelam conteúdo.
 import { createStore, get, set, del, clear, keys } from 'idb-keyval'
 import {
-  decryptBytes, decryptJSON, deriveKey, encryptBytes, encryptJSON, fromB64,
-  generateDeviceKey, PBKDF2_ITERATIONS, randomBytes, toB64, type Sealed,
+  decryptBytes, decryptJSON, deriveKey, encryptBytes, encryptJSON, fromB64, generateDataKey, generateRecoveryCode,
+  generateDeviceKey, importDataKey, normalizeRecoveryCode, PBKDF2_ITERATIONS, randomBytes, toB64, type Sealed,
 } from './crypto'
 import { emptyVault, type Vault } from './types'
 
@@ -19,6 +19,11 @@ interface Meta {
   /** Tentativas falhadas consecutivas (para atrasar ataques de força bruta) */
   failures?: number
   lockedUntil?: number
+  /** Chave de dados embrulhada com a chave do PIN (formato com recuperação). */
+  wrapPin?: Sealed
+  /** A mesma chave de dados, embrulhada com a chave do código de recuperação. */
+  wrapRec?: Sealed
+  recSalt?: string
 }
 
 const META = 'meta'
@@ -54,22 +59,54 @@ export class LockedOutError extends Error {
   constructor(public until: number) { super('locked') }
 }
 
-export async function unlockPin(pin: string): Promise<{ key: CryptoKey; vault: Vault }> {
+/** Atrasa tentativas falhadas (PIN ou código de recuperação): após 5 falhas, 30 s, 60 s, 120 s, ... */
+async function registerFailure(meta: Meta): Promise<void> {
+  const failures = (meta.failures ?? 0) + 1
+  const lockedUntil = failures >= 5 ? Date.now() + 30_000 * 2 ** (failures - 5) : undefined
+  await set(META, { ...meta, failures, lockedUntil }, store)
+}
+
+async function pinMeta(): Promise<Meta> {
   const meta = await getMeta()
   if (!meta || meta.mode !== 'pin' || !meta.salt) throw new Error('Sem PIN definido')
   if (meta.lockedUntil && meta.lockedUntil > Date.now()) throw new LockedOutError(meta.lockedUntil)
-  const key = await deriveKey(pin, fromB64(meta.salt), meta.iterations ?? PBKDF2_ITERATIONS)
+  return meta
+}
+
+export async function unlockPin(pin: string): Promise<{ key: CryptoKey; vault: Vault }> {
+  const meta = await pinMeta()
+  const kek = await deriveKey(pin, fromB64(meta.salt!), meta.iterations ?? PBKDF2_ITERATIONS)
   try {
+    // Formato antigo (sem recuperação): a chave do PIN cifra os dados diretamente.
+    const key = meta.wrapPin ? await importDataKey(await decryptBytes(kek, meta.wrapPin)) : kek
     const vault = await loadVault(key)
     if (meta.failures) await set(META, { ...meta, failures: 0, lockedUntil: undefined }, store)
     return { key, vault }
   } catch {
-    const failures = (meta.failures ?? 0) + 1
-    // Após 5 falhas, espera exponencial (30 s, 60 s, 120 s, ...)
-    const lockedUntil = failures >= 5 ? Date.now() + 30_000 * 2 ** (failures - 5) : undefined
-    await set(META, { ...meta, failures, lockedUntil }, store)
+    await registerFailure(meta)
     throw new Error('PIN incorreto')
   }
+}
+
+/** Entra com o código de recuperação, quando a pessoa se esqueceu do PIN. */
+export async function unlockRecovery(code: string): Promise<{ key: CryptoKey; vault: Vault }> {
+  const meta = await pinMeta()
+  if (!meta.wrapRec || !meta.recSalt) throw new Error('Sem código de recuperação')
+  const kek = await deriveKey(normalizeRecoveryCode(code), fromB64(meta.recSalt), meta.iterations ?? PBKDF2_ITERATIONS)
+  try {
+    const key = await importDataKey(await decryptBytes(kek, meta.wrapRec))
+    const vault = await loadVault(key)
+    if (meta.failures) await set(META, { ...meta, failures: 0, lockedUntil: undefined }, store)
+    return { key, vault }
+  } catch {
+    await registerFailure(meta)
+    throw new Error('Código de recuperação incorreto')
+  }
+}
+
+export async function hasRecovery(): Promise<boolean> {
+  const meta = await getMeta()
+  return !!meta?.wrapRec
 }
 
 async function loadVault(key: CryptoKey): Promise<Vault> {
@@ -96,13 +133,18 @@ async function rekey(oldKey: CryptoKey, newKey: CryptoKey, vault: Vault): Promis
   await saveVault(newKey, vault)
 }
 
-export async function setPin(oldKey: CryptoKey, vault: Vault, pin: string): Promise<CryptoKey> {
-  const salt = randomBytes(16)
-  const key = await deriveKey(pin, salt)
+/** Ativa (ou muda) o PIN: cria uma chave de dados nova, recifra tudo e devolve um código de recuperação novo. */
+export async function setPin(oldKey: CryptoKey, vault: Vault, pin: string): Promise<{ key: CryptoKey; recoveryCode: string }> {
+  const { raw, key } = await generateDataKey()
   await rekey(oldKey, key, vault)
-  await set(META, { v: 1, mode: 'pin', salt: toB64(salt), iterations: PBKDF2_ITERATIONS } satisfies Meta, store)
+  const salt = randomBytes(16)
+  const recSalt = randomBytes(16)
+  const recoveryCode = generateRecoveryCode()
+  const wrapPin = await encryptBytes(await deriveKey(pin, salt), raw)
+  const wrapRec = await encryptBytes(await deriveKey(normalizeRecoveryCode(recoveryCode), recSalt), raw)
+  await set(META, { v: 1, mode: 'pin', salt: toB64(salt), iterations: PBKDF2_ITERATIONS, wrapPin, wrapRec, recSalt: toB64(recSalt) } satisfies Meta, store)
   await del(DEVICE_KEY, store)
-  return key
+  return { key, recoveryCode }
 }
 
 export async function removePin(oldKey: CryptoKey, vault: Vault): Promise<CryptoKey> {

@@ -29,7 +29,7 @@ export function Help() {
           ))}
           <button className="item" onClick={panic}>
             <div className="lead" style={{ background: 'var(--surface-2)' }}><Icon name="eyeOff" /></div>
-            <div className="grow"><h3>{tr('Esconder a app agora')}</h3><p className="small muted">{tr('Mostra o disfarce de imediato')}</p></div>
+            <div className="grow"><h3>{tr('Sair rapidamente')}</h3><p className="small muted">{tr('Abre o site do tempo e bloqueia a app')}</p></div>
           </button>
         </div>
       </div>

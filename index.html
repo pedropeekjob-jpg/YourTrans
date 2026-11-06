@@ -13,7 +13,7 @@
   <body>
     <div id="root"></div>
     <!-- Ecrã de carregamento do Casulo. Só aparece quando a app não está protegida por código
-         nem em modo disfarce, para não revelar o nome a quem vê o ecrã "Notas". -->
+         para não revelar o nome a quem vê o ecrã "Notas". -->
     <template id="splash-tpl"><div id="splash" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" >
   <!-- Casulo: animação curta de carregamento (1,6 s em ciclo). Os braços néon respiram,
        a cabeça brilha e os olhos piscam. Fundo transparente. -->
@@ -54,7 +54,7 @@
 </svg></div></template>
     <script>
       try {
-        if (localStorage.getItem('splash') !== '0' && !sessionStorage.getItem('d')) {
+        if (localStorage.getItem('splash') !== '0') {
           document.body.appendChild(document.getElementById('splash-tpl').content.cloneNode(true))
           window.__splashAt = Date.now()
         }

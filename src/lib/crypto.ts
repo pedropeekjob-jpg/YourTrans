@@ -58,3 +58,28 @@ export async function encryptJSON(key: CryptoKey, value: unknown): Promise<Seale
 export async function decryptJSON<T>(key: CryptoKey, sealed: Sealed): Promise<T> {
   return JSON.parse(dec.decode(await decryptBytes(key, sealed))) as T
 }
+
+/** Chave de dados aleatória: devolve os bytes (para embrulhar) e a chave não exportável (para usar). */
+export async function generateDataKey(): Promise<{ raw: Uint8Array<ArrayBuffer>; key: CryptoKey }> {
+  const raw = randomBytes(32)
+  return { raw, key: await importDataKey(raw) }
+}
+
+export function importDataKey(raw: Uint8Array<ArrayBuffer>): Promise<CryptoKey> {
+  return crypto.subtle.importKey('raw', raw, 'AES-GCM', false, ['encrypt', 'decrypt'])
+}
+
+// Alfabeto sem letras ambíguas (sem I, L, O, U): fácil de copiar à mão.
+const RECOVERY_ALPHABET = '0123456789ABCDEFGHJKMNPQRSTVWXYZ'
+
+/** Código de recuperação com 100 bits: 20 caracteres em grupos de 4 (ex.: 7K2M-…). */
+export function generateRecoveryCode(): string {
+  const bytes = randomBytes(20)
+  const chars = Array.from(bytes, b => RECOVERY_ALPHABET[b % 32])
+  return chars.join('').match(/.{4}/g)!.join('-')
+}
+
+/** Normaliza o que a pessoa escreveu: maiúsculas, sem espaços nem traços, O→0, I/L→1. */
+export function normalizeRecoveryCode(input: string): string {
+  return input.toUpperCase().replace(/[\s-]/g, '').replace(/O/g, '0').replace(/[IL]/g, '1')
+}

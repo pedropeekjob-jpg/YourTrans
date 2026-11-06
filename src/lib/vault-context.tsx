@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState, ty
 import * as storage from './storage'
 import type { Vault } from './types'
 
-type Status = 'loading' | 'locked' | 'decoy' | 'open'
+type Status = 'loading' | 'locked' | 'open'
 
 interface Ctx {
   status: Status
@@ -11,11 +11,18 @@ interface Ctx {
   key: CryptoKey | null
   update: (fn: (v: Vault) => Vault) => void
   unlock: (pin: string) => Promise<void>
-  /** Sai imediatamente: esquece a chave em memória e mostra o disfarce. */
+  /** Entra com o código de recuperação; depois é preciso escolher um código novo. */
+  unlockRecovery: (code: string) => Promise<void>
+  /** Sai imediatamente para outro site; se houver código, bloqueia a app. */
   panic: () => void
-  leaveDecoy: () => Promise<void>
   lock: () => void
   setPin: (pin: string) => Promise<void>
+  /** Código de recuperação acabado de gerar, para mostrar uma única vez. */
+  recoveryCode: string | null
+  clearRecoveryCode: () => void
+  hasRecovery: boolean
+  /** Entrou com o código de recuperação e ainda não escolheu um código novo. */
+  needsNewPin: boolean
   removePin: () => Promise<void>
   replaceVault: (v: Vault) => Promise<void>
   wipe: () => Promise<void>
@@ -33,6 +40,9 @@ export function VaultProvider({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<Status>('loading')
   const [vault, setVault] = useState<Vault | null>(null)
   const [mode, setMode] = useState<storage.LockMode>('device')
+  const [recoveryCode, setRecoveryCode] = useState<string | null>(null)
+  const [hasRecovery, setHasRecovery] = useState(false)
+  const [needsNewPin, setNeedsNewPin] = useState(false)
   const keyRef = useRef<CryptoKey | null>(null)
   const saveTimer = useRef<number | undefined>(undefined)
   const pending = useRef<Vault | null>(null)
@@ -49,6 +59,7 @@ export function VaultProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     ;(async () => {
       const meta = await storage.getMeta()
+      setHasRecovery(!!meta?.wrapRec)
       if (!meta) {
         const { key, vault } = await storage.initDevice()
         keyRef.current = key
@@ -58,10 +69,10 @@ export function VaultProvider({ children }: { children: ReactNode }) {
         const { key, vault } = await storage.unlockDevice()
         keyRef.current = key
         setVault(vault)
-        setStatus(sessionStorage.getItem('d') ? 'decoy' : 'open')
+        setStatus('open')
       } else {
         setMode('pin')
-        setStatus(sessionStorage.getItem('d') ? 'decoy' : 'locked')
+        setStatus('locked')
       }
     })()
   }, [])
@@ -89,44 +100,47 @@ export function VaultProvider({ children }: { children: ReactNode }) {
   }, [flush, forget, mode])
 
   const panic = useCallback(() => {
-    const target = vault?.settings.panicTarget ?? 'calculator'
     void flush()
-    try { sessionStorage.setItem('d', '1') } catch { /* ignorado */ }
     history.replaceState(null, '', location.pathname + '#/')
-    if (mode === 'pin') forget()
-    if (target === 'weather') location.replace('https://www.ipma.pt/pt/index.html')
-    else setStatus('decoy')
-  }, [flush, forget, mode, vault])
+    if (mode === 'pin') { forget(); setStatus('locked') }
+    location.replace('https://www.ipma.pt/pt/index.html')
+  }, [flush, forget, mode])
 
   const unlock = useCallback(async (pin: string) => {
     const { key, vault } = await storage.unlockPin(pin)
     keyRef.current = key
     setVault(vault)
-    try { sessionStorage.removeItem('d') } catch { /* ignorado */ }
     setStatus('open')
   }, [])
 
-  const leaveDecoy = useCallback(async () => {
-    if (mode !== 'device') return
-    try { sessionStorage.removeItem('d') } catch { /* ignorado */ }
-    const { key, vault } = await storage.unlockDevice()
+  const unlockRecovery = useCallback(async (code: string) => {
+    const { key, vault } = await storage.unlockRecovery(code)
     keyRef.current = key
     setVault(vault)
+    setNeedsNewPin(true)
     setStatus('open')
-  }, [mode])
+  }, [])
 
   const setPin = useCallback(async (pin: string) => {
     if (!keyRef.current || !vault) return
     await flush()
-    keyRef.current = await storage.setPin(keyRef.current, vault, pin)
+    const res = await storage.setPin(keyRef.current, vault, pin)
+    keyRef.current = res.key
     setMode('pin')
+    setHasRecovery(true)
+    setNeedsNewPin(false)
+    setRecoveryCode(res.recoveryCode)
   }, [flush, vault])
+
+  const clearRecoveryCode = useCallback(() => setRecoveryCode(null), [])
 
   const removePin = useCallback(async () => {
     if (!keyRef.current || !vault) return
     await flush()
     keyRef.current = await storage.removePin(keyRef.current, vault)
     setMode('device')
+    setHasRecovery(false)
+    setNeedsNewPin(false)
   }, [flush, vault])
 
   const replaceVault = useCallback(async (v: Vault) => {
@@ -170,7 +184,8 @@ export function VaultProvider({ children }: { children: ReactNode }) {
     vault: vault ?? (null as unknown as Vault),
     mode,
     key: keyRef.current,
-    update, unlock, panic, leaveDecoy, lock, setPin, removePin, replaceVault, wipe,
+    update, unlock, unlockRecovery, panic, lock, setPin, removePin, replaceVault, wipe,
+    recoveryCode, clearRecoveryCode, hasRecovery, needsNewPin,
   }
   return <VaultCtx.Provider value={value}>{children}</VaultCtx.Provider>
 }

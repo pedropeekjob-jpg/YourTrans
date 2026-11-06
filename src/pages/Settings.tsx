@@ -7,13 +7,13 @@ import { ThemePicker } from '../components/ThemePicker'
 import { CasuloLogo } from '../components/CasuloLogo'
 import { Seg, useToast } from '../components/ui'
 import { exportBackup, importBackup } from '../lib/storage'
-import type { PanicTarget } from '../lib/types'
 import { pronounOptions } from './Onboarding'
 import { allyRoles } from '../data/allies'
 import { tr } from '../i18n'
 
 export function Settings() {
-  const { vault, update, mode, setPin, removePin, lock, wipe, replaceVault } = useVault()
+  const { vault, update, mode, setPin, removePin, lock, wipe, replaceVault, hasRecovery } = useVault()
+  const [changing, setChanging] = useState(false)
   const toast = useToast()
   const s = vault.settings
   const [pin, setPinV] = useState('')
@@ -64,9 +64,20 @@ export function Settings() {
               <div className="row wrap">
                 <span className="badge mint">{tr('Ativo')}</span>
                 <button className="btn sm secondary" onClick={lock}><Icon name="lock" size={16} />{tr('Bloquear agora')}</button>
+                <button className="btn sm ghost" onClick={() => setChanging(c => !c)}>{tr('Mudar código')}</button>
                 <button className="btn sm ghost" onClick={async () => { if (confirm(tr('Remover o código? Os dados continuam cifrados neste dispositivo.'))) { await removePin(); toast(tr('Código removido')) } }}>{tr('Remover')}</button>
               </div>
-            ) : (
+            ) : null}
+            {mode === 'pin' && !hasRecovery && !changing && (
+              <p className="xs" style={{ color: 'var(--amber)' }}>{tr('Ainda não tens código de recuperação. Muda o código (podes repetir o mesmo) para receberes um.')}</p>
+            )}
+            {mode === 'pin' && changing && (
+              <div className="row">
+                <input className="input grow" type="password" inputMode="numeric" autoFocus placeholder={tr('Código novo')} value={pin} onChange={e => setPinV(e.target.value.replace(/\D/g, '').slice(0, 8))} />
+                <button className="btn" disabled={pin.length < 4} onClick={async () => { await setPin(pin); setPinV(''); setChanging(false) }}>{tr('Guardar')}</button>
+              </div>
+            )}
+            {mode === 'pin' ? null : (
               <div className="row">
                 <input className="input grow" type="password" inputMode="numeric" placeholder={tr('4 a 8 algarismos')} value={pin} onChange={e => setPinV(e.target.value.replace(/\D/g, '').slice(0, 8))} />
                 <button className="btn" disabled={pin.length < 4} onClick={async () => { await setPin(pin); setPinV(''); toast(tr('Código ativo')) }}>{tr('Ativar')}</button>
@@ -81,16 +92,9 @@ export function Settings() {
             <input type="checkbox" checked={s.disguise} onChange={e => set('disguise', e.target.checked)} style={{ marginTop: 4 }} />
             <span className="stack" style={{ gap: 2 }}>
               <b className="small">{tr('Modo privado')}</b>
-              <span className="xs muted">{tr('Para quem ainda não pode estar à vontade em casa. Mostra um ícone discreto (olho riscado) que transforma a app numa calculadora num toque.')}</span>
+              <span className="xs muted">{tr('Para quem precisa de mais privacidade. Mostra um ícone discreto (olho riscado): num toque, ou com Esc 3 vezes, sai para o site do IPMA e, se tiveres código, a app fica bloqueada.')}</span>
             </span>
           </label>
-          {s.disguise && (
-            <div className="stack">
-              <b className="small">{tr('O ícone de modo privado abre')}</b>
-              <Seg<PanicTarget> value={s.panicTarget} onChange={v => set('panicTarget', v)} options={[{ id: 'calculator', label: tr('Calculadora') }, { id: 'weather', label: tr('Site do tempo') }]} />
-              <p className="xs muted">{s.panicTarget === 'calculator' ? (mode === 'pin' ? tr('Para voltar, escreve o teu código e carrega em "=".') : tr('Para voltar, mantém "=" carregado 2 segundos. Com código ativo é mais seguro.')) : tr('Abre o site do IPMA. Voltas a entrar pelo ícone da app.')}</p>
-            </div>
-          )}
           <label className="row small" style={{ gap: 8 }}><input type="checkbox" checked={s.discreetNotifications} onChange={e => set('discreetNotifications', e.target.checked)} /> {tr('Notificações e calendário com texto neutro')}</label>
         </section>
 
