@@ -166,7 +166,7 @@ export function emptyVault(): Vault {
     settings: {
       displayName: '',
       pronouns: '',
-      theme: 'system',
+      theme: 'dark',
       disguise: false,
       panicTarget: 'calculator',
       autoLockMinutes: 5,

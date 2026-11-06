@@ -9,9 +9,10 @@ import { districts, organLabels, screeningsFor, snsPathway, type Organ, type Pro
 import { useProviders } from '../lib/useProviders'
 import { api, apiEnabled } from '../lib/api'
 import { uid } from '../lib/types'
+import { Appointments, Effects, Reminders } from './Journal'
 import { tr } from '../i18n'
 
-type Tab = 'diretorio' | 'mente' | 'percurso' | 'rastreios'
+type Tab = 'diretorio' | 'mente' | 'tratamento' | 'percurso' | 'rastreios'
 const kinds: ProviderKind[] = ['Medicina geral', 'Endocrinologia', 'Psicologia', 'Psiquiatria', 'Sexologia', 'Cirurgia', 'Terapia da fala', 'Clínica']
 
 export function Health() {
@@ -25,15 +26,31 @@ export function Health() {
         <Seg value={tab} onChange={setTab} options={[
           { id: 'diretorio', label: tr('Profissionais') },
           { id: 'mente', label: tr('Mente') },
+          { id: 'tratamento', label: tr('O meu tratamento') },
           { id: 'percurso', label: tr('Percurso SNS') },
           { id: 'rastreios', label: tr('Rastreios') },
         ]} />
         {tab === 'diretorio' && <Directory initialKind={(params.get('tipo') as ProviderKind) ?? ''} />}
-        {tab === 'mente' && <MentalHealth onDirectory={() => setTab('diretorio', { tipo: tr('Psicologia') })} />}
+        {tab === 'mente' && <MentalHealth onDirectory={() => setTab('diretorio', { tipo: 'Psicologia' })} />}
+        {tab === 'tratamento' && <Treatment sub={(params.get('sub') as Sub) || 'lembretes'} onSub={x => setTab('tratamento', { sub: x })} />}
         {tab === 'percurso' && <Pathway />}
         {tab === 'rastreios' && <Screenings />}
       </div>
     </>
+  )
+}
+
+type Sub = 'lembretes' | 'efeitos' | 'consultas'
+
+/** Lembretes de toma e análises, efeitos registados e consultas, ao pé da informação de saúde. */
+function Treatment({ sub, onSub }: { sub: Sub; onSub: (s: Sub) => void }) {
+  return (
+    <div className="stack-lg">
+      <Seg<Sub> value={sub} onChange={onSub} options={[{ id: 'lembretes', label: tr('Lembretes') }, { id: 'efeitos', label: tr('Efeitos') }, { id: 'consultas', label: tr('Consultas') }]} />
+      {sub === 'lembretes' && <Reminders />}
+      {sub === 'efeitos' && <Effects />}
+      {sub === 'consultas' && <Appointments />}
+    </div>
   )
 }
 

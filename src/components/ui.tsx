@@ -47,7 +47,7 @@ export function Progress({ value }: { value: number }) {
 
 export function Seg<T extends string>({ value, options, onChange }: { value: T; options: { id: T; label: string }[]; onChange: (v: T) => void }) {
   return (
-    <div className="seg" role="tablist">
+    <div className={options.length > 4 ? 'seg scroll' : 'seg'} role="tablist">
       {options.map(o => (
         <button key={o.id} role="tab" aria-selected={value === o.id} className={value === o.id ? 'on' : ''} onClick={() => onChange(o.id)}>{o.label}</button>
       ))}

@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { Navigate, useSearchParams } from 'react-router-dom'
 import { useVault } from '../lib/vault-context'
 import { TopBar } from '../components/Layout'
 import { Icon } from '../components/Icon'
 import { Photo } from '../components/Photo'
-import { Empty, Seg, Sheet, copyText, fmtDate, useToast } from '../components/ui'
+import { Empty, Sheet, copyText, fmtDate, useToast } from '../components/ui'
 import { compressImage } from '../lib/photos'
 import { deletePhoto, savePhoto } from '../lib/storage'
 import { downloadIcs, icsEvent } from '../lib/ics'
@@ -12,25 +12,16 @@ import { uid, type Appointment, type JournalEntry, type Reminder, type Vault } f
 import { moods } from './Home'
 import { locale, tr } from '../i18n'
 
-type Tab = 'diario' | 'lembretes' | 'efeitos' | 'consultas'
-
+/** Diário pessoal (texto, fotos e euforias). Lembretes, efeitos e consultas vivem em Saúde › Tratamento. */
 export function Journal() {
-  const [params, setParams] = useSearchParams()
-  const tab = (params.get('tab') as Tab) || 'diario'
+  const [params] = useSearchParams()
+  const tab = params.get('tab')
+  if (tab === 'lembretes' || tab === 'efeitos' || tab === 'consultas') return <Navigate to={`/saude?tab=tratamento&sub=${tab}`} replace />
   return (
     <>
-      <TopBar title={tr('Diário')} />
+      <TopBar title={tr('Diário')} back />
       <div className="page">
-        <Seg value={tab} onChange={t => setParams({ tab: t }, { replace: true })} options={[
-          { id: 'diario', label: tr('Diário') },
-          { id: 'lembretes', label: tr('Lembretes') },
-          { id: 'efeitos', label: tr('Efeitos') },
-          { id: 'consultas', label: tr('Consultas') },
-        ]} />
-        {tab === 'diario' && <Diary />}
-        {tab === 'lembretes' && <Reminders />}
-        {tab === 'efeitos' && <Effects />}
-        {tab === 'consultas' && <Appointments />}
+        <Diary />
       </div>
     </>
   )
@@ -192,7 +183,7 @@ function useReminderNotifications(vault: Vault) {
   }, [vault.reminders, vault.settings.discreetNotifications])
 }
 
-function Reminders() {
+export function Reminders() {
   const { vault, update } = useVault()
   const toast = useToast()
   useReminderNotifications(vault)
@@ -292,7 +283,7 @@ function Spark({ values }: { values: number[] }) {
   return <svg width={w} height={h} aria-hidden="true"><polyline points={pts} fill="none" stroke="var(--accent)" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" /></svg>
 }
 
-function Effects() {
+export function Effects() {
   const { vault, update } = useVault()
   const toast = useToast()
   const [values, setValues] = useState<Record<string, number>>({})
@@ -382,7 +373,7 @@ export function buildSummary(v: Vault): string {
   return lines.filter((l, i, arr) => !(l === '' && arr[i - 1] === '')).join('\n')
 }
 
-function Appointments() {
+export function Appointments() {
   const { vault, update } = useVault()
   const toast = useToast()
   const [open, setOpen] = useState(false)

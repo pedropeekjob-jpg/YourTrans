@@ -10,28 +10,30 @@ import { api, apiEnabled } from '../lib/api'
 import { downloadIcs, icsEvent } from '../lib/ics'
 import { uid } from '../lib/types'
 import { Stories } from './Stories'
+import { Places } from './Safety'
 import { locale, tr } from '../i18n'
 
-type Tab = 'apoio' | 'testemunhos' | 'agenda' | 'mentoria'
+type Tab = 'apoio' | 'testemunhos' | 'agenda' | 'locais' | 'mentoria'
 
 export function Community() {
   const [params, setParams] = useSearchParams()
   const tab = (params.get('tab') as Tab) || 'apoio'
   return (
     <>
-      <TopBar title={tr('Apoio e comunidade')} />
+      <TopBar title={tr('Comunidade')} />
       <div className="page">
-        <Seg value={tab} onChange={t => setParams({ tab: t }, { replace: true })} options={[{ id: 'apoio', label: tr('Apoio') }, { id: 'testemunhos', label: tr('Partilhas') }, { id: 'agenda', label: tr('Agenda') }, { id: 'mentoria', label: tr('Mentoria') }]} />
+        <Seg value={tab} onChange={t => setParams({ tab: t }, { replace: true })} options={[{ id: 'apoio', label: tr('Apoio') }, { id: 'testemunhos', label: tr('Partilhas') }, { id: 'agenda', label: tr('Agenda') }, { id: 'locais', label: tr('Locais seguros') }, { id: 'mentoria', label: tr('Mentoria') }]} />
         {tab === 'apoio' && <Support />}
         {tab === 'testemunhos' && <Stories initialTopic={params.get('tema') ?? undefined} />}
         {tab === 'agenda' && <Agenda />}
+        {tab === 'locais' && <Places />}
         {tab === 'mentoria' && <Mentoring />}
       </div>
     </>
   )
 }
 
-function Support() {
+export function Support() {
   const ally = useVault().vault.settings.profile === 'ally'
   const urgent = supportOrgs.filter(o => o.phone)
   const orgs = supportOrgs.filter(o => o.kind === 'associação')

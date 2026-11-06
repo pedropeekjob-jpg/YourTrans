@@ -1,17 +1,15 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useVault } from '../lib/vault-context'
 import { Icon } from './Icon'
-import { Sheet } from './ui'
-import { SosPanel } from './Sos'
 import { tr } from '../i18n'
 
 const tabs = [
-  { to: '/', label: tr('Início'), icon: 'home', end: true },
-  { to: '/documentos', label: tr('Documentos'), icon: 'doc' },
+  { to: '/', label: tr('Hoje'), icon: 'home', end: true },
+  { to: '/percurso', label: tr('Percurso'), icon: 'sparkle' },
   { to: '/saude', label: tr('Saúde'), icon: 'heart' },
-  { to: '/diario', label: tr('Diário'), icon: 'book' },
-  { to: '/comunidade', label: tr('Apoio'), icon: 'people' },
+  { to: '/comunidade', label: tr('Comunidade'), icon: 'people' },
+  { to: '/eu', label: tr('Eu'), icon: 'book' },
 ]
 
 const allyTabs = [
@@ -57,11 +55,11 @@ export function Layout({ children }: { children: ReactNode }) {
   )
 }
 
-/** Barra superior com voltar, título e o botão SOS sempre visível. */
+/** Barra superior com voltar, título e o botão Ajuda sempre visível. */
 export function TopBar({ title, back, right }: { title?: string; back?: boolean; right?: ReactNode }) {
   const { panic, vault } = useVault()
   const nav = useNavigate()
-  const [sos, setSos] = useState(false)
+  const ally = vault.settings.profile === 'ally'
   return (
     <>
     <header className="topbar">
@@ -71,13 +69,9 @@ export function TopBar({ title, back, right }: { title?: string; back?: boolean;
       {vault.settings.disguise && (
         <button className="icon-btn" onClick={panic} aria-label={tr('Modo privado: mostrar calculadora')}><Icon name="eyeOff" /></button>
       )}
-      {vault.settings.profile !== 'ally' && <button className="panic" onClick={() => setSos(true)} aria-label={tr('SOS: pedir ajuda urgente')}>
-        <Icon name="alert" size={18} /> {tr('SOS')}</button>}
+      {!ally && <button className="panic" onClick={() => nav('/ajuda')} aria-label={tr('Ajuda: SOS, linhas de apoio e direitos')}>
+        <Icon name="alert" size={18} /> {tr('Ajuda')}</button>}
     </header>
-    {/* Fora do cabeçalho: o backdrop-filter dele prenderia o painel fixo. */}
-    <Sheet open={sos} onClose={() => setSos(false)} title={tr('Pedir ajuda')}>
-      <SosPanel compact />
-    </Sheet>
     </>
   )
 }

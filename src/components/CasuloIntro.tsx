@@ -1,7 +1,5 @@
 import { useEffect, useRef } from 'react'
 import { tr } from '../i18n'
-import '@fontsource/unbounded/latin-300.css'
-import '@fontsource/unbounded/latin-400.css'
 
 /** Animação de entrada do Casulo, estilo néon noturno (15 s em ciclo): uma luz sai do casulo,
  *  encontra outras e ficam todas num abraço. Porte de app-trans/animacao/casulo-animacao.html. Com "reduzir movimento" mostra só a imagem final. */

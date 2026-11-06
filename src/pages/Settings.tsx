@@ -3,10 +3,11 @@ import { useVault } from '../lib/vault-context'
 import { TopBar } from '../components/Layout'
 import { Icon } from '../components/Icon'
 import { LangPicker } from '../components/LangPicker'
+import { ThemePicker } from '../components/ThemePicker'
 import { CasuloLogo } from '../components/CasuloLogo'
 import { Seg, useToast } from '../components/ui'
 import { exportBackup, importBackup } from '../lib/storage'
-import type { PanicTarget, Theme } from '../lib/types'
+import type { PanicTarget } from '../lib/types'
 import { pronounOptions } from './Onboarding'
 import { allyRoles } from '../data/allies'
 import { tr } from '../i18n'
@@ -101,7 +102,7 @@ export function Settings() {
 
         <section className="card">
           <h3>{tr('Aparência')}</h3>
-          <Seg<Theme> value={s.theme} onChange={v => set('theme', v)} options={[{ id: 'system', label: tr('Automático') }, { id: 'light', label: tr('Claro') }, { id: 'dark', label: tr('Escuro') }]} />
+          <ThemePicker />
         </section>
 
         <section className="card">

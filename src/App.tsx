@@ -19,6 +19,9 @@ import { Work } from './pages/Work'
 import { Settings } from './pages/Settings'
 import { Share } from './pages/Share'
 import { Rights } from './pages/Rights'
+import { Journey } from './pages/Journey'
+import { Me } from './pages/Me'
+import { Help } from './pages/Help'
 import { AllyCards, AllyForMe, AllyHome, AllyLearn, AllyPractice, Receive } from './pages/Ally'
 
 function Shell() {
@@ -31,7 +34,7 @@ function Shell() {
   }, [status, mode])
 
   useEffect(() => {
-    const theme = vault?.settings.theme ?? 'system'
+    const theme = vault?.settings.theme ?? 'dark'
     if (theme === 'system') document.documentElement.removeAttribute('data-theme')
     else document.documentElement.setAttribute('data-theme', theme)
   }, [vault?.settings.theme])
@@ -60,6 +63,9 @@ function Shell() {
         ) : (
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/percurso" element={<Journey />} />
+          <Route path="/eu" element={<Me />} />
+          <Route path="/ajuda" element={<Help />} />
           <Route path="/partilhar" element={<Share />} />
           <Route path="/direitos" element={<Rights />} />
           <Route path="/receber/:data" element={<Receive />} />

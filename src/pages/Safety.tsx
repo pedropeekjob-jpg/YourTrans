@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { useVault } from '../lib/vault-context'
 import { TopBar } from '../components/Layout'
 import { Icon } from '../components/Icon'
@@ -13,7 +13,9 @@ import { tr } from '../i18n'
 type Tab = 'alerta' | 'locais' | 'reportar'
 
 export function Safety() {
-  const [tab, setTab] = useState<Tab>('alerta')
+  const [params, setParams] = useSearchParams()
+  const tab = (params.get('tab') as Tab) || 'alerta'
+  const setTab = (t: Tab) => setParams({ tab: t }, { replace: true })
   return (
     <>
       <TopBar title={tr('Segurança')} back />
@@ -71,7 +73,7 @@ export function FacilityBadges({ f }: { f: Facilities }) {
   )
 }
 
-function Places() {
+export function Places() {
   const { vault, update } = useVault()
   const toast = useToast()
   const [remote, setRemote] = useState<Place[]>([])
@@ -169,7 +171,7 @@ function Places() {
 const incidentKinds = ['Insulto ou assédio verbal', 'Agressão física', 'Discriminação no trabalho', 'Discriminação na saúde', 'Discriminação num serviço', 'Assédio online', 'Recusa de atendimento', 'Outro']
 const settings = ['Rua/transportes', 'Trabalho', 'Escola/universidade', 'Saúde', 'Serviço público', 'Comércio', 'Casa/família', 'Online']
 
-function Report() {
+export function Report() {
   const toast = useToast()
   const [form, setForm] = useState({ kind: '', setting: '', district: '', description: '', reported: false })
   const [sent, setSent] = useState(false)

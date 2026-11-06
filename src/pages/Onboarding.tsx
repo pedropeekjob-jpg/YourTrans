@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useVault } from '../lib/vault-context'
 import { Icon } from '../components/Icon'
 import { LangPicker } from '../components/LangPicker'
+import { ThemeToggle } from '../components/ThemePicker'
 import { CasuloIntro } from '../components/CasuloIntro'
 import { allyRoles, type AllyRole } from '../data/allies'
 import { tr } from '../i18n'
@@ -41,7 +42,7 @@ export function Onboarding() {
           <span className="grow stack" style={{ gap: 2 }}><b>{tr('Apoio alguém trans')}</b><span className="small muted">{tr('Família, amigue, colega, chefia ou professor/a')}</span></span>
           <Icon name="chevron" />
         </button>
-        <p className="xs muted" style={{ textAlign: 'center' }}>{tr('Sem conta. Tudo fica cifrado neste telemóvel.')}<br /><LangPicker subtle /></p>
+        <p className="xs muted" style={{ textAlign: 'center' }}>{tr('Sem conta. Tudo fica cifrado neste telemóvel.')}<br /><LangPicker subtle />{' · '}<ThemeToggle /></p>
       </div>
     </div>
   )
