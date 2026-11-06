@@ -21,6 +21,17 @@ test('sugestões só aparecem depois de aprovadas', async () => {
   assert.equal(places[0].facilities.duches, 'individuais')
 })
 
+test('locais guardam coordenadas arredondadas e só em Portugal', async () => {
+  assert.equal((await post('/api/places', { name: 'Café Fora', kind: 'Café/Restaurante', district: 'Lisboa', facilities: {}, lat: 40.4, lng: -3.7 })).status, 400)
+  assert.equal((await post('/api/places', { name: 'Café Meio', kind: 'Café/Restaurante', district: 'Lisboa', facilities: {}, lat: 38.7 })).status, 400)
+  assert.equal((await post('/api/places', { name: 'Café Perto', kind: 'Café/Restaurante', district: 'Lisboa', facilities: {}, lat: 38.722345, lng: -9.139312 })).status, 201)
+  const q = await (await fetch(base + '/api/mod/queue', { headers: { authorization: 'Bearer segredo-de-teste' } })).json()
+  const item = q.find(x => x.payload.name === 'Café Perto')
+  await post('/api/mod/' + item.id, { action: 'approve' }, 'segredo-de-teste')
+  const p = (await (await fetch(base + '/api/places')).json()).find(x => x.name === 'Café Perto')
+  assert.deepEqual([p.lat, p.lng], [38.7223, -9.1393])
+})
+
 test('rejeita dados inválidos e moderação sem token', async () => {
   assert.equal((await post('/api/places', { name: 'x' })).status, 400)
   assert.equal((await fetch(base + '/api/mod/queue')).status, 401)
