@@ -9,6 +9,8 @@ import { todayKey, uid } from '../lib/types'
 import { daysSinceBackup, hasRecords } from './DataCare'
 import { useState } from 'react'
 import { tr } from '../i18n'
+import { InstallCard } from '../components/InstallCard'
+import { installNudgeSnoozed, snoozeInstallNudge, useInstall } from '../lib/install'
 
 export const moods = ['😞', '😕', '😐', '🙂', '🤩']
 
@@ -46,6 +48,8 @@ export function Home() {
   const backupDays = daysSinceBackup(vault)
   const [nudgeHidden, setNudgeHidden] = useState(() => { try { return Date.now() - Number(localStorage.getItem('backupNudge') ?? 0) < 7 * 86_400_000 } catch { return false } })
   const showNudge = !nudgeHidden && hasRecords(vault) && (backupDays === null || backupDays > 30)
+  const installState = useInstall()
+  const [installHidden, setInstallHidden] = useState(installNudgeSnoozed)
   const fact = facts[Math.floor(Date.now() / 86_400_000) % facts.length]
   const heardDays = vault.checkins.filter(d => d.startsWith(today.slice(0, 7))).length
   const milestones = useMilestones()
@@ -88,6 +92,8 @@ export function Home() {
             </div>
           </div>
         </section>
+
+        {installState !== 'installed' && !installHidden && <InstallCard onClose={() => { snoozeInstallNudge(); setInstallHidden(true) }} />}
 
         {next && (
           <Link to="/percurso" className="card neon-pink" style={{ textDecoration: 'none', color: 'inherit' }}>

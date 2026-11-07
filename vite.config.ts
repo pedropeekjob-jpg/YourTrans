@@ -12,6 +12,7 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['icon.svg'],
       manifest: {
+        id: './',
         name: 'Notas',
         short_name: 'Notas',
         description: 'Notas pessoais',
