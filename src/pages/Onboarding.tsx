@@ -6,6 +6,8 @@ import { ThemeToggle } from '../components/ThemePicker'
 import { CasuloIntro } from '../components/CasuloIntro'
 import { allyRoles, type AllyRole } from '../data/allies'
 import { tr } from '../i18n'
+import { InstallSteps } from '../components/InstallCard'
+import { isInAppBrowser } from '../lib/install'
 
 export const pronounOptions = [tr('ela/dela'), tr('ele/dele'), tr('elu/delu'), tr('sem preferência')]
 export const interestOptions = [
@@ -32,6 +34,12 @@ export function Onboarding() {
         <p className="muted">{tr('Há um percurso para pessoas trans e outro para quem as rodeia: família, amigues, colegas, chefias e professores.')}</p>
       </div>
       <div className="stack">
+        {isInAppBrowser() && !fromLink && (
+          <section className="card tint-amber">
+            <div className="row"><Icon name="alert" /><h3>{tr('Antes de começares')}</h3></div>
+            <InstallSteps />
+          </section>
+        )}
         <button className="choice card" onClick={() => setProfile('trans')}>
           <span className="lead-ico" style={{ background: 'var(--sky-soft)', color: 'var(--accent)' }}><Icon name="sparkle" /></span>
           <span className="grow stack" style={{ gap: 2 }}><b>{tr('Sou uma pessoa trans')}</b><span className="small muted">{tr('Ou estou a questionar a minha identidade')}</span></span>

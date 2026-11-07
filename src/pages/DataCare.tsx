@@ -7,14 +7,11 @@ import { useToast } from '../components/ui'
 import { exportBackup, importBackup } from '../lib/storage'
 import type { Vault } from '../lib/types'
 import { locale, tr } from '../i18n'
+import { InstallSafety, InstallSteps } from '../components/InstallCard'
+import { useInstall } from '../lib/install'
 
 // "Os teus dados": onde ficam os registos, quando se podem perder, como evitar e como passá-los para outro aparelho.
 
-export function isInstalled(): boolean {
-  return window.matchMedia?.('(display-mode: standalone)').matches || (navigator as unknown as { standalone?: boolean }).standalone === true
-}
-
-const isIOS = () => /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
 
 /** Dias desde a última cópia de segurança (null se nunca foi feita). */
 export function daysSinceBackup(v: Vault): number | null {
@@ -81,7 +78,7 @@ function Status({ ok, label, fix }: { ok: boolean; label: string; fix?: string }
 export function DataCare() {
   const { vault, mode, hasRecovery } = useVault()
   const [persisted, setPersisted] = useState<boolean | null>(null)
-  const installed = isInstalled()
+  const installed = useInstall() === 'installed'
   const days = daysSinceBackup(vault)
 
   useEffect(() => {
@@ -105,8 +102,12 @@ export function DataCare() {
         <section className="card">
           <h3>{tr('Estado neste aparelho')}</h3>
           <ul className="stack" style={{ listStyle: 'none', margin: 0, padding: 0, gap: 10 }}>
-            <Status ok={installed} label={installed ? tr('App instalada no ecrã principal') : tr('App aberta no browser, não instalada')}
-              fix={isIOS() ? tr('No Safari, toca em Partilhar e depois em "Adicionar ao ecrã principal".') : tr('No menu do browser, escolhe "Instalar app" ou "Adicionar ao ecrã principal".')} />
+            <li className="stack" style={{ gap: 8 }}>
+              <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+                <Status ok={installed} label={installed ? tr('App instalada no ecrã principal') : tr('App aberta no browser, não instalada')} />
+              </ul>
+              {!installed && <><InstallSteps /><InstallSafety /></>}
+            </li>
             {persisted !== null && (
               <li className="stack" style={{ gap: 6 }}>
                 <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
