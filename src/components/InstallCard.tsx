@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { Icon } from './Icon'
 import { useToast } from './ui'
 import { appName, discreetName, promptInstall, setDiscreetName, useInstall } from '../lib/install'
@@ -67,6 +68,24 @@ export function InstallSteps() {
   )
 }
 
+/** Porque é seguro instalar: para quem hesita antes de confirmar. */
+export function InstallSafety() {
+  return (
+    <details className="install-safety">
+      <summary className="small"><Icon name="shield" size={16} /> {tr('Porque é seguro instalar?')}</summary>
+      <ul className="small" style={{ margin: '8px 0 0', paddingLeft: 18, display: 'grid', gap: 6 }}>
+        <li>{tr('Não descarregas nenhum ficheiro: é o próprio site casulo.space guardado no ecrã principal. Corre dentro do browser, isolado do resto do telemóvel, e não vê as tuas fotos, contactos, mensagens nem outras apps.')}</li>
+        <li>{tr('Não pede permissões ao instalar. A câmara, a localização e as notificações só são pedidas quando usas uma função que precisa delas, e podes recusar.')}</li>
+        <li>{tr('Sem conta, sem publicidade e sem rastreadores. Os teus registos ficam cifrados neste aparelho.')}</li>
+        <li>{tr('A app só fala com o servidor da comunidade e com o mapa. O browser bloqueia qualquer outra ligação ou código de fora.')}</li>
+        <li>{tr('Confirma que o endereço é casulo.space. Os perfis oficiais são @casulo_app no Instagram e @casulo.app no TikTok. Nunca te vamos pedir para descarregar um ficheiro .apk nem dados de pagamento.')}</li>
+        <li>{tr('Podes removê-la quando quiseres, como qualquer app. Antes, faz uma cópia de segurança, porque os registos vão com ela.')}</li>
+      </ul>
+      <p className="xs muted" style={{ margin: '8px 0 0' }}><Link to="/privacidade">{tr('Política de privacidade')}</Link></p>
+    </details>
+  )
+}
+
 /** Escolher, antes de instalar, entre "Casulo" e o nome discreto "Notas". */
 export function DiscreetNameToggle({ onChange }: { onChange?: () => void }) {
   const [on, setOn] = useState(discreetName)
@@ -95,6 +114,7 @@ export function InstallCard({ onClose }: { onClose?: () => void }) {
       <p className="small">{tr('Abre num toque, funciona sem internet e protege melhor os teus registos. Não passa por nenhuma loja, por isso não fica no histórico de apps.')}</p>
       <DiscreetNameToggle onChange={() => setName(appName())} />
       <InstallSteps key={name} />
+      <InstallSafety />
     </section>
   )
 }

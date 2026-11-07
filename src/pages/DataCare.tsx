@@ -7,7 +7,7 @@ import { useToast } from '../components/ui'
 import { exportBackup, importBackup } from '../lib/storage'
 import type { Vault } from '../lib/types'
 import { locale, tr } from '../i18n'
-import { InstallSteps } from '../components/InstallCard'
+import { InstallSafety, InstallSteps } from '../components/InstallCard'
 import { useInstall } from '../lib/install'
 
 // "Os teus dados": onde ficam os registos, quando se podem perder, como evitar e como passá-los para outro aparelho.
@@ -106,7 +106,7 @@ export function DataCare() {
               <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
                 <Status ok={installed} label={installed ? tr('App instalada no ecrã principal') : tr('App aberta no browser, não instalada')} />
               </ul>
-              {!installed && <InstallSteps />}
+              {!installed && <><InstallSteps /><InstallSafety /></>}
             </li>
             {persisted !== null && (
               <li className="stack" style={{ gap: 6 }}>
