@@ -3,6 +3,7 @@ import { useVault } from '../lib/vault-context'
 import { LockedOutError } from '../lib/storage'
 import { Icon } from './Icon'
 import { locale, tr } from '../i18n'
+import { appName } from '../lib/install'
 
 // Ecrã de bloqueio neutro: não revela o propósito da app.
 export function Lock() {
@@ -95,7 +96,7 @@ export function Lock() {
     <div className="lock">
       <div className="box">
         <div className="icon-btn" style={{ width: 64, height: 64, borderRadius: 20 }}><Icon name="lock" size={28} /></div>
-        <h2>{tr('Notas')}</h2>
+        <h2>{appName()}</h2>
         <p className="muted small">{tr('Introduz o código')}</p>
         <div className={'dots' + (shake ? ' shake' : '')} aria-label={tr('{0} dígitos', pin.length)}>
           {Array.from({ length: Math.max(4, pin.length) }).map((_, i) => <span key={i} className={i < pin.length ? 'on' : ''} />)}

@@ -2,31 +2,32 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
-// O nome e o ícone instalados são propositadamente neutros ("Notas"):
-// muitas pessoas não estão assumidas em casa e o ecrã inicial é visível.
+// Instalada, a app chama-se "Casulo" e usa o ícone do Casulo. Quem não está à vontade
+// em casa pode escolher, antes de instalar, o nome discreto "Notas" com um ícone neutro:
+// nesse caso o index.html troca o manifesto por public/manifest-notas.webmanifest.
 export default defineConfig({
   base: './',
   plugins: [
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['icon.svg'],
+      includeAssets: ['icon.svg', 'manifest-notas.webmanifest'],
       manifest: {
         id: './',
-        name: 'Notas',
-        short_name: 'Notas',
-        description: 'Notas pessoais',
+        name: 'Casulo',
+        short_name: 'Casulo',
+        description: 'Casulo',
         lang: 'pt-PT',
         start_url: './',
         scope: './',
         display: 'standalone',
         orientation: 'portrait',
-        background_color: '#f6f4ef',
-        theme_color: '#f6f4ef',
+        background_color: '#14283a',
+        theme_color: '#14283a',
         icons: [
-          { src: 'icon-192.png', sizes: '192x192', type: 'image/png' },
-          { src: 'icon-512.png', sizes: '512x512', type: 'image/png' },
-          { src: 'icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+          { src: 'casulo-192.png', sizes: '192x192', type: 'image/png' },
+          { src: 'casulo-512.png', sizes: '512x512', type: 'image/png' },
+          { src: 'casulo-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
       workbox: { globPatterns: ['**/*.{js,css,html,svg,png,woff2}'] },

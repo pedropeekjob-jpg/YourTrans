@@ -3,20 +3,20 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#f6f4ef" />
+    <meta name="theme-color" content="#14283a" />
     <meta name="referrer" content="no-referrer" />
     <meta name="robots" content="noindex" />
-    <link rel="icon" href="./icon.svg" type="image/svg+xml" />
-    <link rel="apple-touch-icon" href="./icon-192.png" />
+    <link rel="icon" href="./casulo-192.png" type="image/png" />
+    <link rel="apple-touch-icon" href="./casulo-apple-180.png" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-title" content="Notas" />
-    <title>Notas</title>
+    <meta name="apple-mobile-web-app-title" content="Casulo" />
+    <title>Casulo</title>
   </head>
   <body>
     <div id="root"></div>
     <!-- Ecrã de carregamento do Casulo. Só aparece quando a app não está protegida por código
-         para não revelar o nome a quem vê o ecrã "Notas". -->
+         para não revelar o nome a quem escolheu o nome discreto "Notas". -->
     <template id="splash-tpl"><div id="splash" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" >
   <!-- Casulo: animação curta de carregamento (1,6 s em ciclo). Os braços néon respiram,
        a cabeça brilha e os olhos piscam. Fundo transparente. -->
@@ -56,6 +56,18 @@
   </g>
 </svg></div></template>
     <script>
+      // Nome discreto: quem o escolheu instala e vê a app como "Notas", com ícone neutro.
+      try {
+        if (localStorage.getItem('discreetName') === '1') {
+          document.title = 'Notas'
+          var q = function (s) { return document.querySelector(s) }
+          q('meta[name="apple-mobile-web-app-title"]').setAttribute('content', 'Notas')
+          q('link[rel="apple-touch-icon"]').setAttribute('href', './icon-192.png')
+          q('link[rel="icon"]').setAttribute('href', './icon.svg')
+          q('meta[name="theme-color"]').setAttribute('content', '#f6f4ef')
+          var m = q('link[rel="manifest"]'); if (m) m.setAttribute('href', './manifest-notas.webmanifest')
+        }
+      } catch (e) {}
       try {
         if (localStorage.getItem('splash') !== '0') {
           document.body.appendChild(document.getElementById('splash-tpl').content.cloneNode(true))

@@ -86,3 +86,27 @@ export function installNudgeSnoozed(): boolean {
 export function snoozeInstallNudge() {
   try { localStorage.setItem(SNOOZE_KEY, String(Date.now())) } catch { /* sem armazenamento */ }
 }
+
+// Nome no ecrã principal: "Casulo" por omissão, ou "Notas" (ícone neutro) para quem precisa
+// de discrição. Guardado no aparelho, fora do cofre, porque é preciso antes de desbloquear.
+const NAME_KEY = 'discreetName'
+
+export function discreetName(): boolean {
+  try { return localStorage.getItem(NAME_KEY) === '1' } catch { return false }
+}
+
+export function appName(): string {
+  return discreetName() ? 'Notas' : 'Casulo'
+}
+
+/** Muda o nome e o ícone usados na próxima instalação (o index.html aplica o mesmo no arranque). */
+export function setDiscreetName(on: boolean) {
+  try { if (on) localStorage.setItem(NAME_KEY, '1'); else localStorage.removeItem(NAME_KEY) } catch { /* sem armazenamento */ }
+  const q = (s: string) => document.querySelector(s)
+  document.title = appName()
+  q('meta[name="apple-mobile-web-app-title"]')?.setAttribute('content', appName())
+  q('link[rel="apple-touch-icon"]')?.setAttribute('href', on ? './icon-192.png' : './casulo-apple-180.png')
+  q('link[rel="icon"]')?.setAttribute('href', on ? './icon.svg' : './casulo-192.png')
+  q('meta[name="theme-color"]')?.setAttribute('content', on ? '#f6f4ef' : '#14283a')
+  q('link[rel="manifest"]')?.setAttribute('href', on ? './manifest-notas.webmanifest' : './manifest.webmanifest')
+}

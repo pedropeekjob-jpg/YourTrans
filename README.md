@@ -1,7 +1,7 @@
-# Notas: app de apoio para pessoas trans (MVP)
+# Casulo: app de apoio para pessoas trans (MVP)
 
 App web mobile-first (PWA) pensada para Portugal, pronta a ser convertida em app Android/iOS com Capacitor.
-No ecrã inicial chama-se apenas **"Notas"** e tem um ícone neutro, de propósito.
+No ecrã inicial chama-se **"Casulo"**, com o ícone do Casulo. Quem precisa de discrição pode escolher, antes de instalar, o nome **"Notas"** com um ícone neutro (Definições ou o convite para instalar).
 
 ## O que tem
 
