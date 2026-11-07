@@ -104,7 +104,7 @@ function Agenda() {
   const addMine = async () => {
     const ev = { id: uid(), title: form.title.trim(), date: new Date(form.date).toISOString(), place: form.place.trim() || undefined }
     update(v => ({ ...v, events: [...v.events, ev] }))
-    if (form.share && apiEnabled) { try { await api.suggestEvent(ev); toast(tr('Enviado para moderação')) } catch { /* fica local */ } }
+    if (form.share && apiEnabled) { try { const r = await api.suggestEvent(ev); toast(r.published ? tr('Publicado na agenda da comunidade') : tr('Enviado para moderação')) } catch { /* fica local */ } }
     setOpen(false); setForm({ title: '', date: '', place: '', share: false })
   }
 
@@ -212,7 +212,7 @@ function Mentoring() {
           <li>{tr('Sem conselhos médicos sobre doses: isso é com profissionais.')}</li>
           <li>{tr('Nada de partilhar dados de terceiros, fotos ou capturas sem consentimento.')}</li>
           <li>{tr('Assédio, transfobia ou tentativas de "outing" levam a expulsão imediata.')}</li>
-          <li>{tr('Tudo o que é publicado passa por moderação humana.')}</li>
+          <li>{tr('Um filtro automático revê tudo antes de ser publicado, e a equipa de moderação vê o que levanta dúvidas ou é denunciado.')}</li>
         </ul>
       </section>
     </>

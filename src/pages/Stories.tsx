@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useVault } from '../lib/vault-context'
 import { Icon } from '../components/Icon'
 import { Empty, Sheet, useToast } from '../components/ui'
@@ -25,10 +25,11 @@ export function Stories({ initialTopic }: { initialTopic?: string }) {
   const [writing, setWriting] = useState<'testemunho' | 'pergunta' | null>(null)
   const [revealed, setRevealed] = useState<string[]>([])
 
-  useEffect(() => {
+  const reload = useCallback(() => {
     if (!apiEnabled) return
     api.stories().then(setList).catch(() => toast(tr('Não foi possível carregar os testemunhos'))).finally(() => setLoading(false))
   }, [toast])
+  useEffect(reload, [reload])
 
   const shown = useMemo(() => list.filter(s => (!topic || s.topic === topic) && (!phase || s.phase === phase)), [list, topic, phase])
 
@@ -61,7 +62,7 @@ export function Stories({ initialTopic }: { initialTopic?: string }) {
 
       {!apiEnabled ? (
         <Empty icon="people" title={tr('Os testemunhos chegam em breve')}
-          text={tr('Esta parte precisa do servidor da comunidade, onde cada testemunho é revisto por moderação humana antes de ser publicado.')} />
+          text={tr('Esta parte precisa do servidor da comunidade, onde cada testemunho é revisto antes de ser publicado.')} />
       ) : loading ? (
         <p className="small muted">{tr('A carregar…')}</p>
       ) : shown.length === 0 ? (
@@ -108,32 +109,47 @@ export function Stories({ initialTopic }: { initialTopic?: string }) {
         </ul>
       </section>
 
-      <StorySheet story={open} onClose={() => setOpen(null)} onReplied={() => toast(tr('Resposta enviada para moderação'))} />
-      <WriteSheet kind={writing} defaultTopic={topic || undefined} onClose={() => setWriting(null)} />
+      <StorySheet story={open} onClose={() => setOpen(null)}
+        onReplied={published => {
+          toast(published ? tr('Resposta publicada') : tr('Resposta enviada para moderação'))
+          if (published) api.stories().then(l => { setList(l); setOpen(o => (o ? l.find(x => x.id === o.id) ?? null : o)) }).catch(() => {})
+        }}
+        onReported={id => { setList(l => l.filter(x => x.id !== id).map(x => ({ ...x, replies: x.replies.filter(r => r.id !== id) }))); setOpen(o => (o?.id === id ? null : o && { ...o, replies: o.replies.filter(r => r.id !== id) })) }} />
+      <WriteSheet kind={writing} defaultTopic={topic || undefined} onClose={() => setWriting(null)} onPublished={reload} />
     </>
   )
 }
 
-function StorySheet({ story, onClose, onReplied }: { story: Story | null; onClose: () => void; onReplied: () => void }) {
+function StorySheet({ story, onClose, onReplied, onReported }: { story: Story | null; onClose: () => void; onReplied: (published: boolean) => void; onReported: (id: string) => void }) {
   const [body, setBody] = useState('')
   const [nickname, setNickname] = useState('')
   const toast = useToast()
   if (!story) return null
   const send = async () => {
-    try { await api.reply(story.id, body, nickname || undefined); setBody(''); onReplied() } catch (e) { toast((e as Error).message) }
+    try { const r = await api.reply(story.id, body, nickname || undefined); setBody(''); onReplied(!!r.published) } catch (e) { toast((e as Error).message) }
+  }
+  const report = async (id: string) => {
+    if (!confirm(tr('Denunciar este conteúdo? Sai do ar até a moderação o rever.'))) return
+    try { await api.report(id); toast(tr('Obrigado. A moderação vai rever.')); onReported(id) } catch (e) { toast((e as Error).message) }
   }
   return (
     <Sheet open onClose={onClose} title={story.kind === 'pergunta' ? tr('Pergunta') : tr('Testemunho')}>
       <div className="row wrap" style={{ gap: 6 }}><span className="badge">{topicLabel(story.topic)}</span><span className="badge">{phaseLabel(story.phase)}</span></div>
       <h2>{story.title}</h2>
       <p style={{ whiteSpace: 'pre-wrap' }}>{story.body}</p>
-      <span className="xs muted">{story.nickname || tr('Anónimo')} · {monthLabel(story.month)}</span>
+      <div className="row between">
+        <span className="xs muted">{story.nickname || tr('Anónimo')} · {monthLabel(story.month)}</span>
+        <button className="btn sm ghost" onClick={() => report(story.id)}>{tr('Denunciar')}</button>
+      </div>
       <h3>{tr('Respostas (')}{story.replies.length})</h3>
       {story.replies.length === 0 && <p className="small muted">{tr('Ainda sem respostas. Uma palavra de apoio faz diferença.')}</p>}
       {story.replies.map(r => (
         <div key={r.id} className="stack" style={{ gap: 2 }}>
           <div className="bubble">{r.body}</div>
-          <span className="xs muted">{r.nickname || tr('Anónimo')} · {monthLabel(r.month)}</span>
+          <div className="row between">
+            <span className="xs muted">{r.nickname || tr('Anónimo')} · {monthLabel(r.month)}</span>
+            <button className="btn sm ghost" onClick={() => report(r.id)}>{tr('Denunciar')}</button>
+          </div>
         </div>
       ))}
       <textarea className="input" style={{ minHeight: 80 }} value={body} maxLength={1500} onChange={e => setBody(e.target.value)} placeholder={story.kind === 'pergunta' ? tr('Partilha o que viveste') : tr('Deixa uma palavra de apoio ou conta a tua experiência')} />
@@ -146,7 +162,7 @@ function StorySheet({ story, onClose, onReplied }: { story: Story | null; onClos
   )
 }
 
-function WriteSheet({ kind, defaultTopic, onClose }: { kind: 'testemunho' | 'pergunta' | null; defaultTopic?: StoryTopic; onClose: () => void }) {
+function WriteSheet({ kind, defaultTopic, onClose, onPublished }: { kind: 'testemunho' | 'pergunta' | null; defaultTopic?: StoryTopic; onClose: () => void; onPublished: () => void }) {
   const toast = useToast()
   const [form, setForm] = useState({ topic: (defaultTopic ?? 'hormonas-t') as StoryTopic, phase: 'semanas' as StoryPhase, title: '', body: '', nickname: '', warning: '' })
   const [warn, setWarn] = useState(false)
@@ -155,8 +171,9 @@ function WriteSheet({ kind, defaultTopic, onClose }: { kind: 'testemunho' | 'per
   const submit = async () => {
     if (!apiEnabled) { toast(tr('Disponível quando o servidor da comunidade estiver ligado')); return }
     try {
-      await api.postStory({ kind, topic: form.topic, phase: form.phase, title: form.title, body: form.body, nickname: form.nickname || undefined, warning: warn ? form.warning || tr('Conteúdo sensível') : undefined })
-      toast(tr('Obrigado! Vai ser revisto pela moderação e publicado em breve.'))
+      const r = await api.postStory({ kind, topic: form.topic, phase: form.phase, title: form.title, body: form.body, nickname: form.nickname || undefined, warning: warn ? form.warning || tr('Conteúdo sensível') : undefined })
+      toast(r.published ? tr('Publicado. Obrigado por partilhares!') : tr('Obrigado! Vai ser revisto pela moderação e publicado em breve.'))
+      if (r.published) onPublished()
       setForm({ ...form, title: '', body: '', warning: '' }); onClose()
     } catch (e) { toast((e as Error).message) }
   }
@@ -176,7 +193,7 @@ function WriteSheet({ kind, defaultTopic, onClose }: { kind: 'testemunho' | 'per
       {warn && <input className="input" maxLength={120} value={form.warning} onChange={e => setForm({ ...form, warning: e.target.value })} placeholder={tr('Ex.: descreve dor no pós-operatório')} />}
       <label className="field">{tr('Alcunha (opcional)')}<input className="input" maxLength={40} value={form.nickname} onChange={e => setForm({ ...form, nickname: e.target.value })} /></label>
       <ShareNote />
-      <button className="btn block" disabled={form.title.trim().length < 3 || form.body.trim().length < 20} onClick={submit}>{tr('Enviar para moderação')}</button>
+      <button className="btn block" disabled={form.title.trim().length < 3 || form.body.trim().length < 20} onClick={submit}>{tr('Enviar')}</button>
       <p className="xs muted">{tr('Anónimo: não guardamos quem publica. Lê tudo antes de enviar e não incluas dados que te identifiquem.')}</p>
     </Sheet>
   )

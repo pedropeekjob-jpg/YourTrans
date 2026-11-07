@@ -3,7 +3,7 @@ import { TopBar } from '../components/Layout'
 import { tr } from '../i18n'
 
 /** Política de privacidade. Atualizar a data sempre que o texto mudar. */
-export const PRIVACY_UPDATED = '2026-11-06'
+export const PRIVACY_UPDATED = '2026-11-07'
 export const PRIVACY_CONTACT = 'privacidade@casulo.space'
 /** Responsável pelo tratamento (pessoa singular). */
 export const PRIVACY_CONTROLLER = 'Pedro Oliveira'
@@ -26,7 +26,7 @@ export function Privacy() {
       <div className="page">
         <section className="card tint-mint">
           <h3>{tr('Em resumo')}</h3>
-          <p className="small">{tr('O que registas para ti fica só no teu aparelho, cifrado, e nós não lhe temos acesso. Só sai do aparelho o que escolhes partilhar com a comunidade: vai sem nome, sem conta e sem endereço IP guardado, e só é publicado depois de uma pessoa da moderação o aprovar.')}</p>
+          <p className="small">{tr('O que registas para ti fica só no teu aparelho, cifrado, e nós não lhe temos acesso. Só sai do aparelho o que escolhes partilhar com a comunidade: vai sem nome, sem conta e sem endereço IP guardado, e passa por um filtro automático antes de ser publicado. O que levanta dúvidas só aparece depois de uma pessoa da moderação o aprovar.')}</p>
           <p className="xs muted">{tr('Última atualização: {0}', PRIVACY_UPDATED)}</p>
         </section>
 
@@ -45,7 +45,8 @@ export function Privacy() {
           tr('Só quando o escolhes: locais seguros, testemunhos, perguntas e respostas, eventos, avaliações de profissionais e de empregadores, relatos de discriminação e pedidos de mentoria.'),
           tr('Guardamos apenas o texto e as opções do formulário e o mês do envio. Não pedimos nome, e-mail nem conta. A alcunha é opcional.'),
           tr('A localização de um local seguro é arredondada (cerca de 10 metros) e só é aceite dentro de Portugal.'),
-          tr('Nada é publicado sem aprovação humana. O que é rejeitado é apagado de imediato.'),
+          tr('Cada envio passa por um filtro automático que corre só no nosso servidor, sem enviar o texto a outros serviços. O que está limpo é publicado; o que tiver insultos, ameaças, dados pessoais, publicidade ou sinais de crise fica à espera de uma pessoa da moderação. O que é rejeitado é apagado de imediato.'),
+          tr('Profissionais de saúde e pedidos de mentoria são sempre vistos por uma pessoa antes de aparecerem. Qualquer pessoa pode denunciar o que está publicado, e o conteúdo sai do ar até ser revisto.'),
           tr('Relatos de discriminação: a descrição só é vista pela moderação. Publicamos apenas números agregados, e só quando há 5 ou mais relatos, para ninguém ser identificado.'),
           tr('Pedidos de mentoria: o contacto que deixas só é visto pela moderação, para fazer a ligação, e é apagado ao fim de 6 meses.'),
           tr('Não escrevas no texto dados que te identifiquem a ti ou a outras pessoas. A moderação retira-os ou rejeita o envio.'),
@@ -83,5 +84,5 @@ export function Privacy() {
 
 /** Linha curta para pôr junto dos formulários de partilha. */
 export function ShareNote() {
-  return <p className="xs muted">{tr('Vai sem nome nem IP e só aparece depois de moderado.')} <Link to="/privacidade">{tr('Como tratamos o que partilhas')}</Link></p>
+  return <p className="xs muted">{tr('Vai sem nome nem IP e passa pela moderação antes de aparecer.')} <Link to="/privacidade">{tr('Como tratamos o que partilhas')}</Link></p>
 }
