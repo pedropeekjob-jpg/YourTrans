@@ -4,6 +4,7 @@ import { TopBar } from '../components/Layout'
 import { Icon } from '../components/Icon'
 import { Ring } from '../components/ui'
 import { checklistPT, guides } from '../data/guides'
+import { chosenSteps } from '../data/healthPath'
 import { tr } from '../i18n'
 
 export interface Milestone { id: string; title: string; to: string; done: boolean; sub?: string }
@@ -14,10 +15,14 @@ export function useMilestones(): Milestone[] {
   const s = vault.settings
   const guide = guides.find(g => g.country === s.country) ?? guides[0]
   const checks = checklistPT.filter(c => vault.checklist[c.id]).length
+  const health = chosenSteps(vault.healthPath)
+  const healthDone = health.filter(h => vault.healthPath.steps[h.step.id]?.done).length
   return [
     { id: 'apoio', title: tr('Contar a quem me apoia'), to: '/partilhar', done: !!vault.supportCard },
     ...guide.steps.map(st => ({ id: st.id, title: st.title, to: '/documentos', done: !!vault.guideSteps[st.id] })),
     { id: 'entidades', title: tr('Atualizar banco, escola, trabalho e contratos'), to: '/documentos?tab=checklist', done: checks === checklistPT.length, sub: tr('{0}/{1} passos', checks, checklistPT.length) },
+    // Só entra no caminho se a pessoa escolheu partes do percurso de saúde.
+    ...(health.length ? [{ id: 'saude', title: tr('O meu percurso de saúde'), to: '/percurso/saude', done: healthDone === health.length, sub: tr('{0}/{1} passos', healthDone, health.length) }] : []),
   ]
 }
 
@@ -28,6 +33,7 @@ export function Journey() {
 
   const tools = [
     { to: '/nome', icon: 'sparkle', title: tr('Ensaiar nome'), sub: tr('Ouve-o e vê-o no dia a dia'), color: 'var(--accent)', bg: 'var(--accent-soft)' },
+    { to: '/percurso/saude', icon: 'heart', title: tr('Percurso de saúde'), sub: tr('Consultas, hormonas e cirurgias que escolheres'), color: 'var(--sky)', bg: 'var(--sky-soft)' },
     { to: '/documentos', icon: 'doc', title: tr('Documentos e cartas prontas'), sub: tr('Passo a passo, checklist e pedidos já escritos'), color: 'var(--mint)', bg: 'var(--mint-soft)' },
     { to: '/partilhar', icon: 'heart', title: tr('Pessoas que me apoiam'), sub: tr('Cartão e plano para família, trabalho ou escola'), color: 'var(--rose)', bg: 'var(--rose-soft)' },
     { to: '/emprego', icon: 'briefcase', title: tr('Trabalho'), sub: tr('Empresas inclusivas'), color: 'var(--amber)', bg: 'var(--amber-soft)' },

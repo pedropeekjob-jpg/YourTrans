@@ -1,4 +1,5 @@
 import type { AllyRole } from '../data/allies'
+import type { HealthPathState } from '../data/healthPath'
 
 export type Theme = 'system' | 'light' | 'dark'
 export type Profile = 'trans' | 'ally'
@@ -134,6 +135,8 @@ export interface Vault {
   settings: Settings
   checklist: Record<string, boolean>
   guideSteps: Record<string, boolean>
+  /** Percurso de saúde: partes escolhidas pela pessoa e passos feitos (com data de espera) */
+  healthPath: HealthPathState
   letterFields: Record<string, string>
   reminders: Reminder[]
   doseLog: DoseLog[]
@@ -181,6 +184,7 @@ export function emptyVault(): Vault {
     },
     checklist: {},
     guideSteps: {},
+    healthPath: { tracks: [], steps: {} },
     letterFields: {},
     reminders: [],
     doseLog: [],

@@ -20,6 +20,7 @@ import { Settings } from './pages/Settings'
 import { Share } from './pages/Share'
 import { Rights } from './pages/Rights'
 import { Journey } from './pages/Journey'
+import { HealthPath } from './pages/HealthPath'
 import { Me } from './pages/Me'
 import { Help } from './pages/Help'
 import { DataCare } from './pages/DataCare'
@@ -73,6 +74,7 @@ function Screen() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/percurso" element={<Journey />} />
+          <Route path="/percurso/saude" element={<HealthPath />} />
           <Route path="/eu" element={<Me />} />
           <Route path="/ajuda" element={<Help />} />
           <Route path="/partilhar" element={<Share />} />
