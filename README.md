@@ -47,7 +47,8 @@ Sem `VITE_API_URL` a app funciona toda em modo local e as partilhas com a comuni
 
 ## Publicação
 
-Cada push para `main` corre os testes e publica a app no GitHub Pages (`.github/workflows/pages.yml`).
+Cada push para `main` corre os testes, compila a app e publica-a em https://casulo.space, no Worker da Cloudflare `morning-recipe-50dc` (`.github/workflows/publicar.yml` e `wrangler.jsonc`). Já não é preciso carregar zips à mão.
+O workflow precisa dos segredos `CLOUDFLARE_API_TOKEN` (token com o modelo "Edit Cloudflare Workers") e `CLOUDFLARE_ACCOUNT_ID` em Settings → Secrets and variables → Actions → Secrets.
 Para ligar o servidor comunitário, define a variável de repositório `VITE_API_URL` em Settings → Secrets and variables → Actions → Variables.
 
 ## Converter em app móvel (Capacitor)
