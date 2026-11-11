@@ -25,7 +25,18 @@ async function req<T>(path: string, init?: RequestInit): Promise<T> {
   return res.json() as Promise<T>
 }
 
+/** Intervalo agregado de relatos anónimos (só existe com 3 ou mais). */
+export interface ExperienceStat { track: string; kind: 'custo' | 'espera' | 'material'; sector: 'SNS' | 'Privado'; item?: string; n: number; min: number; max: number; median: number; fromYear: number; toYear: number }
+export type StageQuestion = 'respeito' | 'informacao' | 'tempoRazoavel' | 'recomendaria'
+export interface StageReviewStat { track: string; n: number; scores?: Record<StageQuestion, number>; comments: { id: string; month: string; comment: string }[] }
+
 export const api = {
+  experiences: () => req<ExperienceStat[]>('/api/experiences'),
+  sendExperience: (e: { track: string; kind: ExperienceStat['kind']; sector: ExperienceStat['sector']; year: number; value: number; item?: string }) =>
+    req<Sent>('/api/experiences', { method: 'POST', body: JSON.stringify(e) }),
+  stageReviews: () => req<StageReviewStat[]>('/api/stage-reviews'),
+  sendStageReview: (track: string, answers: Record<StageQuestion, boolean>, comment: string) =>
+    req<Sent>('/api/stage-reviews', { method: 'POST', body: JSON.stringify({ track, answers, comment }) }),
   providers: () => req<Provider[]>('/api/providers'),
   suggestProvider: (p: Omit<Provider, 'id' | 'source'>) =>
     req<Sent>('/api/providers', { method: 'POST', body: JSON.stringify(p) }),

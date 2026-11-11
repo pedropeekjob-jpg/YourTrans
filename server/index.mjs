@@ -22,6 +22,8 @@ const K_ANON = 5 // mínimo de relatos para mostrar uma estatística
 const AUTO = (process.env.AUTO_MODERATION ?? 'on') !== 'off'
 /** Denúncias precisas para tirar do ar algo aprovado por uma pessoa (o publicado automaticamente sai à primeira). */
 const REPORTS_TO_HIDE = 3
+/** Envios por hora e por ligação (os testes sobem-no). */
+const RATE_LIMIT = Number(process.env.RATE_LIMIT ?? 30)
 
 mkdirSync(dirname(DB_PATH), { recursive: true })
 const db = new DatabaseSync(DB_PATH)
@@ -56,9 +58,18 @@ const PROVIDER_KINDS = ['Medicina geral', 'Endocrinologia', 'Psicologia', 'Psiqu
 const SHOWERS = ['individuais', 'comuns', 'ambos', 'sem']
 const STORY_TOPICS = ['hormonas-e', 'hormonas-t', 'mastectomia', 'mamoplastia', 'vaginoplastia', 'faloplastia', 'histerectomia', 'ffs', 'voz', 'emocional', 'outro']
 const STORY_PHASES = ['antes', 'primeiros-dias', 'semanas', 'meses', 'ano']
+/** Partes do percurso de saúde (iguais a src/data/healthPath.ts). */
+export const TRACKS = ['inicio', 'psicologia', 'psiquiatria', 'sexologia', 'hormonas', 'fertilidade', 'voz', 'depilacao', 'mastectomia', 'mamoplastia', 'histerectomia', 'orquiectomia', 'vaginoplastia', 'faloplastia']
+const MATERIAL = ['colete', 'dilatadores', 'almofada', 'pensos', 'outro']
+/** Relatos de custos e esperas: mínimo para mostrar um intervalo (decisão do Pedro, 11/11/2026). */
+const K_EXPERIENCE = 3
+const STAGE_QUESTIONS = ['respeito', 'informacao', 'tempoRazoavel', 'recomendaria']
+const int = (v, min, max) => Number.isInteger(v) && v >= min && v <= max
+const thisYear = () => new Date().getUTCFullYear()
 
 const validators = {
-  provider: b => str(b.name, 3, 160) && PROVIDER_KINDS.includes(b.kind) && str(b.district, 2, 40) && ['SNS', 'Privado', 'Associação'].includes(b.sector) && opt(b.notes, 600),
+  provider: b => str(b.name, 3, 160) && PROVIDER_KINDS.includes(b.kind) && str(b.district, 2, 40) && ['SNS', 'Privado', 'Associação'].includes(b.sector) && opt(b.notes, 600) &&
+    (b.person === undefined || bool(b.person)) && (b.worksAt === undefined || (Array.isArray(b.worksAt) && b.worksAt.length <= 8 && b.worksAt.every(w => str(w, 2, 120)))),
   review: b => str(b.providerId, 1, 80) && b.answers && ['nomeCerto', 'semJulgamento', 'conhecimento', 'recomendaria'].every(k => bool(b.answers[k])) && opt(b.comment, 600),
   place: b => str(b.name, 2, 160) && str(b.kind, 2, 40) && str(b.district, 2, 40) && opt(b.notes, 600) &&
     typeof b.facilities === 'object' && (b.facilities.duches === undefined || SHOWERS.includes(b.facilities.duches)) && coord(b.lat, b.lng),
@@ -68,12 +79,18 @@ const validators = {
   event: b => str(b.title, 3, 160) && !isNaN(Date.parse(b.date)) && opt(b.place, 160) && opt(b.url, 300),
   incident: b => str(b.kind, 2, 60) && str(b.setting, 2, 60) && str(b.district, 2, 40) && opt(b.description, 1000) && bool(b.reported),
   mentorship: b => ['mentee', 'mentor'].includes(b.role) && str(b.nickname, 1, 40) && str(b.stage, 2, 60) && Array.isArray(b.topics) && b.topics.length <= 12 && str(b.contact, 5, 120),
+  // Relato anónimo: só números e escolhas fixas, sem texto livre.
+  experience: b => TRACKS.includes(b.track) && ['custo', 'espera', 'material'].includes(b.kind) && ['SNS', 'Privado'].includes(b.sector) &&
+    int(b.year, thisYear() - 5, thisYear()) &&
+    (b.kind === 'espera' ? int(b.value, 0, 240) : b.kind === 'custo' ? int(b.value, 1, 200_000) && b.sector === 'Privado' : int(b.value, 1, 5_000) && MATERIAL.includes(b.item)),
+  stageReview: b => TRACKS.includes(b.track) && b.answers && STAGE_QUESTIONS.every(k => bool(b.answers[k])) && opt(b.comment, 600),
   employer: b => str(b.company, 2, 120) && b.answers && typeof b.answers === 'object' && Object.keys(b.answers).length <= 12 && opt(b.comment, 600),
 }
 
 /** Campos guardados por tipo: tudo o resto é descartado. */
 const pick = {
-  provider: b => ({ name: b.name.trim(), kind: b.kind, district: b.district, sector: b.sector, notes: b.notes?.trim() || undefined }),
+  provider: b => ({ name: b.name.trim(), kind: b.kind, district: b.district, sector: b.sector, notes: b.notes?.trim() || undefined,
+    person: b.person || undefined, worksAt: b.worksAt?.length ? b.worksAt.map(w => w.trim()) : undefined }),
   review: b => ({ providerId: b.providerId, answers: b.answers, comment: b.comment?.trim() || undefined }),
   place: b => ({ name: b.name.trim(), kind: b.kind, district: b.district, notes: b.notes?.trim() || undefined,
     facilities: { wcNeutro: !!b.facilities.wcNeutro, vestiarioNeutro: !!b.facilities.vestiarioNeutro, cabinesIndividuais: !!b.facilities.cabinesIndividuais, duches: b.facilities.duches },
@@ -83,6 +100,8 @@ const pick = {
   event: b => ({ title: b.title.trim(), date: new Date(b.date).toISOString(), place: b.place?.trim() || undefined, url: b.url?.trim() || undefined }),
   incident: b => ({ kind: b.kind, setting: b.setting, district: b.district, description: b.description?.trim() || undefined, reported: b.reported }),
   mentorship: b => ({ role: b.role, nickname: b.nickname.trim(), stage: b.stage, topics: b.topics.map(String).slice(0, 12), contact: b.contact.trim() }),
+  experience: b => ({ track: b.track, kind: b.kind, sector: b.sector, year: b.year, value: b.value, item: b.kind === 'material' ? b.item : undefined }),
+  stageReview: b => ({ track: b.track, answers: Object.fromEntries(STAGE_QUESTIONS.map(k => [k, b.answers[k]])), comment: b.comment?.trim() || undefined }),
   employer: b => ({ company: b.company.trim(), answers: Object.fromEntries(Object.entries(b.answers).map(([k, v]) => [k, !!v])), comment: b.comment?.trim() || undefined }),
 }
 
@@ -128,7 +147,7 @@ function limited(req) {
   const list = (hits.get(key) ?? []).filter(t => now - t < 3600_000)
   list.push(now)
   hits.set(key, list)
-  return list.length > 30
+  return list.length > RATE_LIMIT
 }
 
 /* ---------- leitura pública (só aprovado) ---------- */
@@ -170,6 +189,39 @@ function employers() {
     by.set(k, cur)
   }
   return [...by.values()].filter(e => e.reviews >= 3).map(e => ({ company: e.company, score: e.total / e.reviews, reviews: e.reviews })).sort((a, b) => b.score - a.score)
+}
+
+/** Intervalos por parte do percurso, só com K_EXPERIENCE ou mais relatos (nunca valores individuais). */
+export function experienceStats() {
+  const groups = new Map()
+  for (const r of approved('experience')) {
+    const k = [r.track, r.kind, r.sector, r.item ?? ''].join('|')
+    groups.set(k, [...(groups.get(k) ?? []), r])
+  }
+  const out = []
+  for (const rs of groups.values()) {
+    if (rs.length < K_EXPERIENCE) continue
+    const v = rs.map(r => r.value).sort((a, b) => a - b)
+    const mid = Math.floor(v.length / 2)
+    const years = rs.map(r => r.year)
+    const { track, kind, sector, item } = rs[0]
+    out.push({ track, kind, sector, item, n: v.length, min: v[0], max: v[v.length - 1], median: v.length % 2 ? v[mid] : Math.round((v[mid - 1] + v[mid]) / 2), fromYear: Math.min(...years), toYear: Math.max(...years) })
+  }
+  return out
+}
+
+/** Avaliações de cada etapa: percentagens só com K_EXPERIENCE ou mais; comentários moderados. */
+export function stageReviews() {
+  const by = new Map()
+  for (const r of db.prepare("SELECT id, payload, month FROM submissions WHERE type = 'stageReview' AND status = 'approved' ORDER BY rowid DESC").all()) {
+    const p = { id: r.id, month: r.month, ...JSON.parse(r.payload) }
+    by.set(p.track, [...(by.get(p.track) ?? []), p])
+  }
+  return [...by.entries()].map(([track, rs]) => ({
+    track, n: rs.length,
+    scores: rs.length >= K_EXPERIENCE ? Object.fromEntries(STAGE_QUESTIONS.map(k => [k, rs.filter(r => r.answers[k]).length / rs.length])) : undefined,
+    comments: rs.filter(r => r.comment).slice(0, 30).map(r => ({ id: r.id, month: r.month, comment: r.comment })),
+  }))
 }
 
 function incidentStats() {
@@ -232,7 +284,7 @@ function isMod(req) {
   return timingSafeEqual(Buffer.from(token), Buffer.from(MOD_TOKEN))
 }
 
-const postRoutes = { '/api/stories': 'story', '/api/replies': 'reply', '/api/providers': 'provider', '/api/reviews': 'review', '/api/places': 'place', '/api/events': 'event', '/api/incidents': 'incident', '/api/mentorship': 'mentorship', '/api/employers': 'employer' }
+const postRoutes = { '/api/stories': 'story', '/api/replies': 'reply', '/api/providers': 'provider', '/api/reviews': 'review', '/api/places': 'place', '/api/events': 'event', '/api/incidents': 'incident', '/api/mentorship': 'mentorship', '/api/employers': 'employer', '/api/experiences': 'experience', '/api/stage-reviews': 'stageReview' }
 
 export const server = createServer(async (req, res) => {
   const url = new URL(req.url ?? '/', 'http://x')
@@ -247,6 +299,8 @@ export const server = createServer(async (req, res) => {
       if (path === '/api/events') return send(res, 200, approved('event').filter(e => Date.parse(e.date) > Date.now() - 86_400_000))
       if (path === '/api/employers') return send(res, 200, employers())
       if (path === '/api/stories') return send(res, 200, stories())
+      if (path === '/api/experiences') return send(res, 200, experienceStats())
+      if (path === '/api/stage-reviews') return send(res, 200, stageReviews())
       if (path === '/api/incidents/stats') return send(res, 200, incidentStats())
       if (path === '/mod') {
         res.writeHead(200, { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store', 'x-frame-options': 'DENY' })

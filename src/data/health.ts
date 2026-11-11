@@ -16,6 +16,10 @@ export interface Provider {
   phone?: string
   source: 'pública' | 'comunidade'
   notes?: string
+  /** Pessoa (ex.: cirurgião/ã) em vez de serviço */
+  person?: boolean
+  /** Hospitais e clínicas onde dá consultas ou opera */
+  worksAt?: string[]
   /** Média das respostas da comunidade (0-1), quando existir */
   scores?: Partial<Record<ReviewQuestion, number>>
   reviewCount?: number

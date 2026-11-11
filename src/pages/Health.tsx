@@ -30,7 +30,7 @@ export function Health() {
           { id: 'percurso', label: tr('Percurso SNS') },
           { id: 'rastreios', label: tr('Rastreios') },
         ]} />
-        {tab === 'diretorio' && <Directory initialKind={(params.get('tipo') as ProviderKind) ?? ''} />}
+        {tab === 'diretorio' && <Directory key={params.get('q') ?? ''} initialKind={(params.get('tipo') as ProviderKind) ?? ''} initialQuery={params.get('q') ?? ''} />}
         {tab === 'mente' && <MentalHealth onDirectory={() => setTab('diretorio', { tipo: 'Psicologia' })} />}
         {tab === 'tratamento' && <Treatment sub={(params.get('sub') as Sub) || 'lembretes'} onSub={x => setTab('tratamento', { sub: x })} />}
         {tab === 'percurso' && <Pathway />}
@@ -60,17 +60,17 @@ export function scoreBadge(p: Provider) {
   return <span className={'badge ' + (pct >= 80 ? 'mint' : 'amber')}>{pct}{tr('% nome certo ·')}{' '}{p.reviewCount}</span>
 }
 
-function Directory({ initialKind = '' }: { initialKind?: ProviderKind | '' }) {
+function Directory({ initialKind = '', initialQuery = '' }: { initialKind?: ProviderKind | ''; initialQuery?: string }) {
   const { providers, online } = useProviders()
   const { vault, update } = useVault()
-  const [q, setQ] = useState('')
+  const [q, setQ] = useState(initialQuery)
   const [kind, setKind] = useState<ProviderKind | ''>(initialKind)
   const [district, setDistrict] = useState('')
   const [suggest, setSuggest] = useState(false)
 
   const list = useMemo(() => providers.filter(p =>
     (!kind || p.kind === kind) && (!district || p.district === district) &&
-    (!q || (p.name + ' ' + (p.notes ?? '')).toLowerCase().includes(q.toLowerCase()))), [providers, kind, district, q])
+    (!q || [p.name, p.notes ?? '', ...(p.worksAt ?? [])].join(' ').toLowerCase().includes(q.toLowerCase()))), [providers, kind, district, q])
 
   return (
     <>
@@ -78,7 +78,7 @@ function Directory({ initialKind = '' }: { initialKind?: ProviderKind | '' }) {
         <h3>{tr('Avaliado pela comunidade')}</h3>
         <p className="small">{tr('Cada avaliação responde a perguntas simples, como "trataram-me pelo nome certo?". Tudo é moderado antes de ser publicado.')}</p>
       </section>
-      <input className="input" placeholder={tr('Procurar')} value={q} onChange={e => setQ(e.target.value)} aria-label={tr('Procurar profissionais')} />
+      <input className="input" placeholder={tr('Procurar por nome, hospital ou clínica')} value={q} onChange={e => setQ(e.target.value)} aria-label={tr('Procurar profissionais')} />
       <div className="chips">
         <button className={'chip' + (!kind ? ' on' : '')} onClick={() => setKind('')}>{tr('Todos')}</button>
         {kinds.map(k => <button key={k} className={'chip' + (kind === k ? ' on' : '')} onClick={() => setKind(k)}>{tr(k)}</button>)}
@@ -100,6 +100,7 @@ function Directory({ initialKind = '' }: { initialKind?: ProviderKind | '' }) {
                   <div className="lead" style={{ background: 'var(--rose-soft)', color: 'var(--rose)' }}><Icon name="heart" /></div>
                   <div className="grow stack" style={{ gap: 4 }}>
                     <h3>{p.name}</h3>
+                    {p.worksAt?.length ? <span className="xs muted">{p.kind === 'Cirurgia' ? tr('Opera em: {0}', p.worksAt.join(', ')) : tr('Consultas em: {0}', p.worksAt.join(', '))}</span> : null}
                     <div className="row wrap" style={{ gap: 6 }}>
                       <span className="badge">{tr(p.kind)}</span>
                       <span className="badge">{p.district}</span>
@@ -126,14 +127,24 @@ function Directory({ initialKind = '' }: { initialKind?: ProviderKind | '' }) {
 
 function SuggestSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
   const toast = useToast()
-  const [form, setForm] = useState({ name: '', kind: 'Endocrinologia' as ProviderKind, district: 'Lisboa', sector: 'SNS' as Provider['sector'], notes: '' })
+  const [form, setForm] = useState({ name: '', kind: 'Endocrinologia' as ProviderKind, district: 'Lisboa', sector: 'SNS' as Provider['sector'], notes: '', person: true, where: '' })
   const submit = async () => {
     if (!apiEnabled) { toast(tr('O envio fica disponível quando o servidor estiver ligado')); return }
-    try { await api.suggestProvider(form); toast(tr('Obrigado! Vai ser revisto pela moderação.')); onClose() } catch (e) { toast((e as Error).message) }
+    const { where, ...rest } = form
+    const worksAt = where.split(/[,;\n]/).map(w => w.trim()).filter(w => w.length >= 2).slice(0, 8)
+    try { await api.suggestProvider({ ...rest, worksAt: worksAt.length ? worksAt : undefined }); toast(tr('Obrigado! Vai ser revisto pela moderação.')); onClose() } catch (e) { toast((e as Error).message) }
   }
   return (
     <Sheet open={open} onClose={onClose} title={tr('Sugerir')}>
+      <div className="chips">
+        <button className={'chip' + (form.person ? ' on' : '')} onClick={() => setForm({ ...form, person: true })}>{tr('Uma pessoa')}</button>
+        <button className={'chip' + (!form.person ? ' on' : '')} onClick={() => setForm({ ...form, person: false })}>{tr('Hospital, clínica ou serviço')}</button>
+      </div>
       <label className="field">{tr('Nome do/a profissional ou serviço')}<input className="input" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} /></label>
+      {form.person && (
+        <label className="field">{form.kind === 'Cirurgia' ? tr('Onde opera (hospitais e clínicas, separados por vírgulas)') : tr('Onde dá consultas (hospitais e clínicas, separados por vírgulas)')}
+          <input className="input" value={form.where} onChange={e => setForm({ ...form, where: e.target.value })} /></label>
+      )}
       <div className="grid2">
         <label className="field">{tr('Área')}<select className="input" value={form.kind} onChange={e => setForm({ ...form, kind: e.target.value as ProviderKind })}>{kinds.map(k => <option key={k} value={k}>{tr(k)}</option>)}</select></label>
         <label className="field">{tr('Distrito')}<select className="input" value={form.district} onChange={e => setForm({ ...form, district: e.target.value })}>{districts.map(d => <option key={d}>{d}</option>)}</select></label>

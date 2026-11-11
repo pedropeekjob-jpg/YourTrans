@@ -5,6 +5,7 @@ import { TopBar } from '../components/Layout'
 import { Icon } from '../components/Icon'
 import { Check, Progress, Seg, Sheet, fmtDate } from '../components/ui'
 import { chosenSteps, monthsSince, trackGroupLabels, tracks, travelSupport, waitingList, type HealthStep, type Source, type Track, type TrackGroup } from '../data/healthPath'
+import { TrackCommunity } from '../components/TrackCommunity'
 import { tr } from '../i18n'
 
 type Tab = 'meu' | 'espera' | 'apoios'
@@ -104,11 +105,13 @@ function TrackCard({ track }: { track: Track }) {
                 {track.recovery.times.map(x => <span key={x} className="small">• {x}</span>)}
                 <b className="small" style={{ marginTop: 6 }}>{tr('Ter em casa:')}</b>
                 {track.recovery.need.map(x => <span key={x} className="small">• {x}</span>)}
+                <p className="small">{tr('Onde comprar: em farmácias, ortopedias ou lojas de material médico. Pergunta antes à equipa: às vezes dão o primeiro no hospital. Os preços que a comunidade pagou estão em "O que a comunidade conta".')}</p>
                 <p className="xs muted">{tr('Valores típicos de fontes clínicas. Cada equipa tem o seu plano: segue sempre o que te disserem.')}</p>
                 <SourceList sources={track.recovery.sources} />
               </div>
             </details>
           )}
+          <TrackCommunity track={track} />
           {track.group === 'cirurgia' && (
             <Link to="/percurso/saude?tab=espera" className="small row"><Icon name="doc" size={16} />{tr('Lista de espera e vale-cirurgia')}</Link>
           )}
