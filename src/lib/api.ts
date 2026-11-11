@@ -10,6 +10,9 @@ const BASE = RAW === 'off' ? undefined : RAW.replace(/\/$/, '')
 
 export const apiEnabled = Boolean(BASE)
 
+/** Resposta a um envio: published diz se passou o filtro e já está visível. */
+export type Sent = { ok: true; published?: boolean }
+
 async function req<T>(path: string, init?: RequestInit): Promise<T> {
   if (!BASE) throw new Error('offline')
   const res = await fetch(BASE + path, {
@@ -25,26 +28,28 @@ async function req<T>(path: string, init?: RequestInit): Promise<T> {
 export const api = {
   providers: () => req<Provider[]>('/api/providers'),
   suggestProvider: (p: Omit<Provider, 'id' | 'source'>) =>
-    req<{ ok: true }>('/api/providers', { method: 'POST', body: JSON.stringify(p) }),
+    req<Sent>('/api/providers', { method: 'POST', body: JSON.stringify(p) }),
   review: (providerId: string, answers: Record<ReviewQuestion, boolean>, comment: string) =>
-    req<{ ok: true }>('/api/reviews', { method: 'POST', body: JSON.stringify({ providerId, answers, comment }) }),
+    req<Sent>('/api/reviews', { method: 'POST', body: JSON.stringify({ providerId, answers, comment }) }),
   incident: (data: { district: string; kind: string; setting: string; description: string; reported: boolean }) =>
-    req<{ ok: true }>('/api/incidents', { method: 'POST', body: JSON.stringify(data) }),
+    req<Sent>('/api/incidents', { method: 'POST', body: JSON.stringify(data) }),
   safePlaces: () => req<Place[]>('/api/places'),
   events: () => req<{ id: string; title: string; date: string; place?: string; url?: string; district?: string }[]>('/api/events'),
   suggestEvent: (e: { title: string; date: string; place?: string; url?: string; district?: string }) =>
-    req<{ ok: true }>('/api/events', { method: 'POST', body: JSON.stringify(e) }),
+    req<Sent>('/api/events', { method: 'POST', body: JSON.stringify(e) }),
   mentorship: (m: { role: 'mentee' | 'mentor'; nickname: string; stage: string; topics: string[]; contact: string }) =>
-    req<{ ok: true }>('/api/mentorship', { method: 'POST', body: JSON.stringify(m) }),
+    req<Sent>('/api/mentorship', { method: 'POST', body: JSON.stringify(m) }),
   employerReview: (r: { company: string; answers: Record<string, boolean>; comment: string }) =>
-    req<{ ok: true }>('/api/employers', { method: 'POST', body: JSON.stringify(r) }),
+    req<Sent>('/api/employers', { method: 'POST', body: JSON.stringify(r) }),
   employers: () => req<{ company: string; score: number; reviews: number }[]>('/api/employers'),
   stories: () => req<Story[]>('/api/stories'),
   postStory: (s: Pick<Story, 'kind' | 'topic' | 'phase' | 'title' | 'body' | 'nickname' | 'warning'>) =>
-    req<{ ok: true }>('/api/stories', { method: 'POST', body: JSON.stringify(s) }),
+    req<Sent>('/api/stories', { method: 'POST', body: JSON.stringify(s) }),
   reply: (storyId: string, body: string, nickname?: string) =>
-    req<{ ok: true }>('/api/replies', { method: 'POST', body: JSON.stringify({ storyId, body, nickname }) }),
+    req<Sent>('/api/replies', { method: 'POST', body: JSON.stringify({ storyId, body, nickname }) }),
   support: (storyId: string) => req<{ ok: true; support: number }>(`/api/stories/${encodeURIComponent(storyId)}/support`, { method: 'POST', body: '{}' }),
+  /** Denuncia algo publicado: sai do ar até a moderação o rever. */
+  report: (id: string) => req<{ ok: true }>(`/api/report/${encodeURIComponent(id)}`, { method: 'POST', body: '{}' }),
   suggestPlace: (p: Omit<Place, 'id' | 'source'>) =>
-    req<{ ok: true }>('/api/places', { method: 'POST', body: JSON.stringify(p) }),
+    req<Sent>('/api/places', { method: 'POST', body: JSON.stringify(p) }),
 }

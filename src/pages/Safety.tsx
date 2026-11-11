@@ -145,7 +145,7 @@ export function Places() {
     const place: Place = { id: uid(), ...rest, name: form.name.trim(), notes: form.notes.trim() || undefined, ...(pos ? { lat: round4(pos.lat), lng: round4(pos.lng) } : {}) }
     update(v => ({ ...v, places: [place, ...v.places] }))
     if (share && apiEnabled) {
-      try { await api.suggestPlace({ name: place.name, kind: place.kind, district: place.district, notes: place.notes, facilities: place.facilities, lat: place.lat, lng: place.lng }); toast(tr('Guardado e enviado para moderação')) }
+      try { const r = await api.suggestPlace({ name: place.name, kind: place.kind, district: place.district, notes: place.notes, facilities: place.facilities, lat: place.lat, lng: place.lng }); toast(r.published ? tr('Guardado e publicado no mapa da comunidade') : tr('Guardado e enviado para moderação')) }
       catch { toast(tr('Guardado só neste telemóvel')) }
     } else toast(tr('Guardado'))
     setOpen(false); setForm(empty)

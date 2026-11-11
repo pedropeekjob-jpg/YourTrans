@@ -11,6 +11,7 @@ import { BackupCard } from './DataCare'
 import { pronounOptions } from './Onboarding'
 import { allyRoles } from '../data/allies'
 import { tr } from '../i18n'
+import { DiscreetNameToggle } from '../components/InstallCard'
 
 export function Settings() {
   const { vault, update, mode, setPin, removePin, lock, wipe, hasRecovery } = useVault()
@@ -79,6 +80,7 @@ export function Settings() {
               <span className="xs muted">{tr('Para quem precisa de mais privacidade. Mostra um ícone discreto (olho riscado): num toque, ou com Esc 3 vezes, sai para o site do IPMA e, se tiveres código, a app fica bloqueada.')}</span>
             </span>
           </label>
+          <DiscreetNameToggle />
           <label className="row small" style={{ gap: 8 }}><input type="checkbox" checked={s.discreetNotifications} onChange={e => set('discreetNotifications', e.target.checked)} /> {tr('Notificações e calendário com texto neutro')}</label>
         </section>
 

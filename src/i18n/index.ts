@@ -1,10 +1,11 @@
 // Traduções. O texto original em português de Portugal é a própria chave:
 // tr('Olá') procura a tradução no dicionário do idioma ativo e, se não houver, mostra o original.
 // Mudar de idioma recarrega a app, para que também os conteúdos fixos sejam traduzidos.
-import en from './en.json'
-import es from './es.json'
-import fr from './fr.json'
-import br from './br.json'
+// Para poupar dados, só se descarrega o dicionário do idioma ativo (loadDict, antes de a app arrancar).
+import enUrl from './en.json?url'
+import esUrl from './es.json?url'
+import frUrl from './fr.json?url'
+import brUrl from './br.json?url'
 
 export type Lang = 'pt' | 'br' | 'en' | 'es' | 'fr'
 
@@ -16,14 +17,14 @@ export const languages: { id: Lang; label: string; locale: string }[] = [
   { id: 'fr', label: 'Français', locale: 'fr-FR' },
 ]
 
-const dicts: Record<Lang, Record<string, string>> = { pt: {}, en, es, fr, br }
+const urls: Record<Lang, string | null> = { pt: null, en: enUrl, es: esUrl, fr: frUrl, br: brUrl }
 const KEY = 'lang'
 
 function detect(): Lang {
   if (import.meta.env?.MODE === 'test') return 'pt'
   try {
     const saved = localStorage.getItem(KEY) as Lang | null
-    if (saved && saved in dicts) return saved
+    if (saved && saved in urls) return saved
   } catch { /* sem armazenamento */ }
   const nav = (typeof navigator !== 'undefined' ? navigator.language : 'pt-PT').toLowerCase()
   if (nav === 'pt-br') return 'br'
@@ -33,7 +34,17 @@ function detect(): Lang {
 
 export const lang: Lang = detect()
 export const locale = languages.find(l => l.id === lang)!.locale
-const dict = dicts[lang]
+let dict: Record<string, string> = {}
+
+/** Descarrega o dicionário do idioma ativo. Sem rede e sem cópia guardada, fica em português. */
+export async function loadDict(): Promise<void> {
+  const url = urls[lang]
+  if (!url) return
+  try { dict = await (await fetch(url)).json() } catch { /* mostra o original */ }
+}
+
+/** Endereço do dicionário ativo (o service worker guarda-o para funcionar sem rede). */
+export const dictUrl = urls[lang]
 
 if (typeof document !== 'undefined') document.documentElement.lang = locale
 

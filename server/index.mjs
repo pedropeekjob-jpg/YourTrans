@@ -1,12 +1,15 @@
 // Servidor comunitário mínimo, sem dependências (Node >= 22.5).
-// Guarda apenas o que as pessoas escolhem partilhar, sempre anónimo e
-// sujeito a moderação humana antes de ser publicado. Não guarda IPs.
+// Guarda apenas o que as pessoas escolhem partilhar, sempre anónimo. Não guarda IPs.
+// Pré-moderação automática (moderation.mjs, corre só aqui): o que passa limpo é
+// publicado logo; o que levanta suspeitas fica à espera de uma pessoa em /mod.
+// Qualquer pessoa pode denunciar o que já está publicado e volta para a fila.
 import { createServer } from 'node:http'
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto'
 import { mkdirSync, readFileSync } from 'node:fs'
 import { DatabaseSync } from 'node:sqlite'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { ALWAYS_HUMAN, fingerprint, screen } from './moderation.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const PORT = Number(process.env.PORT ?? 8787)
@@ -15,6 +18,10 @@ const MOD_TOKEN = process.env.MOD_TOKEN ?? ''
 const ORIGINS = (process.env.ALLOWED_ORIGIN ?? '*').split(',').map(s => s.trim()).filter(Boolean)
 const DB_PATH = process.env.DB_PATH ?? join(here, 'data', 'community.db')
 const K_ANON = 5 // mínimo de relatos para mostrar uma estatística
+/** AUTO_MODERATION=off volta a pôr tudo à espera de aprovação humana. */
+const AUTO = (process.env.AUTO_MODERATION ?? 'on') !== 'off'
+/** Denúncias precisas para tirar do ar algo aprovado por uma pessoa (o publicado automaticamente sai à primeira). */
+const REPORTS_TO_HIDE = 3
 
 mkdirSync(dirname(DB_PATH), { recursive: true })
 const db = new DatabaseSync(DB_PATH)
@@ -30,6 +37,11 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_type_status ON submissions(type, status);
   CREATE TABLE IF NOT EXISTS support (story_id TEXT PRIMARY KEY, count INTEGER NOT NULL DEFAULT 0);
 `)
+// Colunas acrescentadas depois da primeira versão (bases de dados já existentes).
+const cols = new Set(db.prepare('PRAGMA table_info(submissions)').all().map(c => c.name))
+if (!cols.has('auto')) db.exec('ALTER TABLE submissions ADD COLUMN auto INTEGER NOT NULL DEFAULT 0')
+if (!cols.has('reports')) db.exec('ALTER TABLE submissions ADD COLUMN reports INTEGER NOT NULL DEFAULT 0')
+if (!cols.has('fp')) db.exec('ALTER TABLE submissions ADD COLUMN fp TEXT')
 
 /* ---------- validação ---------- */
 
@@ -74,20 +86,32 @@ const pick = {
   employer: b => ({ company: b.company.trim(), answers: Object.fromEntries(Object.entries(b.answers).map(([k, v]) => [k, !!v])), comment: b.comment?.trim() || undefined }),
 }
 
-/* ---------- moderação automática (só sinaliza; quem decide é uma pessoa) ---------- */
+/* ---------- pré-moderação automática ---------- */
 
-let blocklist = []
-try { blocklist = readFileSync(join(here, 'blocklist.txt'), 'utf8').split('\n').map(s => s.trim().toLowerCase()).filter(Boolean) } catch { /* opcional */ }
+/** Sinais de um envio: os do filtro mais "repetido" se o mesmo texto já foi enviado. */
+function flagsFor(type, payload, id = '') {
+  const flags = screen(type, payload)
+  const fp = fingerprint(type, payload)
+  if (fp.length >= 12 && db.prepare('SELECT 1 FROM submissions WHERE type = ? AND fp = ? AND id != ?').get(type, fp, id)) flags.push('repetido')
+  return { flags, fp }
+}
 
-function autoFlags(payload) {
-  const text = Object.values(payload).filter(v => typeof v === 'string').join(' ').toLowerCase()
-  const flags = []
-  if (blocklist.some(w => text.includes(w))) flags.push('linguagem ofensiva')
-  if (/https?:\/\/|www\./.test(text) && !('url' in payload)) flags.push('ligação')
-  if (/[\w.+-]+@[\w-]+\.[\w.]+/.test(text) && !('contact' in payload)) flags.push('e-mail')
-  if (/(\+?351)?\s?9\d{2}\s?\d{3}\s?\d{3}/.test(text) && !('contact' in payload)) flags.push('telefone')
-  if (/(.)\1{7,}/.test(text)) flags.push('spam')
-  return flags
+/** Decide o estado: publicado se estiver limpo e o tipo o permitir, senão fica à espera. */
+const decide = (type, flags) => type === 'incident' ? 'received' : AUTO && !ALWAYS_HUMAN.has(type) && flags.length === 0 ? 'approved' : 'pending'
+
+/** Passa pelo filtro o que já estava à espera (ao arrancar, ou a pedido em /mod). */
+export function retriage() {
+  const rows = db.prepare("SELECT id, type, payload, reports FROM submissions WHERE status = 'pending' ORDER BY rowid").all()
+  let published = 0
+  for (const r of rows) {
+    const payload = JSON.parse(r.payload)
+    const { flags, fp } = flagsFor(r.type, payload, r.id)
+    if (r.reports > 0) flags.push('denunciado') // o que foi denunciado só volta com uma pessoa
+    const status = decide(r.type, flags)
+    db.prepare('UPDATE submissions SET status = ?, flags = ?, fp = ?, auto = ? WHERE id = ?').run(status, JSON.stringify(flags), fp, status === 'approved' ? 1 : 0, r.id)
+    if (status === 'approved') published++
+  }
+  return { checked: rows.length, published, waiting: rows.length - published }
 }
 
 /* ---------- limite de pedidos sem guardar IPs ---------- */
@@ -231,8 +255,12 @@ export const server = createServer(async (req, res) => {
       if (path === '/api/mod/queue') {
         if (!isMod(req)) return send(res, 401, { error: 'Sem autorização' })
         const status = url.searchParams.get('status') ?? 'pending'
-        const rows = db.prepare('SELECT * FROM submissions WHERE status = ? ORDER BY rowid DESC LIMIT 200').all(status)
-        return send(res, 200, rows.map(r => ({ ...r, payload: JSON.parse(r.payload), flags: JSON.parse(r.flags) })))
+        const onlyAuto = url.searchParams.get('auto') === '1'
+        const rows = db.prepare(`SELECT id, type, payload, status, flags, month, auto, reports FROM submissions WHERE status = ?${onlyAuto ? ' AND auto = 1' : ''} ORDER BY rowid DESC LIMIT 200`).all(status)
+          .map(r => ({ ...r, payload: JSON.parse(r.payload), flags: JSON.parse(r.flags) }))
+        // Risco de autolesão primeiro: pode haver alguém a precisar de resposta.
+        const rank = r => (r.flags.includes('risco de autolesão') ? 0 : r.flags.includes('ameaça') ? 1 : 2)
+        return send(res, 200, rows.sort((a, b) => rank(a) - rank(b)))
       }
     }
 
@@ -247,13 +275,13 @@ export const server = createServer(async (req, res) => {
           return send(res, 404, { error: 'Profissional não encontrado' })
         }
         if (type === 'reply' && !isApprovedStory(payload.storyId)) return send(res, 404, { error: 'Testemunho não encontrado' })
-        const flags = autoFlags(payload)
+        const { flags, fp } = flagsFor(type, payload)
         // Relatos de incidentes contam logo para estatísticas (agregadas, k-anonimato);
         // as descrições só são vistas pela moderação.
-        const status = type === 'incident' ? 'received' : 'pending'
-        db.prepare('INSERT INTO submissions (id, type, payload, status, flags, month) VALUES (?, ?, ?, ?, ?, ?)')
-          .run(randomBytes(9).toString('base64url'), type, JSON.stringify(payload), status, JSON.stringify(flags), new Date().toISOString().slice(0, 7))
-        return send(res, 201, { ok: true })
+        const status = decide(type, flags)
+        db.prepare('INSERT INTO submissions (id, type, payload, status, flags, month, auto, fp) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
+          .run(randomBytes(9).toString('base64url'), type, JSON.stringify(payload), status, JSON.stringify(flags), new Date().toISOString().slice(0, 7), status === 'approved' ? 1 : 0, fp)
+        return send(res, 201, { ok: true, published: status === 'approved' })
       }
       const sup = path.match(/^\/api\/stories\/([\w-]+)\/support$/)
       if (sup) {
@@ -262,13 +290,30 @@ export const server = createServer(async (req, res) => {
         db.prepare('INSERT INTO support (story_id, count) VALUES (?, 1) ON CONFLICT(story_id) DO UPDATE SET count = count + 1').run(sup[1])
         return send(res, 200, { ok: true, support: db.prepare('SELECT count FROM support WHERE story_id = ?').get(sup[1]).count })
       }
+      const rep = path.match(/^\/api\/report\/([\w-]+)$/)
+      if (rep) {
+        if (limited(req)) return send(res, 429, { error: 'Demasiados pedidos. Tenta mais tarde.' })
+        const row = db.prepare("SELECT auto, reports, flags FROM submissions WHERE id = ? AND status = 'approved'").get(rep[1])
+        if (!row) return send(res, 404, { error: 'Não encontrado' })
+        const reports = row.reports + 1
+        if (row.auto || reports >= REPORTS_TO_HIDE) {
+          const flags = [...new Set([...JSON.parse(row.flags), 'denunciado'])]
+          db.prepare("UPDATE submissions SET status = 'pending', reports = ?, flags = ? WHERE id = ?").run(reports, JSON.stringify(flags), rep[1])
+        } else db.prepare('UPDATE submissions SET reports = ? WHERE id = ?').run(reports, rep[1])
+        return send(res, 200, { ok: true })
+      }
+      if (path === '/api/mod/retriage') {
+        if (!isMod(req)) return send(res, 401, { error: 'Sem autorização' })
+        return send(res, 200, retriage())
+      }
       const m = path.match(/^\/api\/mod\/([\w-]+)$/)
       if (m) {
         if (!isMod(req)) return send(res, 401, { error: 'Sem autorização' })
         const { action } = await readBody(req)
         // Rejeitar apaga logo o conteúdo: não guardamos o que não vai ser publicado.
         if (action === 'delete' || action === 'reject') db.prepare('DELETE FROM submissions WHERE id = ?').run(m[1])
-        else if (action === 'approve') db.prepare("UPDATE submissions SET status = 'approved' WHERE id = ?").run(m[1])
+        else if (action === 'approve') db.prepare("UPDATE submissions SET status = 'approved', auto = 0, reports = 0 WHERE id = ?").run(m[1])
+        else if (action === 'hide') db.prepare("UPDATE submissions SET status = 'pending', auto = 0 WHERE id = ?").run(m[1])
         else return send(res, 400, { error: 'Ação inválida' })
         return send(res, 200, { ok: true })
       }
@@ -281,5 +326,9 @@ export const server = createServer(async (req, res) => {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   if (!MOD_TOKEN) console.warn('Aviso: MOD_TOKEN não definido, a moderação está desativada.')
+  if (AUTO) {
+    const r = retriage()
+    if (r.checked) console.log(`Fila revista: ${r.published} publicados automaticamente, ${r.waiting} à espera de moderação.`)
+  }
   server.listen(PORT, () => console.log(`Servidor comunitário em http://localhost:${PORT}`))
 }

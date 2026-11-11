@@ -15,7 +15,7 @@ export function ProviderPage() {
   const p = providers.find(x => x.id === id)
   const [answers, setAnswers] = useState<Partial<Record<ReviewQuestion, boolean>>>({})
   const [comment, setComment] = useState('')
-  const [sent, setSent] = useState(false)
+  const [sent, setSent] = useState<'' | 'published' | 'pending'>('')
 
   if (!p) return (<><TopBar back title={tr('Saúde')} /><div className="page"><Empty icon="heart" title={tr('Não encontrado')} /></div></>)
 
@@ -23,8 +23,8 @@ export function ProviderPage() {
   const submit = async () => {
     if (!apiEnabled) { toast(tr('As avaliações ficam disponíveis quando o servidor estiver ligado')); return }
     try {
-      await api.review(p.id, answers as Record<ReviewQuestion, boolean>, comment)
-      setSent(true)
+      const r = await api.review(p.id, answers as Record<ReviewQuestion, boolean>, comment)
+      setSent(r.published ? 'published' : 'pending')
     } catch (e) { toast((e as Error).message) }
   }
 
@@ -68,7 +68,7 @@ export function ProviderPage() {
         <section className="card">
           <h3>{tr('Já foste? Conta como correu')}</h3>
           {sent ? (
-            <p className="small">{tr('Obrigado! A tua avaliação vai ser revista pela moderação e publicada de forma anónima.')}</p>
+            <p className="small">{sent === 'published' ? tr('Obrigado! A tua avaliação foi publicada de forma anónima.') : tr('Obrigado! A tua avaliação vai ser revista pela moderação e publicada de forma anónima.')}</p>
           ) : (
             <>
               {reviewQuestions.map(q => (

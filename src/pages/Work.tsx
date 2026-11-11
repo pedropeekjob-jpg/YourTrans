@@ -35,7 +35,7 @@ export function Work() {
 
   const submit = async () => {
     if (!apiEnabled) { toast(tr('A partilha fica disponível quando o servidor estiver ligado')); return }
-    try { await api.employerReview({ company: company.trim(), answers, comment }); toast(tr('Obrigado! Vai ser revisto pela moderação.')); setCompany(''); setAnswers({}); setComment('') }
+    try { const r = await api.employerReview({ company: company.trim(), answers, comment }); toast(r.published ? tr('Obrigado! A tua avaliação já conta para o ranking.') : tr('Obrigado! Vai ser revisto pela moderação.')); setCompany(''); setAnswers({}); setComment('') }
     catch (e) { toast((e as Error).message) }
   }
 
