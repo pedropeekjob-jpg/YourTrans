@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="pt-PT">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-CRtn7NE9ZcM8iifpYkFZRgWCOtG9HrgRvJQOho+pg90='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https://tiles.openfreemap.org https://casulo-comunidade.onrender.com https://api.casulo.space; worker-src 'self' blob:; child-src 'self' blob:; media-src 'self' blob: data:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#14283a" />
+    <meta name="referrer" content="no-referrer" />
+    <meta name="robots" content="noindex" />
+    <link rel="icon" href="./casulo-192.png" type="image/png" />
+    <link rel="apple-touch-icon" href="./casulo-apple-180.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Casulo" />
+    <title>Casulo</title>
+    <script type="module" crossorigin src="./assets/index-BXnYozEH.js"></script>
+    <link rel="modulepreload" crossorigin href="./assets/vendor-GCQZoobO.js">
+    <link rel="stylesheet" crossorigin href="./assets/index-H03bozsn.css">
+  <link rel="manifest" href="./manifest.webmanifest"></head>
+  <body>
+    <div id="root"></div>
+    <!-- Ecrã de carregamento do Casulo. Só aparece quando a app não está protegida por código
+         para não revelar o nome a quem escolheu o nome discreto "Notas". -->
+    <template id="splash-tpl"><div id="splash" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" >
+  <!-- Casulo: animação curta de carregamento (1,6 s em ciclo). Os braços néon respiram,
+       a cabeça brilha e os olhos piscam. Fundo transparente. -->
+  <defs>
+    <filter id="g" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2.2" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <radialGradient id="h" cx="40%" cy="36%" r="70%">
+      <stop offset="0" stop-color="#ffffff"/><stop offset=".45" stop-color="#dff3ff"/><stop offset="1" stop-color="#dff3ff" stop-opacity=".55"/>
+    </radialGradient>
+    <mask id="m" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100">
+      <rect width="100" height="100" fill="#fff"/><circle cx="37" cy="36" r="18" fill="#000"/>
+    </mask>
+  </defs>
+  <style>
+    .arms { transform-origin: 50px 52px; animation: breathe 1.6s ease-in-out infinite; }
+    .arm { fill: none; stroke-width: 4.5; stroke-linecap: round; stroke-dasharray: 100; animation: draw 1.6s ease-in-out infinite; }
+    .p { animation-delay: .12s; }
+    .head { transform-origin: 37px 36px; animation: bob 1.6s ease-in-out infinite; }
+    .eye { transform-box: fill-box; transform-origin: center; animation: blink 1.6s infinite; }
+    @keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+    @keyframes draw { 0% { stroke-dashoffset: 100; opacity: .2; } 35%, 75% { stroke-dashoffset: 0; opacity: 1; } 100% { stroke-dashoffset: -100; opacity: .2; } }
+    @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
+    @keyframes blink { 0%, 58%, 66%, 100% { transform: scaleY(1); } 62% { transform: scaleY(.1); } }
+    @media (prefers-reduced-motion: reduce) { .arms, .arm, .head, .eye { animation: none; } }
+  </style>
+  <g class="arms" filter="url(#g)">
+    <path class="arm" pathLength="100" mask="url(#m)" stroke="#5bcefa" d="M24 30C6 46 14 82 62 82"/>
+    <path class="arm p" pathLength="100" stroke="#ff8fb1" d="M62 18C92 28 92 76 40 84"/>
+  </g>
+  <g class="head">
+    <circle cx="37" cy="36" r="13" fill="#dff3ff" opacity=".55" filter="url(#g)"/>
+    <circle cx="37" cy="36" r="13" fill="url(#h)"/>
+    <ellipse class="eye" cx="33.4" cy="35.5" rx="1.6" ry="2.2" fill="#06070c"/>
+    <ellipse class="eye" cx="40.6" cy="35.5" rx="1.6" ry="2.2" fill="#06070c"/>
+  </g>
+</svg></div></template>
+    <script>
+      // Nome discreto: quem o escolheu instala e vê a app como "Notas", com ícone neutro.
+      try {
+        if (localStorage.getItem('discreetName') === '1') {
+          document.title = 'Notas'
+          var q = function (s) { return document.querySelector(s) }
+          q('meta[name="apple-mobile-web-app-title"]').setAttribute('content', 'Notas')
+          q('link[rel="apple-touch-icon"]').setAttribute('href', './icon-192.png')
+          q('link[rel="icon"]').setAttribute('href', './icon.svg')
+          q('meta[name="theme-color"]').setAttribute('content', '#f6f4ef')
+          var m = q('link[rel="manifest"]'); if (m) m.setAttribute('href', './manifest-notas.webmanifest')
+        }
+      } catch (e) {}
+      try {
+        if (localStorage.getItem('splash') !== '0') {
+          document.body.appendChild(document.getElementById('splash-tpl').content.cloneNode(true))
+          window.__splashAt = Date.now()
+        }
+      } catch (e) {}
+    </script>
+    <style>
+      #splash { position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center; background: radial-gradient(circle at 50% 46%, #11141f, #05060a 70%); transition: opacity .35s ease; }
+      #splash svg { width: 132px; height: 132px; }
+      #splash.out { opacity: 0; pointer-events: none; }
+    </style>
+  </body>
+</html>
