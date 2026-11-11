@@ -17,3 +17,19 @@ jobs:
           curl -fsS "$API/api/places" | head -c 300; echo
           test "$(curl -s -o /dev/null -w '%{http_code}' "$API/api/mod/queue")" = 401
           echo "Tudo certo"
+      - name: Versão nova (moderação automática) está no ar
+        run: |
+          API=https://casulo-comunidade.onrender.com
+          for i in $(seq 1 40); do
+            if curl -fsS "$API/mod" | grep -q "Rever fila com o filtro"; then echo "Moderação automática no ar"; exit 0; fi
+            echo "Ainda a versão antiga, a aguardar o deploy do Render ($i/40)"; sleep 30
+          done
+          echo "O Render não publicou a versão nova em 20 minutos"; exit 1
+      - name: DNS de casulo.space
+        if: always()
+        run: |
+          for n in casulo.space www.casulo.space api.casulo.space; do
+            echo "== $n"; dig +short "$n" A; dig +short "$n" CNAME
+            curl -s -o /dev/null -m 15 -w "https://$n -> %{http_code}\n" "https://$n/" || echo "https://$n não responde"
+          done
+          curl -s -m 15 https://api.casulo.space/api/health || echo "api.casulo.space ainda não aponta para o servidor"
