@@ -167,6 +167,11 @@ function Pathway() {
           </div>
         ))}
       </div>
+      <Link to="/percurso/saude" className="card neon row" style={{ textDecoration: 'none', color: 'inherit' }}>
+        <Icon name="check" />
+        <div className="grow"><h3>{tr('Faz o teu percurso passo a passo')}</h3><p className="small muted">{tr('Escolhe as consultas e cirurgias que queres, marca o que já fizeste e vê há quanto tempo esperas.')}</p></div>
+        <Icon name="chevron" />
+      </Link>
       <div className="card tint-accent">
         <h3>{tr('Pede a referenciação por escrito')}</h3>
         <p className="small">{tr('Preparámos uma carta para levares ao/à médico/a de família.')}</p>
