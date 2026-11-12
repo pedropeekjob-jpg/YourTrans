@@ -119,7 +119,7 @@ const basic: [string, Region, string, Risk][] = [
 ]
 
 const spanish = new Set(['MX', 'CR', 'CU', 'SV', 'GT', 'HN', 'NI', 'PA', 'DO', 'AR', 'BO', 'CL', 'CO', 'EC', 'PY', 'PE', 'UY', 'VE'])
-const langOf = (code: string): Lang => spanish.has(code) ? 'es' : code === 'HT' ? 'fr' : 'en'
+const langOf = (code: string): Lang => spanish.has(code) ? 'es' : code === 'HT' ? 'fr' : code === 'DE' ? 'de' : 'en'
 
 const basicPacks: CountryPack[] = basic.map(([code, region, emergency, risk]) => {
   const guide = guideFor(code)
@@ -171,7 +171,7 @@ export function countryPack(code: string | undefined): CountryPack {
 }
 
 /** País sugerido a partir da língua. Nunca usa localização nem rede. */
-const countryByLang: Partial<Record<Lang, CountryCode>> = { pt: 'PT', br: 'BR', es: 'ES', fr: 'FR' }
+const countryByLang: Partial<Record<Lang, CountryCode>> = { pt: 'PT', br: 'BR', es: 'ES', fr: 'FR', de: 'DE' }
 export function countryForLang(l: Lang): CountryCode {
   return countryByLang[l] ?? DEFAULT_COUNTRY
 }

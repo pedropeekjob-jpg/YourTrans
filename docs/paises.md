@@ -5,7 +5,7 @@ A língua e o país são coisas separadas. A língua (`src/i18n`) muda os textos
 número de emergência e o que a app mostra por razões de segurança.
 
 A pessoa escolhe o país em **Eu › País** (ou em Definições). Por omissão a app sugere
-um país a partir da língua (PT-BR sugere Brasil, as outras sugerem Portugal). Nunca usa
+um país a partir da língua (PT-BR sugere Brasil, espanhol Espanha, francês França, alemão Alemanha, as outras Portugal). Nunca usa
 localização nem rede para isso, e a escolha fica só no cofre cifrado do aparelho.
 Todos os pacotes vão dentro da app, por isso o servidor nunca sabe o país de ninguém.
 
@@ -30,6 +30,10 @@ só mostra o conteúdo de Portugal se a pessoa tocar em "Ver como funciona em Po
 A língua segue o país escolhido (inglês quando a app não tem a língua do país), a não
 ser que a pessoa tenha escolhido uma língua à mão. O conteúdo de cada país está
 traduzido pelo menos para a língua desse país.
+
+Línguas da app: português de Portugal (original), português do Brasil, inglês, espanhol,
+francês e alemão. O alemão (`de.json`) traduz todos os textos que o inglês traduz; o teste
+`src/i18n/dicts.test.ts` falha se faltar algum ou se uma tradução inventar marcadores.
 
 ## Nível de risco
 

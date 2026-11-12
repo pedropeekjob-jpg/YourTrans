@@ -296,6 +296,26 @@ const drills: Record<Lang, Drill> = {
       '{N} est vraiment doué{X} pour la musique.',
     ],
   },
+  de: {
+    forms: {
+      ela: { subj: 'sie', obj: 'ihrer', art: 'sie', adj: '', to: 'ihr' },
+      ele: { subj: 'er', obj: 'seiner', art: 'ihn', adj: '', to: 'ihm' },
+      elu: { subj: 'dey', obj: 'deren', art: 'dey', adj: '', to: 'dey' },
+    },
+    labels: { ela: 'sie/ihr', ele: 'er/ihm', elu: 'dey/denen' },
+    templates: [
+      '{N} hat gesagt, dass {S} um acht kommt.',
+      'Hast du schon mit {N} gesprochen? Der Mantel ist {O}.',
+      'Ich habe {N} im Café getroffen und {S} lässt grüßen.',
+      'Sag {N}, dass ich {A} gestern angerufen habe.',
+      'Heute kommt {S} mit uns ins Kino.',
+      'Ich habe {N} gefragt, ob {S} helfen kann.',
+      'Ruf {N} an und frag {A}, wie es geht.',
+      'Ich habe {N} gestern gesehen und {S} sah toll aus.',
+      'Ist dieser Rucksack {O}? Frag {N}.',
+      '{N} hat das Rennen gewonnen und wir haben {A} gefeiert.',
+    ],
+  },
 }
 
 const drill = drills[lang]
@@ -305,10 +325,10 @@ export const pronounLabels = drill.labels
 /** Reconhece o conjunto de pronomes a partir do que a pessoa escreveu, em qualquer idioma. */
 export function pronounSetOf(pronouns: string): PronounSet | undefined {
   const first = pronouns.trim().toLowerCase().split(/[\s/]/)[0]
-  if (['ela', 'she', 'ella'].includes(first)) return 'ela'
-  if (['ele', 'he', 'él', 'el', 'il'].includes(first)) return 'ele'
+  if (['ela', 'she', 'ella', 'sie'].includes(first)) return 'ela'
+  if (['ele', 'he', 'él', 'el', 'il', 'er'].includes(first)) return 'ele'
   if (first === 'elle') return lang === 'es' ? 'elu' : 'ela'
-  if (['elu', 'they', 'iel'].includes(first)) return 'elu'
+  if (['elu', 'they', 'iel', 'dey'].includes(first)) return 'elu'
   return undefined
 }
 
