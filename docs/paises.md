@@ -47,20 +47,26 @@ Quando uma parte não está coberta, a app mostra o conteúdo de Portugal com um
 Fontes de partida (não substituem a revisão local): Trans Rights Map da TGEU,
 base de dados da ILGA World, e as fontes oficiais de cada país.
 
-## Estado
+## Estado (novembro de 2026)
 
-| País | Guia legal | Contactos | Saúde, direitos, cartas | Revisto por associação |
-| --- | --- | --- | --- | --- |
-| Portugal | sim | sim | sim | não |
-| Brasil | sim | sim | não | não |
-| Espanha | sim | sim | não | não |
-| França | sim | sim | não | não |
+Nenhum pacote foi ainda revisto por uma associação local.
+
+| Países | O que têm |
+| --- | --- |
+| Portugal | Tudo: guia, cartas, saúde, direitos e contactos |
+| Brasil, Espanha, França | Guia legal e contactos de apoio |
+| Alemanha, Argentina, Uruguai, Chile, Colômbia, México, Canadá, EUA | Guia legal, emergência e, onde há, linhas de crise |
+| Restantes países das Américas | Só número de emergência e nível de risco |
+
+Hostis (relações entre pessoas do mesmo sexo ainda são crime, confirmado em
+novembro de 2026): Jamaica, Guiana, Granada, São Vicente e Granadinas. Trindade e
+Tobago passou a "atenção" depois da decisão do Privy Council de 10 de novembro de 2026.
+Esta lista tem de ser revista pelo menos de seis em seis meses.
 
 ## Por fazer
 
 - Rever Brasil, Espanha e França com associações parceiras e preencher `reviewedBy`.
 - Percurso de saúde, direitos e cartas por país (hoje só existem para Portugal).
 - Brasil: acrescentar o SUS (Processo Transexualizador).
-- Países seguintes sugeridos: Reino Unido e Irlanda (já há inglês), Bélgica e Suíça
-  (francês), e uma classificação de risco para os países onde a app pode ser usada
-  em segredo.
+- Contactos locais (associações) para os países das Américas que só têm emergência.
+- Países seguintes sugeridos: Reino Unido e Irlanda, Bélgica e Suíça.

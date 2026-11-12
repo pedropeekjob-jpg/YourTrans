@@ -33,11 +33,28 @@ describe('pacotes por país', () => {
     expect(countryForLang('es')).toBe('ES')
     expect(countryForLang('fr')).toBe('FR')
     expect(isCountry('BR')).toBe(true)
-    expect(isCountry('US')).toBe(false)
+    expect(isCountry('XX')).toBe(false)
   })
 
   it('a comunidade só fica desligada em países hostis', () => {
     for (const c of countries) expect(communityAllowed(c)).toBe(c.risk !== 'hostil')
     expect(communityAllowed({ ...countryPack('PT'), risk: 'hostil' })).toBe(false)
+  })
+})
+
+describe('Alemanha e Américas', () => {
+  it('inclui a Alemanha e os 35 países do continente americano', () => {
+    const americas = countries.filter(c => c.region.startsWith('america'))
+    expect(americas.length).toBe(35)
+    expect(isCountry('DE')).toBe(true)
+  })
+
+  it('países onde ser LGBT é crime ficam como hostis, sem comunidade', () => {
+    for (const code of ['JM', 'GY', 'GD', 'VC']) expect(communityAllowed(countryPack(code))).toBe(false)
+  })
+
+  it('nomes e bandeiras vêm do código', () => {
+    expect(countryPack('US').flag).toBe('🇺🇸')
+    expect(countryPack('US').name).not.toBe('US')
   })
 })
