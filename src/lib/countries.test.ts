@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest'
+import { lessonsFor } from '../data/allies'
+import { annualEvents } from '../data/events'
 import { communityAllowed, countries, countryForLang, countryPack, isCountry, isStale, monthsSinceReview } from '../data/countries'
 import { emptyVault } from './types'
 
@@ -91,5 +93,19 @@ describe('direitos, saúde e entidades por país', async () => {
   it('ids das entidades não repetem entre países', () => {
     const ids = countryInfo.flatMap(i => i.entities.map(e => e.id))
     expect(new Set(ids).size).toBe(ids.length)
+  })
+})
+
+describe('conteúdo só de Portugal', () => {
+  it('as lições para aliados escondem a lei portuguesa noutros países', () => {
+    expect(lessonsFor('pais', true).some(l => l.id === 'p-16')).toBe(true)
+    const world = lessonsFor('pais', false)
+    expect(world.some(l => l.id === 'p-16')).toBe(false)
+    expect(world.flatMap(l => l.body).some(b => /Portugal|ILGA/.test(b))).toBe(false)
+  })
+
+  it('a agenda marca as marchas portuguesas', () => {
+    expect(annualEvents.filter(e => e.pt).map(e => e.id)).toEqual(['marcha-lisboa', 'arraial', 'marcha-porto'])
+    expect(annualEvents.filter(e => !e.pt).some(e => /Lisboa|Porto/.test(e.descriptionWorld ?? e.description))).toBe(false)
   })
 })

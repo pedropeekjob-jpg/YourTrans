@@ -4,6 +4,9 @@ import { Icon } from '../components/Icon'
 import { Progress, useToast } from '../components/ui'
 import { api, apiEnabled } from '../lib/api'
 import { tr } from '../i18n'
+import { Link } from 'react-router-dom'
+import { PortugalOnly } from '../components/CountryInfoViews'
+import { useCountry } from '../lib/useCountry'
 
 export const employerCriteria = [
   { id: 'politica', label: tr('Tem uma política escrita de inclusão que inclui identidade de género') },
@@ -24,6 +27,9 @@ const rights = [
 ]
 
 export function Work() {
+  // O ranking e os direitos laborais são de Portugal.
+  const country = useCountry()
+  const pt = country.code === 'PT'
   const toast = useToast()
   const [company, setCompany] = useState('')
   const [answers, setAnswers] = useState<Record<string, boolean>>({})
@@ -31,7 +37,7 @@ export function Work() {
   const [ranking, setRanking] = useState<{ company: string; score: number; reviews: number }[]>([])
   const score = employerCriteria.filter(c => answers[c.id]).length / employerCriteria.length
 
-  useEffect(() => { if (apiEnabled) api.employers().then(setRanking).catch(() => {}) }, [])
+  useEffect(() => { if (apiEnabled && pt) api.employers().then(setRanking).catch(() => {}) }, [pt])
 
   const submit = async () => {
     if (!apiEnabled) { toast(tr('A partilha fica disponível quando o servidor estiver ligado')); return }
@@ -43,6 +49,7 @@ export function Work() {
     <>
       <TopBar title={tr('Trabalho')} back />
       <div className="page">
+        <PortugalOnly what={tr('O ranking de empregadores')}>
         <section className="card tint-sky">
           <h3>{tr('Empresas com inclusão trans real')}</h3>
           <p className="small">{tr('Avaliações feitas por pessoas trans, com critérios concretos e não só declarações. As melhores recebem o selo')}{' '}<b>{tr('Inclusão Trans')}</b> {tr('no ranking de empregadores.')}</p>
@@ -78,10 +85,16 @@ export function Work() {
           <button className="btn" disabled={company.trim().length < 2} onClick={submit}>{tr('Partilhar anonimamente')}</button>
         </section>
 
-        <section className="card tint-amber">
-          <h3>{tr('Os teus direitos')}</h3>
-          <ul className="small" style={{ margin: 0, paddingLeft: 18, display: 'grid', gap: 6 }}>{rights.map(r => <li key={r}>{r}</li>)}</ul>
-        </section>
+        </PortugalOnly>
+
+        {pt ? (
+          <section className="card tint-amber">
+            <h3>{tr('Os teus direitos')}</h3>
+            <ul className="small" style={{ margin: 0, paddingLeft: 18, display: 'grid', gap: 6 }}>{rights.map(r => <li key={r}>{r}</li>)}</ul>
+          </section>
+        ) : (
+          <Link to="/direitos" className="btn secondary block">{tr('Os teus direitos em {0}', `${country.flag} ${country.name}`)}</Link>
+        )}
       </div>
     </>
   )

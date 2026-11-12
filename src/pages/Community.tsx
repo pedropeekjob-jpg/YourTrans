@@ -13,6 +13,7 @@ import { downloadIcs, icsEvent } from '../lib/ics'
 import { uid } from '../lib/types'
 import { Stories } from './Stories'
 import { Places } from './Safety'
+import { PortugalOnly } from '../components/CountryInfoViews'
 import { ShareNote } from './Privacy'
 import { locale, tr } from '../i18n'
 
@@ -43,7 +44,7 @@ export function Community() {
         {tab === 'apoio' && <Support />}
         {tab === 'testemunhos' && <Stories initialTopic={params.get('tema') ?? undefined} />}
         {tab === 'agenda' && <Agenda />}
-        {tab === 'locais' && <Places />}
+        {tab === 'locais' && <PortugalOnly what={tr('Os locais seguros')}><Places /></PortugalOnly>}
         {tab === 'mentoria' && <Mentoring />}
       </div>
     </>
@@ -97,23 +98,25 @@ export function Support() {
 interface AgendaItem { id: string; title: string; date: Date; description?: string; where?: string; url?: string; approx: boolean; source: 'anual' | 'comunidade' | 'meu' }
 
 function Agenda() {
+  // A agenda da comunidade e as marchas são de Portugal: noutros países ficam só as datas internacionais.
+  const pt = useCountry().code === 'PT'
   const { vault, update } = useVault()
   const toast = useToast()
   const [remote, setRemote] = useState<{ id: string; title: string; date: string; place?: string; url?: string }[]>([])
   const [open, setOpen] = useState(false)
   const [form, setForm] = useState({ title: '', date: '', place: '', share: false })
 
-  useEffect(() => { if (apiEnabled) api.events().then(setRemote).catch(() => {}) }, [])
+  useEffect(() => { if (apiEnabled && pt) api.events().then(setRemote).catch(() => {}) }, [pt])
 
   const items: AgendaItem[] = useMemo(() => {
     const now = new Date()
     const list: AgendaItem[] = [
-      ...annualEvents.map(e => ({ id: e.id, title: e.title, date: nextOccurrence(e, now), description: e.description, where: e.where, url: e.url, approx: !e.day, source: 'anual' as const })),
+      ...annualEvents.filter(e => pt || !e.pt).map(e => ({ id: e.id, title: e.title, date: nextOccurrence(e, now), description: pt ? e.description : e.descriptionWorld ?? e.description, where: e.where, url: e.url, approx: !e.day, source: 'anual' as const })),
       ...remote.map(e => ({ id: e.id, title: e.title, date: new Date(e.date), where: e.place, url: e.url, approx: false, source: 'comunidade' as const })),
       ...vault.events.map(e => ({ id: e.id, title: e.title, date: new Date(e.date), where: e.place, url: e.url, approx: false, source: 'meu' as const })),
     ]
     return list.filter(i => i.date.getTime() >= now.getTime() - 86_400_000).sort((a, b) => a.date.getTime() - b.date.getTime())
-  }, [remote, vault.events])
+  }, [remote, vault.events, pt])
 
   const remind = (i: AgendaItem) => {
     const at = new Date(i.date.getTime() - 86_400_000); at.setHours(18, 0, 0, 0)
@@ -123,7 +126,7 @@ function Agenda() {
   const addMine = async () => {
     const ev = { id: uid(), title: form.title.trim(), date: new Date(form.date).toISOString(), place: form.place.trim() || undefined }
     update(v => ({ ...v, events: [...v.events, ev] }))
-    if (form.share && apiEnabled) { try { const r = await api.suggestEvent(ev); toast(r.published ? tr('Publicado na agenda da comunidade') : tr('Enviado para moderação')) } catch { /* fica local */ } }
+    if (form.share && pt && apiEnabled) { try { const r = await api.suggestEvent(ev); toast(r.published ? tr('Publicado na agenda da comunidade') : tr('Enviado para moderação')) } catch { /* fica local */ } }
     setOpen(false); setForm({ title: '', date: '', place: '', share: false })
   }
 
@@ -171,8 +174,8 @@ function Agenda() {
         <label className="field">{tr('Nome')}<input className="input" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} placeholder={tr('Ex.: Vigília TDoR Coimbra')} /></label>
         <label className="field">{tr('Data e hora')}<input className="input" type="datetime-local" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} /></label>
         <label className="field">{tr('Local')}<input className="input" value={form.place} onChange={e => setForm({ ...form, place: e.target.value })} /></label>
-        {apiEnabled && <label className="row small" style={{ gap: 8 }}><input type="checkbox" checked={form.share} onChange={e => setForm({ ...form, share: e.target.checked })} /> {tr('Partilhar com a comunidade (moderado)')}</label>}
-        {apiEnabled && form.share && <ShareNote />}
+        {apiEnabled && pt && <label className="row small" style={{ gap: 8 }}><input type="checkbox" checked={form.share} onChange={e => setForm({ ...form, share: e.target.checked })} /> {tr('Partilhar com a comunidade (moderado)')}</label>}
+        {apiEnabled && pt && form.share && <ShareNote />}
         <button className="btn block" disabled={!form.title.trim() || !form.date} onClick={addMine}>{tr('Guardar')}</button>
       </Sheet>
     </>

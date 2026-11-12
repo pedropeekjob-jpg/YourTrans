@@ -15,8 +15,9 @@ const askFirst = [
   tr('Quanto custa, e há comparticipação, seguro ou valor social?'),
 ]
 
-const redFlags = [
-  tr('Tenta mudar, “curar” ou adiar indefinidamente a tua identidade. Isso é uma prática de conversão e é crime em Portugal desde 2024.'),
+const conversionPT = tr('Tenta mudar, “curar” ou adiar indefinidamente a tua identidade. Isso é uma prática de conversão e é crime em Portugal desde 2024.')
+const conversion = tr('Tenta mudar, “curar” ou adiar indefinidamente a tua identidade. Isso é uma prática de conversão.')
+const redFlagsRest = [
   tr('Usa o teu nome antigo depois de lhe dizeres o teu.'),
   tr('Faz da tua identidade o problema, quando vieste por outra razão.'),
   tr('Exige que “proves” que és trans para te dar apoio ou um relatório.'),
@@ -29,7 +30,9 @@ export function MentalHealth({ onDirectory }: { onDirectory: () => void }) {
   const { vault, update } = useVault()
   const toast = useToast()
   const [open, setOpen] = useState(false)
-  const { support } = useCountry()
+  const { support, code } = useCountry()
+  const pt = code === 'PT'
+  const redFlags = [pt ? conversionPT : conversion, ...redFlagsRest]
   const services = support.filter(o => o.kind === 'associação' && o.id !== 'amplos')
   const crisis = support.filter(o => o.phone && o.kind !== 'associação' && o.id !== 'apav' && o.id !== 'br-disque100')
 
@@ -45,16 +48,16 @@ export function MentalHealth({ onDirectory }: { onDirectory: () => void }) {
         <div className="row wrap">
           {crisis.map(o => <a key={o.id} className="btn sm secondary" href={`tel:${o.phone}`}><Icon name="phone" size={16} />{o.name}</a>)}
         </div>
-        <p className="xs">{tr('No SNS 24, escolhe a opção de aconselhamento psicológico.')}</p>
+        {pt && <p className="xs">{tr('No SNS 24, escolhe a opção de aconselhamento psicológico.')}</p>}
       </section>
 
       <section className="stack">
         <h2>{tr('Onde encontrar apoio informado')}</h2>
         <div className="list">
-          <div className="item" style={{ alignItems: 'flex-start' }}>
+          {pt && <div className="item" style={{ alignItems: 'flex-start' }}>
             <div className="lead" style={{ background: 'var(--sky-soft)', color: 'var(--accent)' }}><Icon name="heart" /></div>
             <div className="grow"><h3>{tr('SNS')}</h3><p className="small muted">{tr('Pede ao/à médico/a de família uma consulta de psicologia no centro de saúde. Os três centros especializados (Coimbra, Lisboa e Porto) têm equipas de psicologia e psiquiatria.')}</p></div>
-          </div>
+          </div>}
           {services.map(o => (
             <a key={o.id} className="item" href={o.url} target="_blank" rel="noreferrer noopener">
               <div className="lead" style={{ background: 'var(--rose-soft)', color: 'var(--rose)' }}><Icon name="people" /></div>
@@ -62,7 +65,7 @@ export function MentalHealth({ onDirectory }: { onDirectory: () => void }) {
             </a>
           ))}
         </div>
-        <button className="btn secondary block" onClick={onDirectory}><Icon name="star" size={18} />{tr('Psicólogos/as avaliados pela comunidade')}</button>
+        {pt && <button className="btn secondary block" onClick={onDirectory}><Icon name="star" size={18} />{tr('Psicólogos/as avaliados pela comunidade')}</button>}
       </section>
 
       <section className="card">
@@ -73,7 +76,7 @@ export function MentalHealth({ onDirectory }: { onDirectory: () => void }) {
       <section className="card tint-amber">
         <h3>{tr('Sinais de alerta')}</h3>
         <ul className="stack small" style={{ margin: 0, paddingLeft: 18 }}>{redFlags.map(q => <li key={q}>{q}</li>)}</ul>
-        <p className="xs">{tr('Podes denunciar práticas de conversão ao Ministério Público e à Ordem dos Psicólogos ou dos Médicos.')}</p>
+        {pt && <p className="xs">{tr('Podes denunciar práticas de conversão ao Ministério Público e à Ordem dos Psicólogos ou dos Médicos.')}</p>}
       </section>
 
       <section className="card tint-sky">

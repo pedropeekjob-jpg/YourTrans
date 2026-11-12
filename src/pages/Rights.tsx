@@ -156,6 +156,7 @@ function Act({ initialTemplate }: { initialTemplate: TemplateId | null }) {
 const blank = (): Incident => ({ id: uid(), date: new Date().toISOString().slice(0, 10), where: '', who: '', what: '', witnesses: '', evidence: '', reportedTo: '' })
 
 function Incidents() {
+  const pt = useCountry().code === 'PT'
   const { vault, update } = useVault()
   const toast = useToast()
   const [edit, setEdit] = useState<Incident | null>(null)
@@ -204,7 +205,7 @@ function Incidents() {
             <label className="field">{tr('O que aconteceu')}<textarea className="input" rows={4} value={edit.what} placeholder={tr('Escreve as palavras exatas, se te lembrares.')} onChange={e => set('what', e.target.value)} /></label>
             <label className="field">{tr('Testemunhas')}<input className="input" value={edit.witnesses} onChange={e => set('witnesses', e.target.value)} /></label>
             <label className="field">{tr('Provas que tens')}<input className="input" value={edit.evidence} placeholder={tr('Capturas de ecrã, e-mails, relatório médico…')} onChange={e => set('evidence', e.target.value)} /></label>
-            <label className="field">{tr('Já comunicaste a alguém?')}<input className="input" value={edit.reportedTo} placeholder={tr('RH, PSP, ACT, CIG…')} onChange={e => set('reportedTo', e.target.value)} /></label>
+            <label className="field">{tr('Já comunicaste a alguém?')}<input className="input" value={edit.reportedTo} placeholder={pt ? tr('RH, PSP, ACT, CIG…') : tr('RH, polícia, associação…')} onChange={e => set('reportedTo', e.target.value)} /></label>
             <button className="btn block" onClick={save}>{tr('Guardar')}</button>
             {vault.incidents.some(i => i.id === edit.id) && (
               <button className="btn ghost" onClick={() => { if (confirm(tr('Apagar esta ocorrência?'))) { update(v => ({ ...v, incidents: v.incidents.filter(i => i.id !== edit.id) })); setEdit(null) } }}><Icon name="trash" size={16} />{tr('Apagar')}</button>

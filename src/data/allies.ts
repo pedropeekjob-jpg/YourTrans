@@ -155,8 +155,16 @@ const byRole: Record<AllyRole, Lesson[]> = {
   ],
 }
 
-export function lessonsFor(role: AllyRole): Lesson[] {
-  return [...core.slice(0, 3), ...byRole[role], ...core.slice(3)]
+// Lições e parágrafos que falam da lei ou das escolas portuguesas: só para Portugal.
+const ptOnlyLessons = new Set(['p-16'])
+const ptOnlyText = new Set([
+  tr('A lei prevê que as escolas respeitem o nome e a identidade dos alunos, incluindo nos registos internos, casas de banho e balneários. As regras concretas têm sido debatidas: confirmem com a direção e com a ILGA.'),
+  tr('As regras concretas para as escolas têm sido alvo de debate legislativo: confirma o que está em vigor com a direção e com a ILGA.'),
+])
+
+export function lessonsFor(role: AllyRole, pt = true): Lesson[] {
+  const all = [...core.slice(0, 3), ...byRole[role], ...core.slice(3)]
+  return pt ? all : all.filter(l => !ptOnlyLessons.has(l.id)).map(l => ({ ...l, body: l.body.filter(b => !ptOnlyText.has(b)) }))
 }
 
 export interface Scenario { id: string; title: string; context: string; say: string[]; avoid: string[]; roles?: AllyRole[] }

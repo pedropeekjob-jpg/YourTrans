@@ -103,8 +103,10 @@ export function VaultProvider({ children }: { children: ReactNode }) {
     void flush()
     history.replaceState(null, '', location.pathname + '#/')
     if (mode === 'pin') { forget(); setStatus('locked') }
-    location.replace('https://www.ipma.pt/pt/index.html')
-  }, [flush, forget, mode])
+    // Site do tempo: o IPMA em Portugal; noutros países um site internacional, para não destoar.
+    const country = vault?.settings.country ?? 'PT'
+    location.replace(country === 'PT' ? 'https://www.ipma.pt/pt/index.html' : 'https://www.accuweather.com')
+  }, [flush, forget, mode, vault?.settings.country])
 
   const unlock = useCallback(async (pin: string) => {
     const { key, vault } = await storage.unlockPin(pin)

@@ -9,12 +9,14 @@ import { todayKey, uid } from '../lib/types'
 import { daysSinceBackup, hasRecords } from './DataCare'
 import { useState } from 'react'
 import { tr } from '../i18n'
+import { useCountry } from '../lib/useCountry'
 import { InstallCard } from '../components/InstallCard'
 import { installNudgeSnoozed, snoozeInstallNudge, useInstall } from '../lib/install'
 
 export const moods = ['😞', '😕', '😐', '🙂', '🤩']
 
-const facts = [
+// "Sabias que": os de Portugal só aparecem a quem escolheu Portugal.
+const factsPT = [
   tr('Em Portugal, desde 2018, maiores de 18 anos mudam o nome e o sexo no registo sem relatório médico.'),
   tr('Tens direito, pelo RGPD, a pedir que qualquer entidade corrija o teu nome. Têm um mês para responder.'),
   tr('Nas escolas portuguesas podes usar o nome escolhido mesmo antes da mudança legal.'),
@@ -23,6 +25,14 @@ const facts = [
   tr('Há três centros especializados do SNS: Coimbra, Lisboa (São José) e Porto (Santo António).'),
   tr('Podes pedir ao teu centro de saúde para atualizar o nome no RNU logo que tenhas o novo Cartão de Cidadão.'),
 ]
+const factsEU = [tr('Tens direito, pelo RGPD, a pedir que qualquer entidade corrija o teu nome. Têm um mês para responder.')]
+const factsWorld = [
+  tr('O rastreio do colo do útero continua a ser importante para homens trans com testosterona.'),
+  tr('Antes de iniciar hormonas podes perguntar pela preservação de fertilidade.'),
+]
+function factsFor(code: string, region: string): string[] {
+  return code === 'PT' ? factsPT : region === 'europa' ? [...factsEU, ...factsWorld] : factsWorld
+}
 
 function greeting(): string {
   const h = new Date().getHours()
@@ -50,6 +60,8 @@ export function Home() {
   const showNudge = !nudgeHidden && hasRecords(vault) && (backupDays === null || backupDays > 30)
   const installState = useInstall()
   const [installHidden, setInstallHidden] = useState(installNudgeSnoozed)
+  const country = useCountry()
+  const facts = factsFor(country.code, country.region)
   const fact = facts[Math.floor(Date.now() / 86_400_000) % facts.length]
   const heardDays = vault.checkins.filter(d => d.startsWith(today.slice(0, 7))).length
   const milestones = useMilestones()
@@ -57,7 +69,7 @@ export function Home() {
   const doneCount = milestones.filter(m => m.done).length
   const soon = Date.now() + 36 * 3_600_000
   const todays = [...vault.reminders].filter(r => new Date(r.next).getTime() < soon).sort((a, b) => a.next.localeCompare(b.next)).slice(0, 3)
-  const event = annualEvents.map(e => ({ e, d: nextOccurrence(e) })).sort((a, b) => a.d.getTime() - b.d.getTime())[0]
+  const event = annualEvents.filter(e => country.code === 'PT' || !e.pt).map(e => ({ e, d: nextOccurrence(e) })).sort((a, b) => a.d.getTime() - b.d.getTime())[0]
 
   const checkIn = (mood: number) => {
     update(v => {

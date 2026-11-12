@@ -89,6 +89,12 @@ export function CountryRights({ info }: { info: CountryInfo }) {
 }
 
 /** Quando ainda não há informação para o país: diz isso, dá a emergência e esconde o conteúdo de Portugal atrás de um toque. */
+/** Conteúdo que só existe para Portugal (dados da comunidade, entidades portuguesas).
+ *  Noutros países fica escondido atrás de "Ver como funciona em Portugal". */
+export function PortugalOnly({ what, children }: { what: string; children: ReactNode }) {
+  return useCountry().code === 'PT' ? <>{children}</> : <NoCountryInfo what={what}>{children}</NoCountryInfo>
+}
+
 export function NoCountryInfo({ what, children }: { what: string; children?: ReactNode }) {
   const c = useCountry()
   return (

@@ -78,7 +78,7 @@ export function Settings() {
             <input type="checkbox" checked={s.disguise} onChange={e => set('disguise', e.target.checked)} style={{ marginTop: 4 }} />
             <span className="stack" style={{ gap: 2 }}>
               <b className="small">{tr('Modo privado')}</b>
-              <span className="xs muted">{tr('Para quem precisa de mais privacidade. Mostra um ícone discreto (olho riscado): num toque, ou com Esc 3 vezes, sai para o site do IPMA e, se tiveres código, a app fica bloqueada.')}</span>
+              <span className="xs muted">{(s.country ?? 'PT') === 'PT' ? tr('Para quem precisa de mais privacidade. Mostra um ícone discreto (olho riscado): num toque, ou com Esc 3 vezes, sai para o site do IPMA e, se tiveres código, a app fica bloqueada.') : tr('Para quem precisa de mais privacidade. Mostra um ícone discreto (olho riscado): num toque, ou com Esc 3 vezes, sai para um site do tempo e, se tiveres código, a app fica bloqueada.')}</span>
             </span>
           </label>
           <DiscreetNameToggle />
