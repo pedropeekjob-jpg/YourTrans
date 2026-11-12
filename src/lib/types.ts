@@ -1,5 +1,7 @@
 import type { AllyRole } from '../data/allies'
 import type { HealthPathState } from '../data/healthPath'
+import { countryForLang, type CountryCode } from '../data/countries'
+import { lang } from '../i18n'
 
 export type Theme = 'system' | 'light' | 'dark'
 export type Profile = 'trans' | 'ally'
@@ -12,7 +14,8 @@ export interface Settings {
   disguise: boolean
   autoLockMinutes: number
   discreetNotifications: boolean
-  country: 'PT' | 'BR'
+  /** País do conteúdo (leis, saúde, contactos). Independente da língua. */
+  country: CountryCode
   onboarded: boolean
   birthYear?: number
   organs: ('colo' | 'mama' | 'prostata')[]
@@ -176,7 +179,7 @@ export function emptyVault(): Vault {
       disguise: false,
       autoLockMinutes: 5,
       discreetNotifications: true,
-      country: 'PT',
+      country: countryForLang(lang),
       onboarded: false,
       organs: [],
       interests: [],

@@ -4,7 +4,10 @@ import { useVault } from '../lib/vault-context'
 import { TopBar } from '../components/Layout'
 import { Icon } from '../components/Icon'
 import { Check, Progress, Seg, copyText, useToast } from '../components/ui'
-import { checklistPT, guides, type ChecklistItem } from '../data/guides'
+import { checklistPT, type ChecklistItem } from '../data/guides'
+import { countries } from '../data/countries'
+import { useCountry } from '../lib/useCountry'
+import { CountryNotice } from '../components/CountryPicker'
 import { buildLetter, letterKinds, type LetterFields, type LetterKind } from '../lib/letters'
 import { tr } from '../i18n'
 
@@ -41,21 +44,24 @@ export function Documents() {
 
 function Steps() {
   const { vault, update } = useVault()
-  const country = vault.settings.country
-  const guide = guides.find(g => g.country === country) ?? guides[0]
+  const pack = useCountry()
+  const country = pack.code
+  // Países sem guia próprio mostram o de Portugal, com aviso.
+  const guide = pack.guide ?? countries[0].guide!
   const [open, setOpen] = useState<string | null>(guide.steps.find(s => !vault.guideSteps[s.id])?.id ?? null)
   const done = guide.steps.filter(s => vault.guideSteps[s.id]).length
 
   return (
     <>
       <div className="chips">
-        {guides.map(g => (
-          <button key={g.country} className={'chip' + (g.country === country ? ' on' : '')}
-            onClick={() => update(v => ({ ...v, settings: { ...v.settings, country: g.country } }))}>
-            {g.country === 'PT' ? '🇵🇹' : '🇧🇷'} {g.name}
+        {countries.filter(c => c.guide).map(c => (
+          <button key={c.code} className={'chip' + (c.code === country ? ' on' : '')}
+            onClick={() => update(v => ({ ...v, settings: { ...v.settings, country: c.code } }))}>
+            {c.flag} {c.name}
           </button>
         ))}
       </div>
+      <CountryNotice part="guide" />
 
       <section className="card tint-sky">
         <span className="badge accent" style={{ width: 'fit-content' }}>{guide.law}</span>
@@ -135,6 +141,7 @@ function Checklist({ onLetter }: { onLetter: (i: ChecklistItem) => void }) {
 
   return (
     <>
+      <CountryNotice part="letters" />
       <section className="card tint-mint">
         <h3>{tr('Depois do novo Cartão de Cidadão')}</h3>
         <p className="small">{tr('Tudo o que costuma ser preciso atualizar. Em cada entidade podes gerar o pedido já escrito.')}</p>
@@ -201,6 +208,7 @@ function Letters({ preset }: { preset: { kind: LetterKind; entity: string } | nu
 
   return (
     <>
+      <CountryNotice part="letters" />
       <section className="card tint-accent">
         <h3>{tr('Pedidos já escritos')}</h3>
         <p className="small">{tr('Com base no direito de retificação do RGPD. Os teus dados ficam guardados só neste telemóvel para não teres de os escrever outra vez.')}</p>

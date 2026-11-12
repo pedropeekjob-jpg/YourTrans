@@ -4,6 +4,7 @@ import { TopBar } from '../components/Layout'
 import { Icon } from '../components/Icon'
 import { ThemePicker } from '../components/ThemePicker'
 import { LangPicker } from '../components/LangPicker'
+import { CountryPicker } from '../components/CountryPicker'
 import { CasuloLogo } from '../components/CasuloLogo'
 import { daysSinceBackup } from './DataCare'
 import { tr } from '../i18n'
@@ -60,6 +61,11 @@ export function Me() {
         <section className="card">
           <h3>{tr('Idioma')}</h3>
           <LangPicker />
+        </section>
+
+        <section className="card">
+          <h3>{tr('País')}</h3>
+          <CountryPicker />
         </section>
 
         <div className="list">

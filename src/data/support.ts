@@ -22,3 +22,12 @@ export const supportOrgs: SupportOrg[] = [
   { id: 'casaqui', name: tr('Casa Qui'), kind: 'associação', area: tr('Lisboa'), url: 'https://casa-qui.pt', description: tr('Apoio a pessoas LGBTI+ em situação de vulnerabilidade, incluindo acolhimento.') },
   { id: 'planoi', name: tr('Associação Plano i'), kind: 'associação', area: tr('Porto e Norte'), url: 'https://associacaoplanoi.org', description: tr('Centro de apoio e respostas para pessoas LGBTI+ e vítimas de violência.') },
 ]
+
+// Brasil: só contactos nacionais, gratuitos e públicos. Rever antes de alargar o pacote do Brasil.
+export const supportOrgsBR: SupportOrg[] = [
+  { id: 'br-190', name: '190', kind: 'emergência', area: tr('Nacional'), phone: '190', description: tr('Polícia Militar. Perigo imediato para ti ou para outra pessoa.') },
+  { id: 'br-192', name: tr('SAMU 192'), kind: 'emergência', area: tr('Nacional'), phone: '192', description: tr('Emergência médica.') },
+  { id: 'br-cvv', name: tr('CVV – Centro de Valorização da Vida'), kind: 'linha', area: tr('Nacional'), phone: '188', url: 'https://cvv.org.br', description: tr('Apoio emocional e prevenção do suicídio, gratuito e 24 horas.') },
+  { id: 'br-disque100', name: tr('Disque 100'), kind: 'serviço público', area: tr('Nacional'), phone: '100', url: 'https://www.gov.br/mdh/pt-br/ondh', description: tr('Denúncia de violações de direitos humanos, incluindo LGBTfobia. Pode ser anónima.') },
+  { id: 'br-antra', name: tr('ANTRA – Associação Nacional de Travestis e Transexuais'), kind: 'associação', area: tr('Nacional'), url: 'https://antrabrasil.org', description: tr('Rede nacional de pessoas trans e travestis, com informação sobre direitos e organizações locais.') },
+]

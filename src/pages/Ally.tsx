@@ -7,7 +7,7 @@ import { Icon } from '../components/Icon'
 import { PayloadView } from '../components/CardView'
 import { Empty, Progress, Ring, Seg, Sheet, copyText, fmtDate, useToast } from '../components/ui'
 import { allyRoles, feelingPrompts, lessonsFor, makeQuestion, practiceTemplates, pronounLabels, pronounSetOf, scenarios, type Lesson, type PracticeQ, type PronounSet } from '../data/allies'
-import { supportOrgs } from '../data/support'
+import { useCountry } from '../lib/useCountry'
 import { codeFromText, decodeShare, isEncrypted } from '../lib/share'
 import { todayKey, uid, type ReceivedCard, type SharedPayload } from '../lib/types'
 import { streak } from './Home'
@@ -372,7 +372,8 @@ export function AllyForMe() {
   const { vault, update } = useAlly()
   const [prompt, setPrompt] = useState(() => feelingPrompts[Math.floor(Date.now() / 86_400_000) % feelingPrompts.length])
   const [text, setText] = useState('')
-  const orgs = useMemo(() => supportOrgs.filter(o => ['amplos', 'ilga', 'opus', 'rea', 'vozamiga', 'sns24'].includes(o.id)), [])
+  const { support } = useCountry()
+  const orgs = useMemo(() => support.filter(o => o.kind === 'associação' || o.kind === 'linha' || o.kind === 'serviço público'), [support])
   const add = () => {
     if (!text.trim()) return
     update(v => ({ ...v, feelings: [{ id: uid(), date: new Date().toISOString(), prompt, text: text.trim() }, ...v.feelings] }))

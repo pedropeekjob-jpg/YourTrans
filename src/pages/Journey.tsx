@@ -3,7 +3,9 @@ import { useVault } from '../lib/vault-context'
 import { TopBar } from '../components/Layout'
 import { Icon } from '../components/Icon'
 import { Ring } from '../components/ui'
-import { checklistPT, guides } from '../data/guides'
+import { checklistPT } from '../data/guides'
+import { countries } from '../data/countries'
+import { useCountry } from '../lib/useCountry'
 import { chosenSteps } from '../data/healthPath'
 import { tr } from '../i18n'
 
@@ -12,8 +14,8 @@ export interface Milestone { id: string; title: string; to: string; done: boolea
 /** As etapas do percurso social e legal, por ordem. Usado aqui e no "Próximo passo" do Hoje. */
 export function useMilestones(): Milestone[] {
   const { vault } = useVault()
-  const s = vault.settings
-  const guide = guides.find(g => g.country === s.country) ?? guides[0]
+  const pack = useCountry()
+  const guide = pack.guide ?? countries[0].guide!
   const checks = checklistPT.filter(c => vault.checklist[c.id]).length
   const health = chosenSteps(vault.healthPath)
   const healthDone = health.filter(h => vault.healthPath.steps[h.step.id]?.done).length

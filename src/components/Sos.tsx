@@ -4,11 +4,13 @@ import { Icon } from './Icon'
 import { useToast } from './ui'
 import { uid } from '../lib/types'
 import { tr } from '../i18n'
+import { useCountry } from '../lib/useCountry'
 
 // Alerta de urgência: envia uma SMS com a localização às pessoas de confiança.
 // Manter carregado evita envios por engano.
 export function SosPanel({ compact = false }: { compact?: boolean }) {
   const { vault, update } = useVault()
+  const { emergency } = useCountry()
   const toast = useToast()
   const [holding, setHolding] = useState(false)
   const timer = useRef<number | undefined>(undefined)
@@ -51,7 +53,7 @@ export function SosPanel({ compact = false }: { compact?: boolean }) {
         <p className="small">
           {tr('Mantém carregado 1,5 s para enviar uma mensagem com a tua localização')}{vault.contacts.length ? tr(' a {0}.', vault.contacts.map(c => c.name).join(', ')) : tr(' às tuas pessoas de confiança.')}
         </p>
-        <a className="btn danger" href="tel:112"><Icon name="phone" size={18} />{tr('Ligar 112')}</a>
+        <a className="btn danger" href={`tel:${emergency}`}><Icon name="phone" size={18} />{tr('Ligar {0}', emergency)}</a>
       </section>
 
       <section className="stack">

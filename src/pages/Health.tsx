@@ -11,6 +11,7 @@ import { api, apiEnabled } from '../lib/api'
 import { uid } from '../lib/types'
 import { Appointments, Effects, Reminders } from './Journal'
 import { tr } from '../i18n'
+import { CountryNotice } from '../components/CountryPicker'
 
 type Tab = 'diretorio' | 'mente' | 'tratamento' | 'percurso' | 'rastreios'
 const kinds: ProviderKind[] = ['Medicina geral', 'Endocrinologia', 'Psicologia', 'Psiquiatria', 'Sexologia', 'Cirurgia', 'Terapia da fala', 'Clínica']
@@ -23,6 +24,7 @@ export function Health() {
     <>
       <TopBar title={tr('Saúde')} />
       <div className="page">
+        {tab !== 'tratamento' && <CountryNotice part="health" />}
         <Seg value={tab} onChange={setTab} options={[
           { id: 'diretorio', label: tr('Profissionais') },
           { id: 'mente', label: tr('Mente') },
