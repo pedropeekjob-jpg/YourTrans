@@ -27,3 +27,13 @@ describe('percurso de saúde', () => {
     for (const t of tracks) if (t.recovery) expect(t.recovery.sources.length).toBeGreaterThan(0)
   })
 })
+
+import { effects, phaseOf } from '../data/hormoneEffects'
+describe('o que esperar das hormonas', () => {
+  it('cada mudança cai numa fase e os ids são únicos', () => {
+    const all = [...effects.estrogenio, ...effects.testosterona]
+    expect(new Set(all.map(e => e.id)).size).toBe(all.length)
+    expect(phaseOf(effects.testosterona.find(e => e.id === 't-calvicie')!)).toBe('p4')
+    expect(phaseOf(effects.estrogenio.find(e => e.id === 'e-mama')!)).toBe('p2')
+  })
+})

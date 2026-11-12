@@ -126,7 +126,8 @@ export const tracks: Track[] = [
       { id: 'hor-refer', title: tr('Referenciação para endocrinologia'), waits: true },
       { id: 'hor-analises', title: tr('Análises antes da primeira consulta') },
       { id: 'hor-1a', title: tr('Primeira consulta de endocrinologia') },
-      { id: 'hor-inicio', title: tr('Começar as hormonas'), to: { label: tr('Criar lembretes de toma'), path: '/saude?tab=tratamento&sub=lembretes' } },
+      { id: 'hor-inicio', title: tr('Começar as hormonas'), to: { label: tr('O que esperar, mês a mês'), path: '/percurso/saude?tab=fases' } },
+      { id: 'hor-lembretes', title: tr('Criar lembretes de toma e análises'), to: { label: tr('Criar lembretes de toma'), path: '/saude?tab=tratamento&sub=lembretes' } },
       { id: 'hor-seguimento', title: tr('Análises e consultas de seguimento'), to: { label: tr('Registar efeitos'), path: '/saude?tab=tratamento&sub=efeitos' } },
     ],
   },
@@ -259,7 +260,12 @@ export const tracks: Track[] = [
 
 export const allSteps: HealthStep[] = tracks.flatMap(t => t.steps)
 
-export interface HealthPathState { tracks: string[]; steps: Record<string, { done?: boolean; since?: string }> }
+export interface HealthPathState {
+  tracks: string[]
+  steps: Record<string, { done?: boolean; since?: string }>
+  /** Hormona escolhida no ecrã "O que esperar" */
+  hormone?: 'estrogenio' | 'testosterona'
+}
 
 /** Meses (arredondados para baixo) desde uma data AAAA-MM-DD. */
 export function monthsSince(since: string, now = new Date()): number {
