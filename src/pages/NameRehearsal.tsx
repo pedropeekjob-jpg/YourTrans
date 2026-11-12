@@ -31,6 +31,11 @@ const setsByLang: Record<Lang, PSet[]> = {
     { id: 'ele', art: '', subj: 'il', obj: 'lui', ready: 'prêt', thanks: 'Merci' },
     { id: 'elu', art: '', subj: 'iel', obj: 'iel', ready: 'prêt·e', thanks: 'Merci' },
   ],
+  de: [
+    { id: 'ela', art: '', subj: 'sie', obj: 'ihr', ready: 'bereit', thanks: 'Danke' },
+    { id: 'ele', art: '', subj: 'er', obj: 'ihm', ready: 'bereit', thanks: 'Danke' },
+    { id: 'elu', art: '', subj: 'dey', obj: 'denen', ready: 'bereit', thanks: 'Danke' },
+  ],
 }
 const pronounSets = setsByLang[lang]
 

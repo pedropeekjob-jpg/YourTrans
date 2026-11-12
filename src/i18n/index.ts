@@ -6,8 +6,9 @@ import enUrl from './en.json?url'
 import esUrl from './es.json?url'
 import frUrl from './fr.json?url'
 import brUrl from './br.json?url'
+import deUrl from './de.json?url'
 
-export type Lang = 'pt' | 'br' | 'en' | 'es' | 'fr'
+export type Lang = 'pt' | 'br' | 'en' | 'es' | 'fr' | 'de'
 
 export const languages: { id: Lang; label: string; locale: string }[] = [
   { id: 'pt', label: 'Português (Portugal)', locale: 'pt-PT' },
@@ -15,9 +16,10 @@ export const languages: { id: Lang; label: string; locale: string }[] = [
   { id: 'en', label: 'English', locale: 'en-GB' },
   { id: 'es', label: 'Español', locale: 'es-ES' },
   { id: 'fr', label: 'Français', locale: 'fr-FR' },
+  { id: 'de', label: 'Deutsch', locale: 'de-DE' },
 ]
 
-const urls: Record<Lang, string | null> = { pt: null, en: enUrl, es: esUrl, fr: frUrl, br: brUrl }
+const urls: Record<Lang, string | null> = { pt: null, en: enUrl, es: esUrl, fr: frUrl, br: brUrl, de: deUrl }
 const KEY = 'lang'
 
 function detect(): Lang {
@@ -31,7 +33,7 @@ function detect(): Lang {
   const base = nav.slice(0, 2)
   if (base === 'pt') return 'pt'
   // Línguas que a app ainda não tem ficam em inglês.
-  return base === 'es' || base === 'fr' ? base : 'en'
+  return base === 'es' || base === 'fr' || base === 'de' ? base : 'en'
 }
 
 export const lang: Lang = detect()
