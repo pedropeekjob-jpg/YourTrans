@@ -5,7 +5,10 @@
 // e o wrangler deixa-o como está.
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "morning-recipe-50dc",
+  "name": "super-moon-9a63",
+  // Só casulo.space (e o outro domínio já ligado no painel); sem endereço workers.dev.
+  "workers_dev": false,
+  "preview_urls": false,
   "compatibility_date": "2026-11-01",
   "assets": {
     "directory": "./dist"
