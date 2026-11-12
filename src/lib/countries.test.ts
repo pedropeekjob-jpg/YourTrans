@@ -74,3 +74,20 @@ describe('validade da informação', () => {
     expect(old).toEqual([])
   })
 })
+
+describe('direitos, saúde e entidades por país', async () => {
+  const { countryInfo } = await import('../data/countryInfo')
+  it('cada país com guia tem direitos, saúde e entidades', () => {
+    for (const c of countries.filter(c => c.guide && c.code !== 'PT')) {
+      const info = countryInfo.find(i => i.country === c.code)
+      expect(info, c.code).toBeTruthy()
+      expect(c.coverage.health && c.coverage.rights).toBe(true)
+      expect(info!.entities.length).toBeGreaterThan(3)
+      expect(info!.rights.help.length).toBeGreaterThan(0)
+    }
+  })
+  it('ids das entidades não repetem entre países', () => {
+    const ids = countryInfo.flatMap(i => i.entities.map(e => e.id))
+    expect(new Set(ids).size).toBe(ids.length)
+  })
+})

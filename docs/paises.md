@@ -23,8 +23,13 @@ Todos os pacotes vão dentro da app, por isso o servidor nunca sabe o país de n
 | `support` | Associações, linhas e emergência (`src/data/support.ts`) |
 | `reviewedAt`, `reviewedBy` | Data da última revisão e associação parceira que reviu |
 
-Quando uma parte não está coberta, a app mostra o conteúdo de Portugal com um aviso
-(`<CountryNotice part="…" />`) a dizer que ainda não está verificado para esse país.
+Quando uma parte não está coberta, a app diz que ainda não tem essa informação para o
+país (`<NoCountryInfo>`), mostra a emergência, os contactos de apoio e ligações globais, e
+só mostra o conteúdo de Portugal se a pessoa tocar em "Ver como funciona em Portugal".
+
+A língua segue o país escolhido (inglês quando a app não tem a língua do país), a não
+ser que a pessoa tenha escolhido uma língua à mão. O conteúdo de cada país está
+traduzido pelo menos para a língua desse país.
 
 ## Nível de risco
 
@@ -53,9 +58,8 @@ Nenhum pacote foi ainda revisto por uma associação local.
 
 | Países | O que têm |
 | --- | --- |
-| Portugal | Tudo: guia, cartas, saúde, direitos e contactos |
-| Brasil, Espanha, França | Guia legal e contactos de apoio |
-| Alemanha, Argentina, Uruguai, Chile, Colômbia, México, Canadá, EUA | Guia legal, emergência e, onde há, linhas de crise |
+| Portugal | Tudo: guia, cartas, saúde (SNS, listas de espera, comparador), direitos e contactos |
+| Brasil, Espanha, França, Alemanha, Argentina, Uruguai, Chile, Colômbia, México, Canadá, EUA | Guia legal, sistema de saúde, direitos e queixas, entidades a atualizar, emergência e linhas de crise (`src/data/countryInfo.ts`) |
 | Restantes países das Américas | Só número de emergência e nível de risco |
 
 Hostis (relações entre pessoas do mesmo sexo ainda são crime, confirmado em

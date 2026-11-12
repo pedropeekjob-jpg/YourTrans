@@ -8,6 +8,7 @@ import { checklistPT, type ChecklistItem } from '../data/guides'
 import { countries } from '../data/countries'
 import { useCountry } from '../lib/useCountry'
 import { CountryNotice, CountryPicker, StaleNotice } from '../components/CountryPicker'
+import { NoCountryInfo, useCountryInfo } from '../components/CountryInfoViews'
 import { buildLetter, letterKinds, type LetterFields, type LetterKind } from '../lib/letters'
 import { tr } from '../i18n'
 
@@ -15,6 +16,7 @@ type Tab = 'passos' | 'checklist' | 'pedidos'
 
 export function Documents() {
   const [params] = useSearchParams()
+  const pack = useCountry()
   const [tab, setTab] = useState<Tab>((params.get('tab') as Tab) || 'passos')
   const [letterPreset, setLetterPreset] = useState<{ kind: LetterKind; entity: string } | null>(
     params.get('kind') ? { kind: params.get('kind') as LetterKind, entity: '' } : null)
@@ -34,7 +36,7 @@ export function Documents() {
           { id: 'checklist', label: tr('Checklist') },
           { id: 'pedidos', label: tr('Pedidos') },
         ]} />
-        {tab === 'passos' && <Steps />}
+        {tab === 'passos' && <><CountryPicker />{pack.guide ? <Steps /> : <NoCountryInfo what={tr('O passo a passo da mudança de nome e género')}><Steps /></NoCountryInfo>}</>}
         {tab === 'checklist' && <Checklist onLetter={openLetter} />}
         {tab === 'pedidos' && <Letters key={letterPreset?.kind + (letterPreset?.entity ?? '')} preset={letterPreset} />}
       </div>
@@ -52,8 +54,6 @@ function Steps() {
 
   return (
     <>
-      <CountryPicker />
-      <CountryNotice part="guide" />
       <StaleNotice />
 
       <section className="card tint-sky">
@@ -125,21 +125,24 @@ function Steps() {
 
 function Checklist({ onLetter }: { onLetter: (i: ChecklistItem) => void }) {
   const { vault, update } = useVault()
+  const pt = useCountry().code === 'PT'
+  const info = useCountryInfo()
+  const list = pt ? checklistPT : info?.entities ?? []
   const groups = useMemo(() => {
     const m = new Map<string, ChecklistItem[]>()
-    for (const c of checklistPT) m.set(c.group, [...(m.get(c.group) ?? []), c])
+    for (const c of list) m.set(c.group, [...(m.get(c.group) ?? []), c])
     return [...m.entries()]
-  }, [])
-  const done = checklistPT.filter(c => vault.checklist[c.id]).length
+  }, [list])
+  const done = list.filter(c => vault.checklist[c.id]).length
+  if (!list.length) return <NoCountryInfo what={tr('A lista de entidades a atualizar')} />
 
   return (
     <>
-      <CountryNotice part="letters" />
       <section className="card tint-mint">
-        <h3>{tr('Depois do novo Cartão de Cidadão')}</h3>
-        <p className="small">{tr('Tudo o que costuma ser preciso atualizar. Em cada entidade podes gerar o pedido já escrito.')}</p>
-        <div className="row"><div className="grow"><Progress value={done / checklistPT.length} /></div><span className="xs muted">{done}/{checklistPT.length}</span></div>
-        {done === checklistPT.length && <p className="small" style={{ fontWeight: 650 }}>{tr('🎉 Tudo atualizado. Que conquista!')}</p>}
+        <h3>{pt ? tr('Depois do novo Cartão de Cidadão') : tr('Depois dos novos documentos')}</h3>
+        <p className="small">{pt ? tr('Tudo o que costuma ser preciso atualizar. Em cada entidade podes gerar o pedido já escrito.') : tr('Tudo o que costuma ser preciso atualizar no teu país.')}</p>
+        <div className="row"><div className="grow"><Progress value={done / list.length} /></div><span className="xs muted">{done}/{list.length}</span></div>
+        {done === list.length && <p className="small" style={{ fontWeight: 650 }}>{tr('🎉 Tudo atualizado. Que conquista!')}</p>}
       </section>
       {groups.map(([group, items]) => (
         <section key={group} className="stack">
@@ -153,7 +156,7 @@ function Checklist({ onLetter }: { onLetter: (i: ChecklistItem) => void }) {
                   <div className="grow stack" style={{ gap: 2 }}>
                     <h3 style={{ opacity: on ? .55 : 1 }}>{item.label}</h3>
                     <p className="small muted">{item.how}</p>
-                    {item.letter && !on && (
+                    {pt && item.letter && !on && (
                       <button className="btn ghost sm" style={{ justifySelf: 'start', paddingLeft: 0 }} onClick={() => onLetter(item)}>
                         <Icon name="doc" size={16} /> {tr('Gerar pedido')}</button>
                     )}

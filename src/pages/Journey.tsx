@@ -4,7 +4,7 @@ import { TopBar } from '../components/Layout'
 import { Icon } from '../components/Icon'
 import { Ring } from '../components/ui'
 import { checklistPT } from '../data/guides'
-import { countries } from '../data/countries'
+import { infoFor } from '../data/countryInfo'
 import { useCountry } from '../lib/useCountry'
 import { chosenSteps } from '../data/healthPath'
 import { tr } from '../i18n'
@@ -15,14 +15,14 @@ export interface Milestone { id: string; title: string; to: string; done: boolea
 export function useMilestones(): Milestone[] {
   const { vault } = useVault()
   const pack = useCountry()
-  const guide = pack.guide ?? countries[0].guide!
-  const checks = checklistPT.filter(c => vault.checklist[c.id]).length
+  const entities = pack.code === 'PT' ? checklistPT : infoFor(pack.code)?.entities ?? []
+  const checks = entities.filter(c => vault.checklist[c.id]).length
   const health = chosenSteps(vault.healthPath)
   const healthDone = health.filter(h => vault.healthPath.steps[h.step.id]?.done).length
   return [
     { id: 'apoio', title: tr('Contar a quem me apoia'), to: '/partilhar', done: !!vault.supportCard },
-    ...guide.steps.map(st => ({ id: st.id, title: st.title, to: '/documentos', done: !!vault.guideSteps[st.id] })),
-    { id: 'entidades', title: tr('Atualizar banco, escola, trabalho e contratos'), to: '/documentos?tab=checklist', done: checks === checklistPT.length, sub: tr('{0}/{1} passos', checks, checklistPT.length) },
+    ...(pack.guide?.steps ?? []).map(st => ({ id: st.id, title: st.title, to: '/documentos', done: !!vault.guideSteps[st.id] })),
+    ...(entities.length ? [{ id: 'entidades', title: tr('Atualizar banco, escola, trabalho e contratos'), to: '/documentos?tab=checklist', done: checks === entities.length, sub: tr('{0}/{1} passos', checks, entities.length) }] : []),
     // Só entra no caminho se a pessoa escolheu partes do percurso de saúde.
     ...(health.length ? [{ id: 'saude', title: tr('O meu percurso de saúde'), to: '/percurso/saude', done: healthDone === health.length, sub: tr('{0}/{1} passos', healthDone, health.length) }] : []),
   ]

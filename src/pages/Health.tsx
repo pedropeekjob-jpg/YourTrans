@@ -12,6 +12,8 @@ import { uid } from '../lib/types'
 import { Appointments, Effects, Reminders } from './Journal'
 import { tr } from '../i18n'
 import { CountryNotice } from '../components/CountryPicker'
+import { CountryHealth, NoCountryInfo, useCountryInfo } from '../components/CountryInfoViews'
+import { useCountry } from '../lib/useCountry'
 
 type Tab = 'diretorio' | 'mente' | 'tratamento' | 'percurso' | 'rastreios'
 const kinds: ProviderKind[] = ['Medicina geral', 'Endocrinologia', 'Psicologia', 'Psiquiatria', 'Sexologia', 'Cirurgia', 'Terapia da fala', 'Clínica']
@@ -20,22 +22,24 @@ export function Health() {
   const [params, setParams] = useSearchParams()
   const tab = (params.get('tab') as Tab) || 'diretorio'
   const setTab = (t: Tab, extra: Record<string, string> = {}) => setParams({ tab: t, ...extra }, { replace: true })
+  const pt = useCountry().code === 'PT'
+  const info = useCountryInfo()
   return (
     <>
       <TopBar title={tr('Saúde')} />
       <div className="page">
-        {tab !== 'tratamento' && <CountryNotice part="health" />}
+        {tab === 'diretorio' && <CountryNotice part="providers" />}
         <Seg value={tab} onChange={setTab} options={[
           { id: 'diretorio', label: tr('Profissionais') },
           { id: 'mente', label: tr('Mente') },
           { id: 'tratamento', label: tr('O meu tratamento') },
-          { id: 'percurso', label: tr('Percurso SNS') },
+          { id: 'percurso', label: pt ? tr('Percurso SNS') : tr('Sistema de saúde') },
           { id: 'rastreios', label: tr('Rastreios') },
         ]} />
         {tab === 'diretorio' && <Directory key={params.get('q') ?? ''} initialKind={(params.get('tipo') as ProviderKind) ?? ''} initialQuery={params.get('q') ?? ''} />}
         {tab === 'mente' && <MentalHealth onDirectory={() => setTab('diretorio', { tipo: 'Psicologia' })} />}
         {tab === 'tratamento' && <Treatment sub={(params.get('sub') as Sub) || 'lembretes'} onSub={x => setTab('tratamento', { sub: x })} />}
-        {tab === 'percurso' && <Pathway />}
+        {tab === 'percurso' && (pt ? <Pathway /> : info ? <CountryHealth info={info} /> : <NoCountryInfo what={tr('O percurso no sistema de saúde')}><Pathway /></NoCountryInfo>)}
         {tab === 'rastreios' && <Screenings />}
       </div>
     </>

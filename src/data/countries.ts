@@ -3,6 +3,7 @@ import { guides, type CountryGuide } from './guides'
 import { supportOrgs, supportOrgsBR, supportOrgsES, supportOrgsFR, type SupportOrg } from './support'
 import { guidesWorld } from './guidesWorld'
 import { emergencyOrg, supportWorld } from './supportWorld'
+import { infoFor } from './countryInfo'
 
 // Pacotes por país. A língua e o país são independentes: uma pessoa brasileira
 // em Lisboa pode ler o pacote de Portugal em português do Brasil.
@@ -125,7 +126,7 @@ const basicPacks: CountryPack[] = basic.map(([code, region, emergency, risk]) =>
   const extra = supportWorld[code] ?? []
   return {
     code, region, name: countryName(code), flag: flagOf(code), lang: langOf(code), emergency, healthSystem: '',
-    risk, coverage: { ...none, guide: !!guide, support: extra.length > 0 },
+    risk, coverage: { ...none, guide: !!guide, support: extra.length > 0, health: !!infoFor(code), rights: !!infoFor(code) },
     guide, support: [emergencyOrg(code, emergency), ...extra], reviewedAt: '2026-11',
   }
 })
@@ -140,19 +141,19 @@ export const countries: CountryPack[] = [
   {
     code: 'BR', region: 'america-sul', name: countryName('BR'), flag: '🇧🇷', lang: 'br', emergency: '190', healthSystem: tr('SUS'),
     risk: 'atencao',
-    coverage: { guide: true, letters: false, health: false, rights: false, support: true },
+    coverage: { guide: true, letters: false, health: true, rights: true, support: true },
     guide: guideFor('BR'), support: supportOrgsBR, reviewedAt: '2026-11',
   },
   {
     code: 'ES', region: 'europa', name: countryName('ES'), flag: '🇪🇸', lang: 'es', emergency: '112', healthSystem: tr('SNS espanhol'),
     risk: 'protegido',
-    coverage: { guide: true, letters: false, health: false, rights: false, support: true },
+    coverage: { guide: true, letters: false, health: true, rights: true, support: true },
     guide: guideFor('ES'), support: supportOrgsES, reviewedAt: '2026-11',
   },
   {
     code: 'FR', region: 'europa', name: countryName('FR'), flag: '🇫🇷', lang: 'fr', emergency: '112', healthSystem: tr('Assurance Maladie'),
     risk: 'protegido',
-    coverage: { guide: true, letters: false, health: false, rights: false, support: true },
+    coverage: { guide: true, letters: false, health: true, rights: true, support: true },
     guide: guideFor('FR'), support: supportOrgsFR, reviewedAt: '2026-11',
   },
   ...basicPacks,
