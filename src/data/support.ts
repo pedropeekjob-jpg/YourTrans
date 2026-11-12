@@ -31,3 +31,20 @@ export const supportOrgsBR: SupportOrg[] = [
   { id: 'br-disque100', name: tr('Disque 100'), kind: 'serviço público', area: tr('Nacional'), phone: '100', url: 'https://www.gov.br/mdh/pt-br/ondh', description: tr('Denúncia de violações de direitos humanos, incluindo LGBTfobia. Pode ser anónima.') },
   { id: 'br-antra', name: tr('ANTRA – Associação Nacional de Travestis e Transexuais'), kind: 'associação', area: tr('Nacional'), url: 'https://antrabrasil.org', description: tr('Rede nacional de pessoas trans e travestis, com informação sobre direitos e organizações locais.') },
 ]
+
+// Espanha: contactos nacionais. Rever com uma associação parceira.
+export const supportOrgsES: SupportOrg[] = [
+  { id: 'es-112', name: '112', kind: 'emergência', area: tr('Nacional'), phone: '112', description: tr('Número Europeu de Emergência. Perigo imediato para ti ou para outra pessoa.') },
+  { id: 'es-024', name: tr('Linha 024'), kind: 'serviço público', area: tr('Nacional'), phone: '024', url: 'https://www.sanidad.gob.es/linea024/', description: tr('Linha pública de atenção à conduta suicida, gratuita e 24 horas.') },
+  { id: 'es-esperanza', name: tr('Teléfono de la Esperanza'), kind: 'linha', area: tr('Nacional'), phone: '717003717', url: 'https://telefonodelaesperanza.org', description: tr('Linha de apoio emocional em situações de crise.') },
+  { id: 'es-felgtbi', name: tr('FELGTBI+'), kind: 'associação', area: tr('Nacional'), url: 'https://felgtbi.org', description: tr('Federação estatal de associações LGBTI+, com serviços de informação e apoio.') },
+  { id: 'es-chrysallis', name: tr('Chrysallis'), kind: 'associação', area: tr('Nacional (famílias)'), url: 'https://chrysallis.org.es', description: tr('Associação de famílias de menores e jovens trans.') },
+]
+
+// França: contactos nacionais. Rever com uma associação parceira.
+export const supportOrgsFR: SupportOrg[] = [
+  { id: 'fr-112', name: '112', kind: 'emergência', area: tr('Nacional'), phone: '112', description: tr('Número Europeu de Emergência. Perigo imediato para ti ou para outra pessoa.') },
+  { id: 'fr-3114', name: tr('3114'), kind: 'serviço público', area: tr('Nacional'), phone: '3114', url: 'https://3114.fr', description: tr('Número nacional de prevenção do suicídio, gratuito e 24 horas.') },
+  { id: 'fr-sos', name: tr('SOS homophobie'), kind: 'linha', area: tr('Nacional'), url: 'https://www.sos-homophobie.org', description: tr('Escuta anónima e apoio a vítimas de LGBTIfobia, incluindo transfobia.') },
+  { id: 'fr-outrans', name: tr('OUTrans'), kind: 'associação', area: tr('Paris e nacional'), url: 'https://outrans.org', description: tr('Associação de autoapoio trans, com grupos, acompanhamento e informação sobre direitos.') },
+]

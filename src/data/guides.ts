@@ -1,4 +1,5 @@
 import { tr } from '../i18n'
+import type { CountryCode } from './countries'
 // Conteúdo informativo. Não é aconselhamento jurídico: valores e prazos
 // devem ser confirmados nas fontes oficiais indicadas em cada passo.
 
@@ -14,7 +15,7 @@ export interface GuideStep {
 }
 
 export interface CountryGuide {
-  country: 'PT' | 'BR'
+  country: CountryCode
   name: string
   law: string
   summary: string
@@ -124,6 +125,109 @@ export const guides: CountryGuide[] = [
       },
     ],
     reviewedAt: '2026-10',
+  },
+  {
+    country: 'ES',
+    name: tr('Espanha'),
+    law: tr('Lei 4/2023 (igualdade real e efetiva das pessoas trans)'),
+    summary:
+      tr('Desde 2023 a retificação da menção do sexo e do nome no Registo Civil faz-se por simples declaração, ') +
+      tr('sem relatório médico ou psicológico e sem tratamentos.'),
+    eligibility: [
+      tr('Ter nacionalidade espanhola. Pessoas estrangeiras residentes podem pedir a mudança nos documentos de estrangeiro (TIE), se o país de origem não o permitir.'),
+      tr('A partir dos 16 anos: pedido feito pela própria pessoa.'),
+      tr('Entre os 14 e os 16 anos: com a assistência dos representantes legais.'),
+      tr('Entre os 12 e os 14 anos: só com autorização judicial.'),
+    ],
+    steps: [
+      {
+        id: 'es-request',
+        title: tr('Fazer o pedido no Registo Civil'),
+        body: tr('Vais ao Registo Civil e declaras que queres retificar a menção do sexo e, se quiseres, o nome. Não tens de apresentar relatórios nem provas de tratamento.'),
+        where: tr('Registro Civil (ou consulado de Espanha, se viveres fora)'),
+        docs: [tr('DNI ou passaporte'), tr('Requerimento (preenchido no local)')],
+        link: { label: tr('Lei 4/2023 (BOE)'), url: 'https://www.boe.es/buscar/act.php?id=BOE-A-2023-5366' },
+      },
+      {
+        id: 'es-ratify',
+        title: tr('Confirmar o pedido'),
+        body: tr('A lei pede que voltes a confirmar o pedido numa segunda comparência, no prazo máximo de três meses depois da primeira. Sem essa confirmação o pedido não avança.'),
+        time: tr('Até 3 meses entre as duas comparências'),
+      },
+      {
+        id: 'es-decision',
+        title: tr('Aguardar a decisão'),
+        body: tr('Depois da confirmação, o Registo Civil decide e averba a mudança. O procedimento é gratuito.'),
+        time: tr('Até 1 mês depois da confirmação'),
+        cost: tr('Gratuito'),
+      },
+      {
+        id: 'es-dni',
+        title: tr('Pedir o novo DNI'),
+        body: tr('Com o registo atualizado, marca a renovação do DNI e do passaporte na Polícia Nacional.'),
+        where: tr('Esquadra da Polícia Nacional com emissão de DNI'),
+        cost: tr('Taxa normal do DNI (confirmar o valor atual)'),
+        link: { label: tr('Marcar DNI (cita previa)'), url: 'https://www.citapreviadnie.es' },
+      },
+      {
+        id: 'es-after',
+        title: tr('Atualizar tudo o resto'),
+        body: tr('Com o novo DNI, atualiza a Segurança Social, a Agência Tributária, o banco, a escola, o trabalho e os contratos.'),
+      },
+    ],
+    reviewedAt: '2026-11',
+  },
+  {
+    country: 'FR',
+    name: tr('França'),
+    law: tr('Lei de 18 de novembro de 2016 (artigos 60 e 61-5 a 61-8 do Código Civil)'),
+    summary:
+      tr('O nome próprio muda-se na câmara municipal. A menção do sexo muda-se no tribunal, mas sem exigência de tratamentos médicos, ') +
+      tr('cirurgia ou esterilização: basta mostrar que vives e és conhecide no género pedido.'),
+    eligibility: [
+      tr('Ter o nascimento registado em França (nacionalidade francesa ou registo no serviço central de estado civil).'),
+      tr('Mudança do nome próprio: qualquer idade (menores através dos representantes legais).'),
+      tr('Mudança da menção do sexo: pessoas maiores de idade ou menores emancipadas.'),
+    ],
+    steps: [
+      {
+        id: 'fr-prenom',
+        title: tr('Mudar o nome próprio na câmara municipal'),
+        body: tr('Fazes o pedido ao serviço de estado civil da câmara onde vives ou onde nasceste. Juntas provas de que já usas o nome (cartas, cartões, testemunhos).'),
+        where: tr('Mairie (serviço de état civil)'),
+        cost: tr('Gratuito'),
+        docs: [tr('Documento de identificação'), tr('Comprovativo de morada'), tr('Certidão de nascimento recente'), tr('Provas do uso do nome')],
+        link: { label: tr('Mudar de nome próprio (service-public.fr)'), url: 'https://www.service-public.fr/particuliers/vosdroits/F885' },
+      },
+      {
+        id: 'fr-sexe',
+        title: tr('Pedir a mudança da menção do sexo ao tribunal'),
+        body: tr('Envias um pedido ao tribunal judiciaire da tua área ou do local de nascimento. Mostras, com testemunhos e documentos, que te apresentas e és conhecide no género pedido. Não é obrigatório advogado.'),
+        where: tr('Tribunal judiciaire'),
+        cost: tr('Gratuito sem advogado'),
+        docs: [tr('Requerimento ao tribunal'), tr('Testemunhos de pessoas próximas'), tr('Documentos já no nome usado')],
+        link: { label: tr('Mudança da menção do sexo (service-public.fr)'), url: 'https://www.service-public.fr/particuliers/vosdroits/F34703' },
+      },
+      {
+        id: 'fr-decision',
+        title: tr('Aguardar a decisão'),
+        body: tr('O tribunal pode ouvir-te numa audiência. Se o pedido for aceite, a decisão é averbada na certidão de nascimento.'),
+        time: tr('Vários meses, varia por tribunal'),
+      },
+      {
+        id: 'fr-cni',
+        title: tr('Pedir o novo cartão de identidade'),
+        body: tr('Com a certidão atualizada, pede o novo cartão de identidade e o passaporte numa câmara que os emita.'),
+        where: tr('Mairie com emissão de documentos'),
+        link: { label: tr('Pré-pedido (ANTS)'), url: 'https://ants.gouv.fr' },
+      },
+      {
+        id: 'fr-after',
+        title: tr('Atualizar tudo o resto'),
+        body: tr('Atualiza a Segurança Social (Ameli), a CAF, as Finanças, o banco, a escola, o trabalho e os contratos.'),
+      },
+    ],
+    reviewedAt: '2026-11',
   },
 ]
 

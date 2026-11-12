@@ -47,9 +47,20 @@ Quando uma parte não está coberta, a app mostra o conteúdo de Portugal com um
 Fontes de partida (não substituem a revisão local): Trans Rights Map da TGEU,
 base de dados da ILGA World, e as fontes oficiais de cada país.
 
+## Estado
+
+| País | Guia legal | Contactos | Saúde, direitos, cartas | Revisto por associação |
+| --- | --- | --- | --- | --- |
+| Portugal | sim | sim | sim | não |
+| Brasil | sim | sim | não | não |
+| Espanha | sim | sim | não | não |
+| França | sim | sim | não | não |
+
 ## Por fazer
 
+- Rever Brasil, Espanha e França com associações parceiras e preencher `reviewedBy`.
 - Percurso de saúde, direitos e cartas por país (hoje só existem para Portugal).
-- Brasil: rever o pacote com uma associação parceira e acrescentar o SUS
-  (Processo Transexualizador).
-- Espanha e França a seguir, por já existirem essas línguas.
+- Brasil: acrescentar o SUS (Processo Transexualizador).
+- Países seguintes sugeridos: Reino Unido e Irlanda (já há inglês), Bélgica e Suíça
+  (francês), e uma classificação de risco para os países onde a app pode ser usada
+  em segredo.

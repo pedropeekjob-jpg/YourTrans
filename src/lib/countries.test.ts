@@ -30,6 +30,8 @@ describe('pacotes por país', () => {
     expect(countryForLang('br')).toBe('BR')
     expect(countryForLang('pt')).toBe('PT')
     expect(countryForLang('en')).toBe('PT')
+    expect(countryForLang('es')).toBe('ES')
+    expect(countryForLang('fr')).toBe('FR')
     expect(isCountry('BR')).toBe(true)
     expect(isCountry('US')).toBe(false)
   })

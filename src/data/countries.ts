@@ -1,13 +1,13 @@
 import { tr, type Lang } from '../i18n'
 import { guides, type CountryGuide } from './guides'
-import { supportOrgs, supportOrgsBR, type SupportOrg } from './support'
+import { supportOrgs, supportOrgsBR, supportOrgsES, supportOrgsFR, type SupportOrg } from './support'
 
 // Pacotes por país. A língua e o país são independentes: uma pessoa brasileira
 // em Lisboa pode ler o pacote de Portugal em português do Brasil.
 // Todos os pacotes vão dentro da app, por isso o servidor nunca fica a saber
 // o país de ninguém. Como acrescentar um país: ver docs/paises.md.
 
-export type CountryCode = 'PT' | 'BR'
+export type CountryCode = 'PT' | 'BR' | 'ES' | 'FR'
 
 /** Quão seguro é usar uma app trans no país. Decide o que a app mostra. */
 export type Risk =
@@ -63,6 +63,18 @@ export const countries: CountryPack[] = [
     risk: 'atencao',
     coverage: { guide: true, letters: false, health: false, rights: false, support: true },
     guide: guideFor('BR'), support: supportOrgsBR, reviewedAt: '2026-11',
+  },
+  {
+    code: 'ES', name: tr('Espanha'), flag: '🇪🇸', lang: 'es', emergency: '112', healthSystem: tr('SNS espanhol'),
+    risk: 'protegido',
+    coverage: { guide: true, letters: false, health: false, rights: false, support: true },
+    guide: guideFor('ES'), support: supportOrgsES, reviewedAt: '2026-11',
+  },
+  {
+    code: 'FR', name: tr('França'), flag: '🇫🇷', lang: 'fr', emergency: '112', healthSystem: tr('Assurance Maladie'),
+    risk: 'protegido',
+    coverage: { guide: true, letters: false, health: false, rights: false, support: true },
+    guide: guideFor('FR'), support: supportOrgsFR, reviewedAt: '2026-11',
   },
 ]
 
