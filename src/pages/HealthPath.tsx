@@ -9,6 +9,7 @@ import { TrackCommunity } from '../components/TrackCommunity'
 import { HormonePhases } from './HormonePhases'
 import { SurgeryCompare } from './SurgeryCompare'
 import { tr } from '../i18n'
+import { CountryNotice } from '../components/CountryPicker'
 
 type Tab = 'meu' | 'comparar' | 'fases' | 'espera' | 'apoios'
 
@@ -20,6 +21,7 @@ export function HealthPath() {
     <>
       <TopBar title={tr('Percurso de saúde')} back />
       <div className="page">
+        <CountryNotice part="health" />
         <Seg<Tab> value={tab} onChange={t => setParams({ tab: t }, { replace: true })} options={[
           { id: 'meu', label: tr('O meu percurso') },
           { id: 'comparar', label: tr('SNS ou privado') },

@@ -4,7 +4,9 @@ import { useVault } from '../lib/vault-context'
 import { TopBar } from '../components/Layout'
 import { Icon } from '../components/Icon'
 import { Seg, Sheet, fmtDate, useToast } from '../components/ui'
-import { supportOrgs } from '../data/support'
+import { communityAllowed } from '../data/countries'
+import { useCountry } from '../lib/useCountry'
+import { CountryNotice } from '../components/CountryPicker'
 import { annualEvents, nextOccurrence } from '../data/events'
 import { api, apiEnabled } from '../lib/api'
 import { downloadIcs, icsEvent } from '../lib/ics'
@@ -19,6 +21,20 @@ type Tab = 'apoio' | 'testemunhos' | 'agenda' | 'locais' | 'mentoria'
 export function Community() {
   const [params, setParams] = useSearchParams()
   const tab = (params.get('tab') as Tab) || 'apoio'
+  const pack = useCountry()
+  // Em países hostis, partilhas, agenda, locais e mentoria podem expor a pessoa: fica só o apoio.
+  if (!communityAllowed(pack)) return (
+    <>
+      <TopBar title={tr('Comunidade')} />
+      <div className="page">
+        <section className="card tint-amber" role="note">
+          <h3>{tr('Comunidade desligada em {0}', pack.name)}</h3>
+          <p className="small">{tr('Para tua segurança, a comunidade, os locais e a mentoria não estão disponíveis neste país. Os contactos de apoio continuam aqui.')}</p>
+        </section>
+        <Support />
+      </div>
+    </>
+  )
   return (
     <>
       <TopBar title={tr('Comunidade')} />
@@ -36,10 +52,12 @@ export function Community() {
 
 export function Support() {
   const ally = useVault().vault.settings.profile === 'ally'
-  const urgent = supportOrgs.filter(o => o.phone)
-  const orgs = supportOrgs.filter(o => o.kind === 'associação')
+  const { support } = useCountry()
+  const urgent = support.filter(o => o.phone)
+  const orgs = support.filter(o => o.kind === 'associação')
   return (
     <>
+      <CountryNotice part="support" />
       <section className="card tint-danger">
         <h3>{tr('Se estiveres em perigo ou a pensar em fazer-te mal')}</h3>
         <p className="small">{tr('Não estás sozinhe. Liga agora, é gratuito ou de baixo custo e confidencial.')}</p>

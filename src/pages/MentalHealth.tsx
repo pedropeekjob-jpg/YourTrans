@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { useVault } from '../lib/vault-context'
 import { Icon } from '../components/Icon'
 import { Sheet, copyText, fmtDate, useToast } from '../components/ui'
-import { supportOrgs } from '../data/support'
+import { useCountry } from '../lib/useCountry'
 import { uid, type SharedSummary } from '../lib/types'
 import { moods } from './Home'
 import { tr } from '../i18n'
@@ -29,8 +29,9 @@ export function MentalHealth({ onDirectory }: { onDirectory: () => void }) {
   const { vault, update } = useVault()
   const toast = useToast()
   const [open, setOpen] = useState(false)
-  const services = supportOrgs.filter(o => ['ilga', 'opus', 'casaqui', 'planoi', 'rea'].includes(o.id))
-  const crisis = supportOrgs.filter(o => ['sns24', 'vozamiga', '112'].includes(o.id))
+  const { support } = useCountry()
+  const services = support.filter(o => o.kind === 'associação' && o.id !== 'amplos')
+  const crisis = support.filter(o => o.phone && o.kind !== 'associação' && o.id !== 'apav' && o.id !== 'br-disque100')
 
   const forget = async (s: SharedSummary) => {
     const msg = tr('Olá{0},\n\nNo dia {1} partilhei consigo um resumo do meu diário. Retiro o consentimento para a utilização desse resumo e peço que o apague, ao abrigo do artigo 17.º do RGPD. Agradeço que me confirme quando estiver apagado.\n\nObrigade.', s.to ? ` ${s.to}` : '', fmtDate(s.at, { day: 'numeric', month: 'long', year: 'numeric' }))

@@ -4,6 +4,7 @@ import { useVault } from '../lib/vault-context'
 import { TopBar } from '../components/Layout'
 import { Icon } from '../components/Icon'
 import { LangPicker } from '../components/LangPicker'
+import { CountryPicker } from '../components/CountryPicker'
 import { ThemePicker } from '../components/ThemePicker'
 import { CasuloLogo } from '../components/CasuloLogo'
 import { Seg, useToast } from '../components/ui'
@@ -88,6 +89,11 @@ export function Settings() {
           <h3>{tr('Idioma')}</h3>
           <LangPicker />
           <p className="xs muted">{tr('A app volta a abrir no idioma escolhido. Os teus dados ficam iguais.')}</p>
+        </section>
+
+        <section className="card">
+          <h3>{tr('País')}</h3>
+          <CountryPicker />
         </section>
 
         <section className="card">

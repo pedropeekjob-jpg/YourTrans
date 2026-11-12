@@ -7,6 +7,7 @@ import { Empty, Seg, Sheet, copyText, fmtDate, useToast } from '../components/ui
 import { LEGAL_REVIEWED, buildTemplate, freeLegalHelp, rightTopics, routes, templateLabels, type RightTopic, type TemplateFields, type TemplateId } from '../data/legal'
 import { uid, type Incident } from '../lib/types'
 import { tr } from '../i18n'
+import { CountryNotice } from '../components/CountryPicker'
 
 type Tab = 'direitos' | 'agir' | 'registo'
 
@@ -17,6 +18,7 @@ export function Rights() {
     <>
       <TopBar title={tr('Direitos e lei')} back />
       <div className="page">
+        <CountryNotice part="rights" />
         <Seg<Tab> value={tab} onChange={t => setParams({ tab: t }, { replace: true })} options={[{ id: 'direitos', label: tr('Direitos') }, { id: 'agir', label: tr('O que fazer') }, { id: 'registo', label: tr('Registo') }]} />
         {tab === 'direitos' && <Topics />}
         {tab === 'agir' && <Act initialTemplate={params.get('modelo') as TemplateId | null} />}
