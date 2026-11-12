@@ -7,9 +7,10 @@ import { Check, Progress, Seg, Sheet, fmtDate } from '../components/ui'
 import { chosenSteps, monthsSince, trackGroupLabels, tracks, travelSupport, waitingList, type HealthStep, type Source, type Track, type TrackGroup } from '../data/healthPath'
 import { TrackCommunity } from '../components/TrackCommunity'
 import { HormonePhases } from './HormonePhases'
+import { SurgeryCompare } from './SurgeryCompare'
 import { tr } from '../i18n'
 
-type Tab = 'meu' | 'fases' | 'espera' | 'apoios'
+type Tab = 'meu' | 'comparar' | 'fases' | 'espera' | 'apoios'
 
 /** Percurso de saúde pessoal: a pessoa escolhe as partes que quer e marca os passos. */
 export function HealthPath() {
@@ -21,11 +22,13 @@ export function HealthPath() {
       <div className="page">
         <Seg<Tab> value={tab} onChange={t => setParams({ tab: t }, { replace: true })} options={[
           { id: 'meu', label: tr('O meu percurso') },
+          { id: 'comparar', label: tr('SNS ou privado') },
           { id: 'fases', label: tr('O que esperar') },
           { id: 'espera', label: tr('Lista de espera') },
           { id: 'apoios', label: tr('Deslocações') },
         ]} />
         {tab === 'meu' && <MyPath />}
+        {tab === 'comparar' && <SurgeryCompare />}
         {tab === 'fases' && <HormonePhases />}
         {tab === 'espera' && <InfoSections sections={waitingList.sections} sources={waitingList.sources} reviewed={waitingList.reviewedAt} />}
         {tab === 'apoios' && <InfoSections sections={travelSupport.sections} sources={travelSupport.sources} reviewed={waitingList.reviewedAt} />}
@@ -116,7 +119,10 @@ function TrackCard({ track }: { track: Track }) {
           )}
           <TrackCommunity track={track} />
           {track.group === 'cirurgia' && (
-            <Link to="/percurso/saude?tab=espera" className="small row"><Icon name="doc" size={16} />{tr('Lista de espera e vale-cirurgia')}</Link>
+            <>
+              <Link to="/percurso/saude?tab=comparar" className="small row"><Icon name="chart" size={16} />{tr('Comparar SNS e privado')}</Link>
+              <Link to="/percurso/saude?tab=espera" className="small row"><Icon name="doc" size={16} />{tr('Lista de espera e vale-cirurgia')}</Link>
+            </>
           )}
         </>
       )}
