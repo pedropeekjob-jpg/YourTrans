@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { communityAllowed, countries, countryForLang, countryPack, isCountry } from '../data/countries'
+import { communityAllowed, countries, countryForLang, countryPack, isCountry, isStale, monthsSinceReview } from '../data/countries'
 import { emptyVault } from './types'
 
 describe('pacotes por país', () => {
@@ -56,5 +56,21 @@ describe('Alemanha e Américas', () => {
   it('nomes e bandeiras vêm do código', () => {
     expect(countryPack('US').flag).toBe('🇺🇸')
     expect(countryPack('US').name).not.toBe('US')
+  })
+})
+
+describe('validade da informação', () => {
+  it('fica por confirmar passados 6 meses (3 em países hostis)', () => {
+    const pt = { ...countryPack('PT'), reviewedAt: '2026-01' }
+    expect(monthsSinceReview(pt, new Date(2026, 6, 15))).toBe(6)
+    expect(isStale(pt, new Date(2026, 6, 15))).toBe(false)
+    expect(isStale(pt, new Date(2026, 7, 1))).toBe(true)
+    expect(isStale({ ...pt, risk: 'hostil' }, new Date(2026, 4, 1))).toBe(true)
+  })
+
+  // Rede de segurança: se a revisão mensal parar, a compilação falha antes de a app ficar meses desatualizada.
+  it('nenhum pacote passa 9 meses sem verificação', () => {
+    const old = countries.filter(c => monthsSinceReview(c) > 9).map(c => c.code)
+    expect(old).toEqual([])
   })
 })

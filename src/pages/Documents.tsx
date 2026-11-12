@@ -7,7 +7,7 @@ import { Check, Progress, Seg, copyText, useToast } from '../components/ui'
 import { checklistPT, type ChecklistItem } from '../data/guides'
 import { countries } from '../data/countries'
 import { useCountry } from '../lib/useCountry'
-import { CountryNotice, CountryPicker } from '../components/CountryPicker'
+import { CountryNotice, CountryPicker, StaleNotice } from '../components/CountryPicker'
 import { buildLetter, letterKinds, type LetterFields, type LetterKind } from '../lib/letters'
 import { tr } from '../i18n'
 
@@ -54,6 +54,7 @@ function Steps() {
     <>
       <CountryPicker />
       <CountryNotice part="guide" />
+      <StaleNotice />
 
       <section className="card tint-sky">
         <span className="badge accent" style={{ width: 'fit-content' }}>{guide.law}</span>

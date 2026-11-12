@@ -187,3 +187,14 @@ export function countriesByRegion(): { region: Region; label: string; items: Cou
 export function communityAllowed(p: CountryPack): boolean {
   return p.risk !== 'hostil'
 }
+
+/** Meses desde a última verificação do pacote (reviewedAt em AAAA-MM). */
+export function monthsSinceReview(p: CountryPack, now = new Date()): number {
+  const [y, m] = p.reviewedAt.split('-').map(Number)
+  return (now.getFullYear() - y) * 12 + (now.getMonth() + 1 - m)
+}
+
+/** Um pacote fica "por confirmar" passados 6 meses; países hostis, passados 3. */
+export function isStale(p: CountryPack, now = new Date()): boolean {
+  return monthsSinceReview(p, now) > (p.risk === 'hostil' ? 3 : 6)
+}
