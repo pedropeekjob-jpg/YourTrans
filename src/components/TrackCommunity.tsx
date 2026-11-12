@@ -43,8 +43,8 @@ export function useTrackCommunity() {
   return { data, failed: failed || !apiEnabled, refresh }
 }
 
-const eur = (n: number) => n.toLocaleString(locale, { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 })
-const months = (n: number) => (n === 1 ? tr('1 mês') : tr('{0} meses', n))
+export const eur = (n: number) => n.toLocaleString(locale, { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 })
+export const months = (n: number) => (n === 1 ? tr('1 mês') : tr('{0} meses', n))
 
 function statLine(s: ExperienceStat): { label: string; value: string } {
   const fmt = s.kind === 'espera' ? months : eur
@@ -136,7 +136,7 @@ export function TrackCommunity({ track }: { track: Track }) {
 
 type Mode = 'avaliar' | 'espera' | 'custo' | 'material'
 
-function ExperienceSheet({ track, open, onClose, onSent }: { track: Track; open: boolean; onClose: () => void; onSent: () => void }) {
+export function ExperienceSheet({ track, open, onClose, onSent }: { track: Track; open: boolean; onClose: () => void; onSent: () => void }) {
   const toast = useToast()
   const year = new Date().getFullYear()
   const surgery = track.group === 'cirurgia'
