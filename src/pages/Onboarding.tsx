@@ -6,6 +6,7 @@ import { ThemeToggle } from '../components/ThemePicker'
 import { CasuloIntro } from '../components/CasuloIntro'
 import { allyRoles, type AllyRole } from '../data/allies'
 import { tr } from '../i18n'
+import { useCountry } from '../lib/useCountry'
 import { InstallSteps } from '../components/InstallCard'
 import { isInAppBrowser } from '../lib/install'
 
@@ -140,11 +141,12 @@ function TransOnboarding({ onBack }: { onBack: () => void }) {
     update(v => ({ ...v, settings: { ...v.settings, displayName: name.trim(), pronouns, interests, disguise, profile: 'trans', onboarded: true } }))
   }
 
+  const pt = useCountry().code === 'PT'
   const slides = [
     {
       art: 'sparkle',
       title: tr('Um espaço só teu'),
-      body: tr('Documentos, saúde, diário, segurança e comunidade, tudo num só sítio e pensado para Portugal.'),
+      body: pt ? tr('Documentos, saúde, diário, segurança e comunidade, tudo num só sítio e pensado para Portugal.') : tr('Documentos, saúde, diário, segurança e comunidade, tudo num só sítio.'),
     },
     {
       art: 'lock',

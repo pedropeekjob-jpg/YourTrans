@@ -7,8 +7,8 @@ import { Check, Progress, Seg, copyText, useToast } from '../components/ui'
 import { checklistPT, type ChecklistItem } from '../data/guides'
 import { countries } from '../data/countries'
 import { useCountry } from '../lib/useCountry'
-import { CountryNotice, CountryPicker, StaleNotice } from '../components/CountryPicker'
-import { NoCountryInfo, useCountryInfo } from '../components/CountryInfoViews'
+import { CountryPicker, StaleNotice } from '../components/CountryPicker'
+import { NoCountryInfo, PortugalOnly, useCountryInfo } from '../components/CountryInfoViews'
 import { buildLetter, letterKinds, type LetterFields, type LetterKind } from '../lib/letters'
 import { tr } from '../i18n'
 
@@ -38,7 +38,7 @@ export function Documents() {
         ]} />
         {tab === 'passos' && <><CountryPicker />{pack.guide ? <Steps /> : <NoCountryInfo what={tr('O passo a passo da mudança de nome e género')}><Steps /></NoCountryInfo>}</>}
         {tab === 'checklist' && <Checklist onLetter={openLetter} />}
-        {tab === 'pedidos' && <Letters key={letterPreset?.kind + (letterPreset?.entity ?? '')} preset={letterPreset} />}
+        {tab === 'pedidos' && <PortugalOnly what={tr('As cartas prontas e a checklist de entidades')}><Letters key={letterPreset?.kind + (letterPreset?.entity ?? '')} preset={letterPreset} /></PortugalOnly>}
       </div>
     </>
   )
@@ -118,7 +118,7 @@ function Steps() {
           )
         })}
       </div>
-      <p className="xs muted">{tr('Informação revista em')}{' '}{guide.reviewedAt}{tr('. Não substitui aconselhamento jurídico: confirma valores e prazos nas fontes oficiais. A ILGA Portugal tem apoio jurídico gratuito.')}</p>
+      <p className="xs muted">{tr('Informação revista em')}{' '}{guide.reviewedAt}{pack.code === 'PT' || !pack.guide ? tr('. Não substitui aconselhamento jurídico: confirma valores e prazos nas fontes oficiais. A ILGA Portugal tem apoio jurídico gratuito.') : tr('. Não substitui aconselhamento jurídico: confirma valores e prazos nas fontes oficiais.')}</p>
     </>
   )
 }
@@ -204,7 +204,6 @@ function Letters({ preset }: { preset: { kind: LetterKind; entity: string } | nu
 
   return (
     <>
-      <CountryNotice part="letters" />
       <section className="card tint-accent">
         <h3>{tr('Pedidos já escritos')}</h3>
         <p className="small">{tr('Com base no direito de retificação do RGPD. Os teus dados ficam guardados só neste telemóvel para não teres de os escrever outra vez.')}</p>

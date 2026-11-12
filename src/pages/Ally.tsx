@@ -17,7 +17,7 @@ function useAlly() {
   const { vault, update } = useVault()
   const role = vault.settings.allyRole ?? 'amigue'
   const roleInfo = allyRoles.find(r => r.id === role)!
-  const lessons = lessonsFor(role)
+  const lessons = lessonsFor(role, useCountry().code === 'PT')
   const person = vault.received.find(r => r.payload.card)?.payload.card
   return { vault, update, role, roleInfo, lessons, person }
 }

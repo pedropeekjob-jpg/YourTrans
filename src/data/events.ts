@@ -12,17 +12,21 @@ export interface CommunityEvent {
   where?: string
   kind: 'dia' | 'marcha' | 'vigília'
   url?: string
+  /** Só existe em Portugal */
+  pt?: boolean
+  /** Descrição para os outros países, quando a de Portugal fala de cidades portuguesas */
+  descriptionWorld?: string
 }
 
 export const annualEvents: CommunityEvent[] = [
   { id: 'tdov', title: tr('Dia Internacional da Visibilidade Trans'), month: 3, day: 31, kind: 'dia', description: tr('Celebração das pessoas trans e das suas conquistas. Costuma haver encontros e ações de rua.') },
   { id: 'idahobit', title: tr('Dia Internacional contra a Homofobia, Bifobia e Transfobia'), month: 5, day: 17, kind: 'dia', description: tr('Ações e concentrações em várias cidades.') },
-  { id: 'marcha-lisboa', title: tr('Marcha do Orgulho LGBTI+ de Lisboa'), month: 6, kind: 'marcha', where: tr('Lisboa'), description: tr('Normalmente num sábado de junho. Confirma a data e o percurso junto da organização.'), url: 'https://ilga-portugal.pt' },
-  { id: 'arraial', title: tr('Arraial Lisboa Pride'), month: 6, kind: 'marcha', where: tr('Lisboa'), description: tr('Festa do orgulho, normalmente em junho.'), url: 'https://ilga-portugal.pt' },
-  { id: 'marcha-porto', title: tr('Marcha do Orgulho LGBTI+ do Porto'), month: 7, kind: 'marcha', where: tr('Porto'), description: tr('Normalmente no início de julho. Confirma a data junto da organização.') },
+  { id: 'marcha-lisboa', title: tr('Marcha do Orgulho LGBTI+ de Lisboa'), month: 6, kind: 'marcha', pt: true, where: tr('Lisboa'), description: tr('Normalmente num sábado de junho. Confirma a data e o percurso junto da organização.'), url: 'https://ilga-portugal.pt' },
+  { id: 'arraial', title: tr('Arraial Lisboa Pride'), month: 6, kind: 'marcha', pt: true, where: tr('Lisboa'), description: tr('Festa do orgulho, normalmente em junho.'), url: 'https://ilga-portugal.pt' },
+  { id: 'marcha-porto', title: tr('Marcha do Orgulho LGBTI+ do Porto'), month: 7, kind: 'marcha', pt: true, where: tr('Porto'), description: tr('Normalmente no início de julho. Confirma a data junto da organização.') },
   { id: 'nb', title: tr('Dia Internacional das Pessoas Não-Binárias'), month: 7, day: 14, kind: 'dia', description: tr('Dia de visibilidade para pessoas não-binárias.') },
   { id: 'taw', title: tr('Semana de Consciencialização Trans'), month: 11, day: 13, endDay: 19, kind: 'dia', description: tr('Semana de sensibilização que antecede o Dia da Memória Trans.') },
-  { id: 'tdor', title: tr('Dia da Memória Trans'), month: 11, day: 20, kind: 'vigília', description: tr('Homenagem às pessoas trans vítimas de violência. Há vigílias em Lisboa, Porto e outras cidades.') },
+  { id: 'tdor', title: tr('Dia da Memória Trans'), month: 11, day: 20, kind: 'vigília', description: tr('Homenagem às pessoas trans vítimas de violência. Há vigílias em Lisboa, Porto e outras cidades.'), descriptionWorld: tr('Homenagem às pessoas trans vítimas de violência. Costuma haver vigílias em várias cidades.') },
 ]
 
 /** Próxima ocorrência (data aproximada ao dia 1 do mês quando o dia varia). */

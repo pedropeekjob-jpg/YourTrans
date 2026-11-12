@@ -11,8 +11,7 @@ import { api, apiEnabled } from '../lib/api'
 import { uid } from '../lib/types'
 import { Appointments, Effects, Reminders } from './Journal'
 import { tr } from '../i18n'
-import { CountryNotice } from '../components/CountryPicker'
-import { CountryHealth, NoCountryInfo, useCountryInfo } from '../components/CountryInfoViews'
+import { CountryHealth, NoCountryInfo, PortugalOnly, useCountryInfo } from '../components/CountryInfoViews'
 import { useCountry } from '../lib/useCountry'
 
 type Tab = 'diretorio' | 'mente' | 'tratamento' | 'percurso' | 'rastreios'
@@ -28,7 +27,6 @@ export function Health() {
     <>
       <TopBar title={tr('Saúde')} />
       <div className="page">
-        {tab === 'diretorio' && <CountryNotice part="providers" />}
         <Seg value={tab} onChange={setTab} options={[
           { id: 'diretorio', label: tr('Profissionais') },
           { id: 'mente', label: tr('Mente') },
@@ -36,7 +34,7 @@ export function Health() {
           { id: 'percurso', label: pt ? tr('Percurso SNS') : tr('Sistema de saúde') },
           { id: 'rastreios', label: tr('Rastreios') },
         ]} />
-        {tab === 'diretorio' && <Directory key={params.get('q') ?? ''} initialKind={(params.get('tipo') as ProviderKind) ?? ''} initialQuery={params.get('q') ?? ''} />}
+        {tab === 'diretorio' && <PortugalOnly what={tr('A lista de profissionais de saúde')}><Directory key={params.get('q') ?? ''} initialKind={(params.get('tipo') as ProviderKind) ?? ''} initialQuery={params.get('q') ?? ''} /></PortugalOnly>}
         {tab === 'mente' && <MentalHealth onDirectory={() => setTab('diretorio', { tipo: 'Psicologia' })} />}
         {tab === 'tratamento' && <Treatment sub={(params.get('sub') as Sub) || 'lembretes'} onSub={x => setTab('tratamento', { sub: x })} />}
         {tab === 'percurso' && (pt ? <Pathway /> : info ? <CountryHealth info={info} /> : <NoCountryInfo what={tr('O percurso no sistema de saúde')}><Pathway /></NoCountryInfo>)}
@@ -200,6 +198,7 @@ function Pathway() {
 }
 
 function Screenings() {
+  const pt = useCountry().code === 'PT'
   const { vault, update } = useVault()
   const toast = useToast()
   const s = vault.settings
@@ -211,7 +210,7 @@ function Screenings() {
     <>
       <section className="card tint-mint">
         <h3>{tr('Rastreios pelo teu corpo, não pelo registo')}</h3>
-        <p className="small">{tr('O sistema de rastreio do SNS usa o sexo que está no registo. Se o mudaste, podes deixar de ser chamade para rastreios de que ainda precisas. Diz-nos o que se aplica a ti e lembramos-te.')}</p>
+        <p className="small">{pt ? tr('O sistema de rastreio do SNS usa o sexo que está no registo. Se o mudaste, podes deixar de ser chamade para rastreios de que ainda precisas. Diz-nos o que se aplica a ti e lembramos-te.') : tr('Em muitos países, os convites para rastreios usam o sexo que está no registo. Se o mudaste, podes deixar de ser chamade para rastreios de que ainda precisas. As idades abaixo são recomendações gerais: confirma o programa do teu país com o/a teu/tua médico/a.')}</p>
       </section>
       <label className="field">{tr('Ano de nascimento')}<input className="input" inputMode="numeric" value={s.birthYear ?? ''} placeholder={tr('Ex.: 1995')}
           onChange={e => { const n = parseInt(e.target.value.replace(/\D/g, '').slice(0, 4)); update(v => ({ ...v, settings: { ...v.settings, birthYear: isNaN(n) ? undefined : n } })) }} />

@@ -11,6 +11,8 @@ import { uid, type Facilities, type Place, type ShowerType } from '../lib/types'
 import { ShareNote } from './Privacy'
 import { tr } from '../i18n'
 import { SafeMap, type MapPlace } from '../components/SafeMap'
+import { PortugalOnly } from '../components/CountryInfoViews'
+import { useCountry } from '../lib/useCountry'
 import { directionsUrl, distance, formatDistance, inPortugal, locateOnce, round4, wazeUrl, type LatLng } from '../lib/geo'
 
 type Tab = 'alerta' | 'locais' | 'reportar'
@@ -25,8 +27,8 @@ export function Safety() {
       <div className="page">
         <Seg value={tab} onChange={setTab} options={[{ id: 'alerta', label: tr('Alerta') }, { id: 'locais', label: tr('Locais seguros') }, { id: 'reportar', label: tr('Reportar') }]} />
         {tab === 'alerta' && <Alert />}
-        {tab === 'locais' && <Places />}
-        {tab === 'reportar' && <Report />}
+        {tab === 'locais' && <PortugalOnly what={tr('Os locais seguros')}><Places /></PortugalOnly>}
+        {tab === 'reportar' && <PortugalOnly what={tr('Os relatos anónimos de discriminação')}><Report /></PortugalOnly>}
       </div>
     </>
   )
@@ -36,6 +38,7 @@ export function Safety() {
 
 function Alert() {
   const { vault } = useVault()
+  const pt = useCountry().code === 'PT'
   return (
     <>
       <SosPanel />
@@ -44,7 +47,7 @@ function Alert() {
         <ul className="small" style={{ margin: 0, paddingLeft: 18, display: 'grid', gap: 4 }}>
           <li>{tr('O botão')}{' '}<b>{tr('SOS')}</b> {tr('está sempre no canto superior direito.')}</li>
           <li>{tr('Partilha a tua localização em tempo real com alguém de confiança quando fores a um encontro.')}</li>
-          <li>{tr('Vítima de crime de ódio? A APAV (116 006) apoia gratuitamente.')}</li>
+          {pt && <li>{tr('Vítima de crime de ódio? A APAV (116 006) apoia gratuitamente.')}</li>}
           {vault.settings.disguise && <li>{tr('Modo privado ativo: o ícone do olho (ou Esc 3 vezes) abre o site do tempo e, se tiveres código, bloqueia a app.')}</li>}
         </ul>
       </section>
