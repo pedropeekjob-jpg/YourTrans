@@ -6,7 +6,7 @@ import { Icon } from '../components/Icon'
 import { Seg, Sheet, fmtDate, useToast } from '../components/ui'
 import { communityAllowed } from '../data/countries'
 import { useCountry } from '../lib/useCountry'
-import { CountryNotice } from '../components/CountryPicker'
+import { CountryNotice, StaleNotice } from '../components/CountryPicker'
 import { annualEvents, nextOccurrence } from '../data/events'
 import { api, apiEnabled } from '../lib/api'
 import { downloadIcs, icsEvent } from '../lib/ics'
@@ -58,6 +58,7 @@ export function Support() {
   return (
     <>
       <CountryNotice part="support" />
+      <StaleNotice />
       <section className="card tint-danger">
         <h3>{tr('Se estiveres em perigo ou a pensar em fazer-te mal')}</h3>
         <p className="small">{tr('Não estás sozinhe. Liga agora, é gratuito ou de baixo custo e confidencial.')}</p>

@@ -7,7 +7,7 @@ import { Check, Progress, Seg, copyText, useToast } from '../components/ui'
 import { checklistPT, type ChecklistItem } from '../data/guides'
 import { countries } from '../data/countries'
 import { useCountry } from '../lib/useCountry'
-import { CountryNotice } from '../components/CountryPicker'
+import { CountryNotice, CountryPicker, StaleNotice } from '../components/CountryPicker'
 import { buildLetter, letterKinds, type LetterFields, type LetterKind } from '../lib/letters'
 import { tr } from '../i18n'
 
@@ -45,7 +45,6 @@ export function Documents() {
 function Steps() {
   const { vault, update } = useVault()
   const pack = useCountry()
-  const country = pack.code
   // Países sem guia próprio mostram o de Portugal, com aviso.
   const guide = pack.guide ?? countries[0].guide!
   const [open, setOpen] = useState<string | null>(guide.steps.find(s => !vault.guideSteps[s.id])?.id ?? null)
@@ -53,15 +52,9 @@ function Steps() {
 
   return (
     <>
-      <div className="chips">
-        {countries.filter(c => c.guide).map(c => (
-          <button key={c.code} className={'chip' + (c.code === country ? ' on' : '')}
-            onClick={() => update(v => ({ ...v, settings: { ...v.settings, country: c.code } }))}>
-            {c.flag} {c.name}
-          </button>
-        ))}
-      </div>
+      <CountryPicker />
       <CountryNotice part="guide" />
+      <StaleNotice />
 
       <section className="card tint-sky">
         <span className="badge accent" style={{ width: 'fit-content' }}>{guide.law}</span>
