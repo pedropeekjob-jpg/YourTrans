@@ -6,9 +6,10 @@ import { Icon } from '../components/Icon'
 import { Check, Progress, Seg, Sheet, fmtDate } from '../components/ui'
 import { chosenSteps, monthsSince, trackGroupLabels, tracks, travelSupport, waitingList, type HealthStep, type Source, type Track, type TrackGroup } from '../data/healthPath'
 import { TrackCommunity } from '../components/TrackCommunity'
+import { HormonePhases } from './HormonePhases'
 import { tr } from '../i18n'
 
-type Tab = 'meu' | 'espera' | 'apoios'
+type Tab = 'meu' | 'fases' | 'espera' | 'apoios'
 
 /** Percurso de saúde pessoal: a pessoa escolhe as partes que quer e marca os passos. */
 export function HealthPath() {
@@ -20,10 +21,12 @@ export function HealthPath() {
       <div className="page">
         <Seg<Tab> value={tab} onChange={t => setParams({ tab: t }, { replace: true })} options={[
           { id: 'meu', label: tr('O meu percurso') },
+          { id: 'fases', label: tr('O que esperar') },
           { id: 'espera', label: tr('Lista de espera') },
           { id: 'apoios', label: tr('Deslocações') },
         ]} />
         {tab === 'meu' && <MyPath />}
+        {tab === 'fases' && <HormonePhases />}
         {tab === 'espera' && <InfoSections sections={waitingList.sections} sources={waitingList.sources} reviewed={waitingList.reviewedAt} />}
         {tab === 'apoios' && <InfoSections sections={travelSupport.sections} sources={travelSupport.sources} reviewed={waitingList.reviewedAt} />}
       </div>
