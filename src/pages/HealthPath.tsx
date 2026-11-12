@@ -9,19 +9,37 @@ import { TrackCommunity } from '../components/TrackCommunity'
 import { HormonePhases } from './HormonePhases'
 import { SurgeryCompare } from './SurgeryCompare'
 import { tr } from '../i18n'
-import { CountryNotice } from '../components/CountryPicker'
+import { CountryHealth, NoCountryInfo, useCountryInfo } from '../components/CountryInfoViews'
+import { useCountry } from '../lib/useCountry'
 
-type Tab = 'meu' | 'comparar' | 'fases' | 'espera' | 'apoios'
+type Tab = 'meu' | 'comparar' | 'fases' | 'espera' | 'apoios' | 'sistema'
 
 /** Percurso de saúde pessoal: a pessoa escolhe as partes que quer e marca os passos. */
 export function HealthPath() {
   const [params, setParams] = useSearchParams()
   const tab = (params.get('tab') as Tab) || 'meu'
+  const pt = useCountry().code === 'PT'
+  const info = useCountryInfo()
+  // Fora de Portugal, as listas de espera, o SNS vs privado e as deslocações dão lugar ao sistema de saúde do país.
+  if (!pt) return (
+    <>
+      <TopBar title={tr('Percurso de saúde')} back />
+      <div className="page">
+        <Seg<Tab> value={tab === 'fases' || tab === 'sistema' ? tab : 'meu'} onChange={t => setParams({ tab: t }, { replace: true })} options={[
+          { id: 'meu', label: tr('O meu percurso') },
+          { id: 'sistema', label: tr('Sistema de saúde') },
+          { id: 'fases', label: tr('O que esperar') },
+        ]} />
+        {(tab === 'meu' || !['fases', 'sistema'].includes(tab)) && <MyPath />}
+        {tab === 'fases' && <HormonePhases />}
+        {tab === 'sistema' && (info ? <CountryHealth info={info} /> : <NoCountryInfo what={tr('O percurso no sistema de saúde')}><InfoSections sections={waitingList.sections} sources={waitingList.sources} reviewed={waitingList.reviewedAt} /></NoCountryInfo>)}
+      </div>
+    </>
+  )
   return (
     <>
       <TopBar title={tr('Percurso de saúde')} back />
       <div className="page">
-        <CountryNotice part="health" />
         <Seg<Tab> value={tab} onChange={t => setParams({ tab: t }, { replace: true })} options={[
           { id: 'meu', label: tr('O meu percurso') },
           { id: 'comparar', label: tr('SNS ou privado') },

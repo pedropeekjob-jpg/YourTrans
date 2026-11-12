@@ -7,18 +7,30 @@ import { Empty, Seg, Sheet, copyText, fmtDate, useToast } from '../components/ui
 import { LEGAL_REVIEWED, buildTemplate, freeLegalHelp, rightTopics, routes, templateLabels, type RightTopic, type TemplateFields, type TemplateId } from '../data/legal'
 import { uid, type Incident } from '../lib/types'
 import { tr } from '../i18n'
-import { CountryNotice } from '../components/CountryPicker'
+import { CountryRights, NoCountryInfo, useCountryInfo } from '../components/CountryInfoViews'
+import { useCountry } from '../lib/useCountry'
 
 type Tab = 'direitos' | 'agir' | 'registo'
 
 export function Rights() {
   const [params, setParams] = useSearchParams()
   const tab = (params.get('tab') as Tab) || 'direitos'
+  const pt = useCountry().code === 'PT'
+  const info = useCountryInfo()
+  // Fora de Portugal: direitos do país e registo privado. Os modelos de queixa são para entidades portuguesas.
+  if (!pt) return (
+    <>
+      <TopBar title={tr('Direitos e lei')} back />
+      <div className="page">
+        <Seg<Tab> value={tab === 'registo' ? 'registo' : 'direitos'} onChange={t => setParams({ tab: t }, { replace: true })} options={[{ id: 'direitos', label: tr('Direitos') }, { id: 'registo', label: tr('Registo') }]} />
+        {tab === 'registo' ? <Incidents /> : info ? <CountryRights info={info} /> : <NoCountryInfo what={tr('A informação sobre direitos e queixas')}><Topics /></NoCountryInfo>}
+      </div>
+    </>
+  )
   return (
     <>
       <TopBar title={tr('Direitos e lei')} back />
       <div className="page">
-        <CountryNotice part="rights" />
         <Seg<Tab> value={tab} onChange={t => setParams({ tab: t }, { replace: true })} options={[{ id: 'direitos', label: tr('Direitos') }, { id: 'agir', label: tr('O que fazer') }, { id: 'registo', label: tr('Registo') }]} />
         {tab === 'direitos' && <Topics />}
         {tab === 'agir' && <Act initialTemplate={params.get('modelo') as TemplateId | null} />}

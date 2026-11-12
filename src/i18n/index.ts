@@ -29,7 +29,9 @@ function detect(): Lang {
   const nav = (typeof navigator !== 'undefined' ? navigator.language : 'pt-PT').toLowerCase()
   if (nav === 'pt-br') return 'br'
   const base = nav.slice(0, 2)
-  return base === 'en' || base === 'es' || base === 'fr' ? base : 'pt'
+  if (base === 'pt') return 'pt'
+  // Línguas que a app ainda não tem ficam em inglês.
+  return base === 'es' || base === 'fr' ? base : 'en'
 }
 
 export const lang: Lang = detect()
@@ -54,7 +56,20 @@ export function tr(s: string, ...args: unknown[]): string {
   return args.length ? out.replace(/\{(\d+)\}/g, (m, i) => (Number(i) < args.length ? String(args[Number(i)]) : m)) : out
 }
 
-export function setLang(l: Lang) {
-  try { localStorage.setItem(KEY, l) } catch { /* sem armazenamento */ }
+const MANUAL = 'lang-manual'
+
+/** Muda a língua. `manual`: a pessoa escolheu-a no seletor, e a escolha do país deixa de a mudar. */
+export function setLang(l: Lang, manual = true) {
+  try {
+    localStorage.setItem(KEY, l)
+    if (manual) localStorage.setItem(MANUAL, '1')
+  } catch { /* sem armazenamento */ }
   location.reload()
+}
+
+/** Ao escolher um país, passa para a língua dele, a não ser que a pessoa já tenha escolhido uma à mão. */
+export function followCountryLang(l: Lang) {
+  let manual = false
+  try { manual = localStorage.getItem(MANUAL) === '1' } catch { /* sem armazenamento */ }
+  if (!manual && l !== lang) setLang(l, false)
 }
