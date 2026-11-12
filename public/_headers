@@ -1,4 +1,4 @@
-# Cabeçalhos de segurança e cache para o Cloudflare Pages (o GitHub Pages ignora este ficheiro).
+# Cabeçalhos de segurança e cache, aplicados pelo Worker da Cloudflare que serve casulo.space.
 /*
   X-Content-Type-Options: nosniff
   Referrer-Policy: no-referrer

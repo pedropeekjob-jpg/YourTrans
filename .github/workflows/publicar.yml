@@ -1,0 +1,59 @@
+name: Publicar em casulo.space
+
+# A cada push para main: corre os testes, compila a app e publica a pasta dist
+# no Worker da Cloudflare que serve casulo.space (configuração em wrangler.jsonc).
+# Precisa de dois segredos do repositório (Settings › Secrets and variables › Actions):
+#   CLOUDFLARE_API_TOKEN  – token com o modelo "Edit Cloudflare Workers"
+#   CLOUDFLARE_ACCOUNT_ID – ID da conta Cloudflare onde está o Worker
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publicar
+  cancel-in-progress: false
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+        env:
+          VITE_API_URL: ${{ vars.VITE_API_URL }}
+      - name: Confirmar que os segredos da Cloudflare existem
+        env:
+          TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CONTA: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          if [ -z "$TOKEN" ] || [ -z "$CONTA" ]; then
+            echo "::error::Faltam os segredos CLOUDFLARE_API_TOKEN e/ou CLOUDFLARE_ACCOUNT_ID em Settings › Secrets and variables › Actions."
+            exit 1
+          fi
+      - name: Publicar no Worker
+        run: npx --yes wrangler@4 deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      - name: Confirmar que casulo.space serve a versão nova
+        run: |
+          ESPERADO=$(grep -o 'assets/index-[^"]*\.js' dist/index.html | head -1)
+          echo "À espera de $ESPERADO"
+          for i in $(seq 1 20); do
+            if curl -fsS -H 'Cache-Control: no-cache' "https://casulo.space/?v=$GITHUB_SHA" | grep -q "$ESPERADO"; then
+              echo "casulo.space já serve a versão ${GITHUB_SHA::7}"; exit 0
+            fi
+            sleep 15
+          done
+          echo "::error::casulo.space não mostra a versão nova depois de 5 minutos"; exit 1

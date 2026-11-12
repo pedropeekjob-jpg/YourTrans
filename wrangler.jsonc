@@ -1,0 +1,13 @@
+// Configuração do Worker que serve https://casulo.space.
+// Publicado automaticamente pelo GitHub Actions (.github/workflows/publicar.yml) a cada push para main.
+// O nome tem de ser igual ao do Worker já criado na Cloudflare, senão nasce um Worker novo sem o domínio.
+// Não há "routes" de propósito: o domínio casulo.space já está ligado ao Worker no painel da Cloudflare
+// e o wrangler deixa-o como está.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "morning-recipe-50dc",
+  "compatibility_date": "2026-11-01",
+  "assets": {
+    "directory": "./dist"
+  }
+}
