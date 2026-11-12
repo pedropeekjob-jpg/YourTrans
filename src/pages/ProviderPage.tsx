@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { TopBar } from '../components/Layout'
 import { Icon } from '../components/Icon'
 import { Empty, useToast } from '../components/ui'
@@ -38,6 +38,12 @@ export function ProviderPage() {
             {p.source === 'pública' && <span className="badge mint">{tr('Informação pública')}</span>}
           </div>
           <h1 style={{ fontSize: '1.4rem' }}>{p.name}</h1>
+          {p.worksAt?.length ? (
+            <div className="stack" style={{ gap: 4 }}>
+              <b className="small">{p.kind === 'Cirurgia' ? tr('Opera em') : tr('Dá consultas em')}</b>
+              {p.worksAt.map(w => <Link key={w} className="small" to={`/saude?tab=diretorio&q=${encodeURIComponent(w)}`}>{w}</Link>)}
+            </div>
+          ) : null}
           {p.notes && <p className="muted">{p.notes}</p>}
         </section>
 

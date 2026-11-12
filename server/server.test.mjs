@@ -3,6 +3,7 @@ import assert from 'node:assert/strict'
 
 process.env.DB_PATH = ':memory:'
 process.env.MOD_TOKEN = 'segredo-de-teste'
+process.env.RATE_LIMIT = '1000'
 const { server } = await import('./index.mjs')
 let base
 before(async () => { await new Promise(r => server.listen(0, r)); base = `http://127.0.0.1:${server.address().port}` })
@@ -104,4 +105,46 @@ test('rever a fila publica o que estava à espera e está limpo', async () => {
   assert.equal(r.checked, before)
   assert.equal(r.published, 0) // o que está na fila é suspeito ou é de profissionais
   assert.equal((await post('/api/mod/retriage', {})).status, 401)
+})
+
+test('relatos de custos e esperas só aparecem como intervalo com 3 ou mais', async () => {
+  const y = new Date().getUTCFullYear()
+  const send = (value, extra = {}) => post('/api/experiences', { track: 'mastectomia', kind: 'custo', sector: 'Privado', year: y, value, ...extra })
+  assert.equal((await send(5000)).status, 201)
+  assert.equal((await send(7000)).status, 201)
+  assert.deepEqual(await (await fetch(base + '/api/experiences')).json(), [])
+  const r = await (await send(6000, { comment: 'texto que não é guardado' })).json()
+  assert.equal(r.published, true)
+  const [s] = await (await fetch(base + '/api/experiences')).json()
+  assert.deepEqual(s, { track: 'mastectomia', kind: 'custo', sector: 'Privado', n: 3, min: 5000, max: 7000, median: 6000, fromYear: y, toYear: y })
+  // Inválidos: custo no SNS, ano antigo, parte desconhecida, material sem item.
+  assert.equal((await send(100, { sector: 'SNS' })).status, 400)
+  assert.equal((await send(100, { year: y - 9 })).status, 400)
+  assert.equal((await send(100, { track: 'outra' })).status, 400)
+  assert.equal((await post('/api/experiences', { track: 'mastectomia', kind: 'material', sector: 'Privado', year: y, value: 60 })).status, 400)
+  assert.equal((await post('/api/experiences', { track: 'mastectomia', kind: 'espera', sector: 'SNS', year: y, value: 18 })).status, 201)
+})
+
+test('avaliações de etapas: percentagens com 3 ou mais e comentários moderados', async () => {
+  const a = { respeito: true, informacao: false, tempoRazoavel: false, recomendaria: true }
+  assert.equal((await post('/api/stage-reviews', { track: 'inicio', answers: a, comment: 'A médica de família foi impecável e pediu logo a consulta.' })).status, 201)
+  let [s] = await (await fetch(base + '/api/stage-reviews')).json()
+  assert.equal(s.scores, undefined)
+  assert.equal(s.comments.length, 1)
+  await post('/api/stage-reviews', { track: 'inicio', answers: a })
+  await post('/api/stage-reviews', { track: 'inicio', answers: { ...a, respeito: false } })
+  ;[s] = await (await fetch(base + '/api/stage-reviews')).json()
+  assert.equal(s.n, 3)
+  assert.equal(Math.round(s.scores.respeito * 100), 67)
+  const bad = await (await post('/api/stage-reviews', { track: 'inicio', answers: a, comment: 'liga-me para o 912345678' })).json()
+  assert.equal(bad.published, false)
+})
+
+test('cirurgiões guardam onde operam e a pesquisa encontra-os pelo hospital', async () => {
+  const r = await post('/api/providers', { name: 'Dr.ª Exemplo', kind: 'Cirurgia', district: 'Lisboa', sector: 'Privado', person: true, worksAt: ['Hospital A', ' Clínica B '] })
+  assert.equal(r.status, 201)
+  const [item] = (await queue()).filter(x => x.payload.name === 'Dr.ª Exemplo')
+  assert.deepEqual(item.payload.worksAt, ['Hospital A', 'Clínica B'])
+  assert.equal(item.payload.person, true)
+  assert.equal((await post('/api/providers', { name: 'Dr. X', kind: 'Cirurgia', district: 'Lisboa', sector: 'Privado', worksAt: 'Hospital A' })).status, 400)
 })
