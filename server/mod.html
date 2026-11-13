@@ -22,7 +22,7 @@
   <h1>Fila de moderação</h1>
   <div class="row">
     <input id="token" type="password" placeholder="Token de moderação" autocomplete="off">
-    <select id="status"><option value="pending">À espera (suspeitos)</option><option value="auto">Publicados automaticamente</option><option value="received">Relatos de incidentes</option><option value="approved">Todos os publicados</option></select>
+    <select id="status"><option value="pending">À espera (suspeitos)</option><option value="auto">Publicados automaticamente</option><option value="incidents">Relatos de incidentes</option><option value="wishes">Sugestões: procurei e não encontrei</option><option value="approved">Todos os publicados</option></select>
     <button id="load">Carregar</button>
     <button id="retriage" title="Passa outra vez pelo filtro tudo o que está à espera e publica o que estiver limpo">Rever fila com o filtro</button>
   </div>
@@ -35,7 +35,7 @@
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
   async function load() {
     const v = $('status').value
-    const res = await fetch('/api/mod/queue?' + (v === 'auto' ? 'status=approved&auto=1' : 'status=' + v), { headers: { authorization: 'Bearer ' + $('token').value } })
+    const res = await fetch('/api/mod/queue?' + ({ auto: 'status=approved&auto=1', incidents: 'status=received&type=incident', wishes: 'status=received&type=wish' }[v] ?? 'status=' + v), { headers: { authorization: 'Bearer ' + $('token').value } })
     if (!res.ok) { $('list').innerHTML = '<p>Sem autorização.</p>'; return }
     const rows = await res.json()
     $('list').innerHTML = rows.length ? '' : '<p class="muted">Nada aqui.</p>'
@@ -44,6 +44,8 @@
       el.className = 'card'
       const buttons = r.status === 'approved'
         ? '<button data-a="hide">Voltar à fila</button><button class="no" data-a="reject">Retirar e apagar</button>'
+        : r.status === 'received'
+        ? '<button class="no" data-a="delete">Lido: apagar</button>'
         : '<button class="ok" data-a="approve">Aprovar</button><button class="no" data-a="reject">Rejeitar e apagar</button>'
       el.innerHTML = '<div class="row"><b>' + esc(r.type) + '</b><span class="muted">' + esc(r.month) + (r.auto ? ' · automático' : '') + (r.reports ? ' · ' + r.reports + ' denúncia(s)' : '') + '</span>' +
         r.flags.map(f => '<span class="tag">' + esc(f) + '</span>').join('') + '</div><pre>' + esc(JSON.stringify(r.payload, null, 2)) + '</pre>' +

@@ -37,7 +37,7 @@ export function Journey() {
     { to: '/nome', icon: 'sparkle', title: tr('Ensaiar nome'), sub: tr('Ouve-o e vê-o no dia a dia'), color: 'var(--accent)', bg: 'var(--accent-soft)' },
     { to: '/percurso/saude', icon: 'heart', title: tr('Percurso de saúde'), sub: tr('Consultas, hormonas e cirurgias que escolheres'), color: 'var(--sky)', bg: 'var(--sky-soft)' },
     { to: '/documentos', icon: 'doc', title: tr('Documentos e cartas prontas'), sub: tr('Passo a passo, checklist e pedidos já escritos'), color: 'var(--mint)', bg: 'var(--mint-soft)' },
-    { to: '/partilhar', icon: 'heart', title: tr('Pessoas que me apoiam'), sub: tr('Cartão e plano para família, trabalho ou escola'), color: 'var(--rose)', bg: 'var(--rose-soft)' },
+    { to: '/partilhar', icon: 'heart', title: tr('Cartão para quem me apoia'), sub: tr('Diz a quem te rodeia como te tratar e quem já sabe'), color: 'var(--rose)', bg: 'var(--rose-soft)' },
     { to: '/emprego', icon: 'briefcase', title: tr('Trabalho'), sub: tr('Empresas inclusivas'), color: 'var(--amber)', bg: 'var(--amber-soft)' },
   ]
 
@@ -75,6 +75,7 @@ export function Journey() {
             </Link>
           ))}
         </div>
+        <p className="small muted" style={{ textAlign: 'center' }}>{tr('Não encontraste o que procuravas?')} <Link to="/sugerir">{tr('Diz-nos o que falta')}</Link></p>
       </div>
     </>
   )

@@ -83,7 +83,7 @@ try {
 const FREE_TEXT = {
   story: ['title', 'body', 'nickname', 'warning'], reply: ['body', 'nickname'], review: ['comment'], provider: ['name', 'notes'],
   place: ['name', 'kind', 'notes'], event: ['title', 'place'], employer: ['company', 'comment'], incident: ['description'], mentorship: ['nickname', 'stage'],
-  stageReview: ['comment'], experience: [],
+  stageReview: ['comment'], experience: [], wish: ['text'],
 }
 
 /** Em locais, profissionais e eventos uma morada é normal; num testemunho expõe alguém. */

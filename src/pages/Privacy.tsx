@@ -3,7 +3,7 @@ import { TopBar } from '../components/Layout'
 import { tr } from '../i18n'
 
 /** Política de privacidade. Atualizar a data sempre que o texto mudar. */
-export const PRIVACY_UPDATED = '2026-11-11'
+export const PRIVACY_UPDATED = '2026-11-13'
 export const PRIVACY_CONTACT = 'privacidade@casulo.space'
 /** Responsável pelo tratamento (pessoa singular). */
 export const PRIVACY_CONTROLLER = 'Pedro Oliveira'
@@ -50,6 +50,7 @@ export function Privacy() {
           tr('Relatos de custos e tempos de espera: guardamos só a parte do percurso, o setor, o ano e o valor, sem texto. Mostramos apenas intervalos (mínimo, mediana e máximo) e só quando há 3 ou mais relatos.'),
           tr('Relatos de discriminação: a descrição só é vista pela moderação. Publicamos apenas números agregados, e só quando há 5 ou mais relatos, para ninguém ser identificado.'),
           tr('Pedidos de mentoria: o contacto que deixas só é visto pela moderação, para fazer a ligação, e é apagado ao fim de 6 meses.'),
+          tr('Sugestões “Procurei e não encontrei”: guardamos o texto, a zona da app e o país escolhido. Só a equipa as lê, nunca são publicadas e são apagadas ao fim de 12 meses.'),
           tr('Não escrevas no texto dados que te identifiquem a ti ou a outras pessoas. A moderação retira-os ou rejeita o envio.'),
         ]} />
 
