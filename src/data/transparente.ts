@@ -49,9 +49,9 @@ export const transparenteEntities: TransparenteEntity[] = [
     url: "https://transparente.com.pt/entidade-inclusiva/agora-porto/",
     seal: false,
     level: 2,
-    address: "Rua da Constituição, 2555, Porto",
-    lat: 41.1623,
-    lng: -8.6076
+    address: "Rua da Constituição, 2555, 4250-173 Porto",
+    lat: 41.1646,
+    lng: -8.628
   },
   {
     name: "AMPLOS",
@@ -87,9 +87,9 @@ export const transparenteEntities: TransparenteEntity[] = [
     url: "https://transparente.com.pt/entidade-inclusiva/mussoc/",
     seal: false,
     level: 1,
-    address: "Praça Pasteur, 3, 6.º Esq., 1000-238 Lisboa",
-    lat: 38.7405,
-    lng: -9.1352
+    address: "Rua dos Lagares d'El-Rei, 21C, 1.º Frente, 1700-268 Lisboa",
+    lat: 38.7482,
+    lng: -9.1351
   },
   {
     name: "Nucleo AMPLOS do Baixo-Alentejo",
@@ -105,9 +105,9 @@ export const transparenteEntities: TransparenteEntity[] = [
     url: "https://transparente.com.pt/entidade-inclusiva/opus-diversidades/",
     seal: true,
     level: 2,
-    address: "Rua da Ilha Terceira, 34, 2.º, 1000-173 Lisboa",
-    lat: 38.7335,
-    lng: -9.1392
+    address: "Rua José Estêvão, 2, 2.º Esq., 1150-192 Lisboa",
+    lat: 38.7274,
+    lng: -9.1373
   },
   {
     name: "Rita Andrade, Psicóloga e Educadora Menstrual",

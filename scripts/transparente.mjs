@@ -13,14 +13,14 @@ const OVERRIDES = {
   'Nucleo AMPLOS do Baixo-Alentejo': { district: 'Beja' },
   'Rita Andrade, Psicóloga e Educadora Menstrual': { district: 'Online' },
   'Leandro Treinarte – Personal Trainer': { kind: 'Outro' },
-  // Morada pública (diretório da CIG); coordenadas do OpenStreetMap (Nominatim), ao nível da rua.
-  'Opus Diversidades': { address: 'Rua da Ilha Terceira, 34, 2.º, 1000-173 Lisboa', lat: 38.7335, lng: -9.1392 },
+  // Google Maps (13/11/2026): GASP, o gabinete de apoio da Opus. A morada antiga da CIG (Rua da Ilha Terceira) está desatualizada.
+  'Opus Diversidades': { address: 'Rua José Estêvão, 2, 2.º Esq., 1150-192 Lisboa', lat: 38.7274, lng: -9.1373 },
   // Guias AMPLOS publicados pela CIG (2022): Rua Conde Arnoso 5-B (Junta de Freguesia de Alvalade).
   'AMPLOS': { address: 'Rua Conde de Arnoso, 5-B, 1700-112 Lisboa', lat: 38.7563, lng: -9.1362 },
-  // Lista de associações mutualistas da Segurança Social (2023).
-  'MUSSOC': { address: 'Praça Pasteur, 3, 6.º Esq., 1000-238 Lisboa', lat: 38.7405, lng: -9.1352 },
-  // Anúncios públicos no TED (2026). Coordenadas ao nível da rua (o OSM não tem o n.º 2555).
-  'ÁGORA Porto': { address: 'Rua da Constituição, 2555, Porto', lat: 41.1623, lng: -8.6076 },
+  // Google Maps (13/11/2026): MUSSOC, Centro de Apoio Integrado.
+  'MUSSOC': { address: "Rua dos Lagares d'El-Rei, 21C, 1.º Frente, 1700-268 Lisboa", lat: 38.7482, lng: -9.1351 },
+  // Google Maps (13/11/2026), confirma os anúncios públicos no TED.
+  'ÁGORA Porto': { address: 'Rua da Constituição, 2555, 4250-173 Porto', lat: 41.1646, lng: -8.6280 },
 }
 const decode = s => s.replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(Number(n))).replace(/&amp;/g, '&').replace(/&#8211;|&ndash;/g, '–').trim()
 
