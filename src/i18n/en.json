@@ -2214,5 +2214,5 @@
 "Também atende à distância.": "Also works remotely.",
 "Rede EQI · nível {0}": "EQI network · level {0}",
 "Rede EQI": "EQI network",
-"Inclui {0} Entidades Queer Inclusivas da rede EQI da TransParente, mostradas com autorização (veem-se na Lista; a TransParente não publica moradas).": "Includes {0} Queer Inclusive Entities from the TransParente EQI network, shown with permission (see the List; TransParente does not publish addresses)."
+"Inclui {0} Entidades Queer Inclusivas da rede EQI da TransParente, mostradas com autorização (as que não têm morada pública só aparecem na Lista).": "Includes {0} Queer Inclusive Entities from the TransParente EQI network, shown with permission (those without a public address only appear in the List)."
 }

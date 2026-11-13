@@ -157,7 +157,7 @@ export function Places() {
     })),
     // Entidades certificadas pela TransParente (com autorização), sem repetir as que já estão registadas no Casulo.
     ...transparenteEntities.filter(t => !entities.some(e => e.name.trim().toLowerCase() === t.name.trim().toLowerCase())).map((t, i) => ({
-      id: 'tp-' + i, name: t.name, kind: t.kind, district: t.district, notes: t.remote ? tr('Também atende à distância.') : undefined, facilities: t.facilities ?? {},
+      id: 'tp-' + i, name: t.name, kind: t.kind, district: t.district, notes: [t.address, t.remote ? tr('Também atende à distância.') : ''].filter(Boolean).join(' · ') || undefined, facilities: t.facilities ?? {},
       lat: t.lat, lng: t.lng, url: t.url, source: 'transparente' as const, transparente: t.seal, eqiLevel: t.level,
     })),
   ], [vault.places, remote, entities])
@@ -187,7 +187,7 @@ export function Places() {
         <h3>{tr('Locais trans safe')}</h3>
         <p className="small">{tr('Sítios onde a comunidade se sentiu bem-vinda, com informação sobre casas de banho e balneários: cabines individuais, duches individuais ou comuns e vestiários neutros.')}</p>
         <Link to="/selo" className="small">{tr('🏅 Os marcadores dourados têm o Selo Casulo. Saber mais ou registar uma entidade')}</Link>
-        {transparenteEntities.length > 0 && <span className="xs muted">{tr('Inclui {0} Entidades Queer Inclusivas da rede EQI da TransParente, mostradas com autorização (veem-se na Lista; a TransParente não publica moradas).', transparenteEntities.length)}{' '}{tr('Fonte:')}{' '}<a href={TRANSPARENTE_EQI_URL} target="_blank" rel="noopener noreferrer">transparente.com.pt</a></span>}
+        {transparenteEntities.length > 0 && <span className="xs muted">{tr('Inclui {0} Entidades Queer Inclusivas da rede EQI da TransParente, mostradas com autorização (as que não têm morada pública só aparecem na Lista).', transparenteEntities.length)}{' '}{tr('Fonte:')}{' '}<a href={TRANSPARENTE_EQI_URL} target="_blank" rel="noopener noreferrer">transparente.com.pt</a></span>}
       </section>
       <div className="chips">
         <button className={'chip' + (sealOnly ? ' on' : '')} onClick={() => setSealOnly(!sealOnly)}>{tr('🏅 Com selo')}</button>

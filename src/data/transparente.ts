@@ -10,6 +10,7 @@ export interface TransparenteEntity {
   /** Um dos tipos do mapa (src/data/seal.ts, entityKinds). */
   kind: string
   district: string
+  address?: string
   /** Também atende à distância. */
   remote?: boolean
   /** Página da entidade na TransParente. */
@@ -94,7 +95,10 @@ export const transparenteEntities: TransparenteEntity[] = [
     district: "Lisboa",
     url: "https://transparente.com.pt/entidade-inclusiva/opus-diversidades/",
     seal: true,
-    level: 2
+    level: 2,
+    address: "Rua da Ilha Terceira, 34, 2.º, 1000-173 Lisboa",
+    lat: 38.7335,
+    lng: -9.1392
   },
   {
     name: "Rita Andrade, Psicóloga e Educadora Menstrual",

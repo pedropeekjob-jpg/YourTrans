@@ -13,6 +13,8 @@ const OVERRIDES = {
   'Nucleo AMPLOS do Baixo-Alentejo': { district: 'Beja' },
   'Rita Andrade, Psicóloga e Educadora Menstrual': { district: 'Online' },
   'Leandro Treinarte – Personal Trainer': { kind: 'Outro' },
+  // Morada pública (diretório da CIG); coordenadas do OpenStreetMap (Nominatim), ao nível da rua.
+  'Opus Diversidades': { address: 'Rua da Ilha Terceira, 34, 2.º, 1000-173 Lisboa', lat: 38.7335, lng: -9.1392 },
 }
 const decode = s => s.replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(Number(n))).replace(/&amp;/g, '&').replace(/&#8211;|&ndash;/g, '–').trim()
 
@@ -45,6 +47,7 @@ export interface TransparenteEntity {
   /** Um dos tipos do mapa (src/data/seal.ts, entityKinds). */
   kind: string
   district: string
+  address?: string
   /** Também atende à distância. */
   remote?: boolean
   /** Página da entidade na TransParente. */
