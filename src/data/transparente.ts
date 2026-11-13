@@ -48,14 +48,20 @@ export const transparenteEntities: TransparenteEntity[] = [
     district: "Porto",
     url: "https://transparente.com.pt/entidade-inclusiva/agora-porto/",
     seal: false,
-    level: 2
+    level: 2,
+    address: "Rua da Constituição, 2555, 4250-173 Porto",
+    lat: 41.1646,
+    lng: -8.628
   },
   {
     name: "AMPLOS",
     kind: "Associação",
     district: "Lisboa",
     url: "https://transparente.com.pt/entidade-inclusiva/amplos/",
-    seal: false
+    seal: false,
+    address: "Rua Conde de Arnoso, 5-B, 1700-112 Lisboa",
+    lat: 38.7563,
+    lng: -9.1362
   },
   {
     name: "Leandro Treinarte – Personal Trainer",
@@ -80,7 +86,10 @@ export const transparenteEntities: TransparenteEntity[] = [
     district: "Lisboa",
     url: "https://transparente.com.pt/entidade-inclusiva/mussoc/",
     seal: false,
-    level: 1
+    level: 1,
+    address: "Rua dos Lagares d'El-Rei, 21C, 1.º Frente, 1700-268 Lisboa",
+    lat: 38.7482,
+    lng: -9.1351
   },
   {
     name: "Nucleo AMPLOS do Baixo-Alentejo",
@@ -96,9 +105,9 @@ export const transparenteEntities: TransparenteEntity[] = [
     url: "https://transparente.com.pt/entidade-inclusiva/opus-diversidades/",
     seal: true,
     level: 2,
-    address: "Rua da Ilha Terceira, 34, 2.º, 1000-173 Lisboa",
-    lat: 38.7335,
-    lng: -9.1392
+    address: "Rua José Estêvão, 2, 2.º Esq., 1150-192 Lisboa",
+    lat: 38.7274,
+    lng: -9.1373
   },
   {
     name: "Rita Andrade, Psicóloga e Educadora Menstrual",
