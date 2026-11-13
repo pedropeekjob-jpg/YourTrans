@@ -13,8 +13,8 @@ const OVERRIDES = {
   'Nucleo AMPLOS do Baixo-Alentejo': { district: 'Beja' },
   'Rita Andrade, Psicóloga e Educadora Menstrual': { district: 'Online' },
   'Leandro Treinarte – Personal Trainer': { kind: 'Outro' },
-  // Google Maps (13/11/2026): GASP, o gabinete de apoio da Opus. A morada antiga da CIG (Rua da Ilha Terceira) está desatualizada.
-  'Opus Diversidades': { address: 'Rua José Estêvão, 2, 2.º Esq., 1150-192 Lisboa', lat: 38.7274, lng: -9.1373 },
+  // Confirmada pela Opus por e-mail (13/11/2026): o espaço de atendimento, não a sede social.
+  'Opus Diversidades': { address: 'Rua José Estêvão, 2, 2.º Esq., 1150-202 Lisboa', lat: 38.7274, lng: -9.1373 },
   // Guias AMPLOS publicados pela CIG (2022): Rua Conde Arnoso 5-B (Junta de Freguesia de Alvalade).
   'AMPLOS': { address: 'Rua Conde de Arnoso, 5-B, 1700-112 Lisboa', lat: 38.7563, lng: -9.1362 },
   // Google Maps (13/11/2026): MUSSOC, Centro de Apoio Integrado.

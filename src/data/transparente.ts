@@ -105,7 +105,7 @@ export const transparenteEntities: TransparenteEntity[] = [
     url: "https://transparente.com.pt/entidade-inclusiva/opus-diversidades/",
     seal: true,
     level: 2,
-    address: "Rua José Estêvão, 2, 2.º Esq., 1150-192 Lisboa",
+    address: "Rua José Estêvão, 2, 2.º Esq., 1150-202 Lisboa",
     lat: 38.7274,
     lng: -9.1373
   },
