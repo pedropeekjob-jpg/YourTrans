@@ -2214,5 +2214,8 @@
 "Também atende à distância.": "Also works remotely.",
 "Rede EQI · nível {0}": "EQI network · level {0}",
 "Rede EQI": "EQI network",
-"Inclui {0} Entidades Queer Inclusivas da rede EQI da TransParente, mostradas com autorização (as que não têm morada pública só aparecem na Lista).": "Includes {0} Queer Inclusive Entities from the TransParente EQI network, shown with permission (those without a public address only appear in the List)."
+"Inclui {0} Entidades Queer Inclusivas da rede EQI da TransParente, mostradas com autorização (as que não têm morada pública só aparecem na Lista).": "Includes {0} Queer Inclusive Entities from the TransParente EQI network, shown with permission (those without a public address only appear in the List).",
+"Rede EQI da TransParente": "TransParente EQI network",
+"Entidades Queer Inclusivas avaliadas pela TransParente, mostradas com autorização. Ainda não têm avaliações no Casulo.": "Queer Inclusive Entities assessed by TransParente, shown with permission. They have no Casulo reviews yet.",
+"Mais {0} locais sem morada no mapa: ver na Lista": "{0} more places without an address on the map: see the List"
 }
