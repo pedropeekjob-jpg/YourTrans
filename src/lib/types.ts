@@ -85,7 +85,9 @@ export interface Place {
   district: string
   notes?: string
   facilities: Facilities
-  source?: 'meu' | 'comunidade' | 'entidade'
+  source?: 'meu' | 'comunidade' | 'entidade' | 'transparente'
+  /** Ligação externa (página da entidade na TransParente). */
+  url?: string
   /** Só em entidades registadas para o Selo Casulo. */
   entityId?: string
   seal?: 'selo' | 'em-avaliacao' | 'sem-selo'

@@ -349,6 +349,7 @@ textarea.input { min-height: 110px; resize: vertical; }
 .map-pin.community { --pin: var(--sky); }
 .map-pin.mine { --pin: var(--rose); }
 .map-pin.seal { --pin: #e3a72f; }
+.map-pin.tp { --pin: #9b6bd6; }
 .map-pin.seal span::after { background: #fff3cf; }
 .map-pin.on span { box-shadow: 0 0 0 3px var(--text), 0 0 22px var(--pin); }
 .map-pin.on { z-index: 2; }
