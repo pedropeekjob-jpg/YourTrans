@@ -48,14 +48,20 @@ export const transparenteEntities: TransparenteEntity[] = [
     district: "Porto",
     url: "https://transparente.com.pt/entidade-inclusiva/agora-porto/",
     seal: false,
-    level: 2
+    level: 2,
+    address: "Rua da Constituição, 2555, Porto",
+    lat: 41.1623,
+    lng: -8.6076
   },
   {
     name: "AMPLOS",
     kind: "Associação",
     district: "Lisboa",
     url: "https://transparente.com.pt/entidade-inclusiva/amplos/",
-    seal: false
+    seal: false,
+    address: "Rua Conde de Arnoso, 5-B, 1700-112 Lisboa",
+    lat: 38.7563,
+    lng: -9.1362
   },
   {
     name: "Leandro Treinarte – Personal Trainer",
@@ -80,7 +86,10 @@ export const transparenteEntities: TransparenteEntity[] = [
     district: "Lisboa",
     url: "https://transparente.com.pt/entidade-inclusiva/mussoc/",
     seal: false,
-    level: 1
+    level: 1,
+    address: "Praça Pasteur, 3, 6.º Esq., 1000-238 Lisboa",
+    lat: 38.7405,
+    lng: -9.1352
   },
   {
     name: "Nucleo AMPLOS do Baixo-Alentejo",

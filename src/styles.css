@@ -119,6 +119,8 @@ p { margin: 0; }
 .card.tint-rose { background: var(--rose-soft); box-shadow: none; }
 .card.tint-mint { background: var(--mint-soft); box-shadow: none; }
 .card.tint-amber { background: var(--amber-soft); box-shadow: none; }
+.card.sealed { background: linear-gradient(var(--amber-soft), var(--amber-soft)), var(--surface); box-shadow: inset 0 0 0 2px var(--amber), var(--shadow); }
+.sealed-tag { justify-self: start; font-size: .75rem; font-weight: 700; letter-spacing: .02em; padding: 3px 10px; border-radius: 999px; background: var(--amber); color: #3a2600; }
 .card.tint-danger { background: var(--danger-soft); box-shadow: none; }
 .muted { color: var(--muted); }
 .small { font-size: .875rem; }

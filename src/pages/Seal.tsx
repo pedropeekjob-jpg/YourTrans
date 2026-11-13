@@ -83,7 +83,7 @@ function Entities() {
   const list = entities.filter(e => (!only || e.seal === 'selo') && (!district || e.district === district))
     .sort((a, b) => Number(b.seal === 'selo') - Number(a.seal === 'selo') || b.reviewCount - a.reviewCount)
   // Rede EQI da TransParente (com autorização), sem repetir as já registadas no Casulo.
-  const eqi = transparenteEntities.filter(t => (!only || t.seal) && (!district || t.district === district) &&
+  const eqi = [...transparenteEntities].sort((a, b) => Number(!!b.seal) - Number(!!a.seal)).filter(t => (!only || t.seal) && (!district || t.district === district) &&
     !entities.some(e => e.name.trim().toLowerCase() === t.name.trim().toLowerCase()))
   return (
     <>
@@ -97,7 +97,7 @@ function Entities() {
       ) : list.length === 0 ? null : (
         <div className="stack">
           {list.map(e => (
-            <Link key={e.id} to={`/selo/${e.id}`} className="card" style={{ textDecoration: 'none', color: 'inherit' }}>
+            <Link key={e.id} to={`/selo/${e.id}`} className={e.seal === 'selo' ? 'card sealed' : 'card'} style={{ textDecoration: 'none', color: 'inherit' }}>
               <div className="row between" style={{ alignItems: 'flex-start' }}>
                 <div className="stack" style={{ gap: 2 }}>
                   <h3>{e.name}</h3>
@@ -116,7 +116,8 @@ function Entities() {
           <p className="xs muted" style={{ margin: 0 }}>{tr('Entidades Queer Inclusivas avaliadas pela TransParente, mostradas com autorização. Ainda não têm avaliações no Casulo.')}{' '}{tr('Fonte:')}{' '}<a href={TRANSPARENTE_EQI_URL} target="_blank" rel="noopener noreferrer">transparente.com.pt</a></p>
           <div className="stack">
             {eqi.map(t => (
-              <a key={t.url} href={t.url} target="_blank" rel="noopener noreferrer" className="card" style={{ textDecoration: 'none', color: 'inherit' }}>
+              <a key={t.url} href={t.url} target="_blank" rel="noopener noreferrer" className={t.seal ? 'card sealed' : 'card'} style={{ textDecoration: 'none', color: 'inherit' }}>
+                {t.seal && <span className="sealed-tag">{tr('🏅 Com selo')}</span>}
                 <div className="row between" style={{ alignItems: 'flex-start' }}>
                   <div className="stack" style={{ gap: 2 }}>
                     <h3>{t.name}</h3>
@@ -128,6 +129,7 @@ function Entities() {
                   {t.seal && <TransparenteBadge link={false} />}
                   <span className="badge accent">{t.level ? tr('Rede EQI · nível {0}', t.level) : tr('Rede EQI')}</span>
                 </div>
+                <span className="xs muted">{tr('Fonte:')} TransParente · <span style={{ color: 'var(--accent)', fontWeight: 600 }}>{tr('Ver na TransParente')} ↗</span></span>
               </a>
             ))}
           </div>

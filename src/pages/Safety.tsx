@@ -83,10 +83,14 @@ export function FacilityBadges({ f }: { f: Facilities }) {
   )
 }
 
+const isSealed = (p: Place) => p.seal === 'selo' || !!p.transparente
+
 function PlaceCard({ p, me, onRemove, onShow }: { p: Place; me: LatLng | null; onRemove: (id: string) => void; onShow?: () => void }) {
   const pos = typeof p.lat === 'number' && typeof p.lng === 'number' ? { lat: p.lat, lng: p.lng } : null
+  const sealed = isSealed(p)
   return (
-    <article className="card">
+    <article className={sealed ? 'card sealed' : 'card'}>
+      {sealed && <span className="sealed-tag">{tr('🏅 Com selo')}</span>}
       <div className="row between" style={{ alignItems: 'flex-start' }}>
         <div className="stack" style={{ gap: 2 }}>
           <h3>{p.name}</h3>
@@ -161,10 +165,10 @@ export function Places() {
       lat: t.lat, lng: t.lng, url: t.url, source: 'transparente' as const, transparente: t.seal, eqiLevel: t.level,
     })),
   ], [vault.places, remote, entities])
-  const filtered = all.filter(p => (!sealOnly || p.seal === 'selo' || p.transparente) && (!kind || p.kind === kind) && (!district || p.district === district) && filters.every(f => matches(p.facilities ?? {}, f)))
+  const filtered = all.filter(p => (!sealOnly || isSealed(p)) && (!kind || p.kind === kind) && (!district || p.district === district) && filters.every(f => matches(p.facilities ?? {}, f)))
   const hasPos = (p: Place): p is MapPlace => typeof p.lat === 'number' && typeof p.lng === 'number'
   const dist = (p: Place) => (me && hasPos(p) ? distance(me, p) : Infinity)
-  const list = me ? [...filtered].sort((a, b) => dist(a) - dist(b)) : filtered
+  const list = [...filtered].sort((a, b) => Number(isSealed(b)) - Number(isSealed(a)) || (me ? dist(a) - dist(b) : 0))
   const onMap = useMemo(() => filtered.filter(hasPos), [filtered])
   const sel = list.find(p => p.id === selected)
 
