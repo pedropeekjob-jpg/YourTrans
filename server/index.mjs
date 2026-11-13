@@ -64,6 +64,16 @@ const MATERIAL = ['colete', 'dilatadores', 'almofada', 'pensos', 'outro']
 /** Relatos de custos e esperas: mínimo para mostrar um intervalo (decisão do Pedro, 11/11/2026). */
 const K_EXPERIENCE = 3
 const STAGE_QUESTIONS = ['respeito', 'informacao', 'tempoRazoavel', 'recomendaria']
+/** Selo Casulo: compromissos que uma entidade aceita ao registar-se (iguais a src/data/seal.ts). */
+export const SEAL_COMMITMENTS = ['nome', 'wc', 'formacao', 'regras', 'contacto', 'formularios']
+export const SEAL_QUESTIONS = ['nomeCerto', 'seguro', 'wc', 'recomendaria']
+export const ENTITY_KINDS = ['Café/Restaurante', 'Bar/Discoteca', 'Ginásio', 'Piscina', 'Loja', 'Serviço público', 'Associação', 'Alojamento', 'Empresa', 'Saúde', 'Ensino', 'Cultura', 'Outro']
+/** O selo exige pelo menos 3 avaliações dos últimos 24 meses, com 80% ou mais em cada pergunta. */
+export const SEAL_MIN_REVIEWS = 3
+export const SEAL_THRESHOLD = 0.8
+const SEAL_MONTHS = 24
+const email = v => typeof v === 'string' && v.length <= 120 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim())
+const httpsUrl = v => v === undefined || v === null || v === '' || (typeof v === 'string' && v.length <= 300 && /^https:\/\/[^\s]+$/.test(v))
 /** Zonas da app para as sugestões (iguais a src/pages/Suggest.tsx). */
 export const WISH_AREAS = ['percurso', 'documentos', 'saude', 'direitos', 'comunidade', 'seguranca', 'trabalho', 'outro']
 const int = (v, min, max) => Number.isInteger(v) && v >= min && v <= max
@@ -90,6 +100,12 @@ const validators = {
   wish: b => ['procurei', 'gostava'].includes(b.kind) && str(b.text, 5, 1000) && (b.area === undefined || WISH_AREAS.includes(b.area)) &&
     (b.country === undefined || (typeof b.country === 'string' && /^[A-Z]{2}$/.test(b.country))),
   employer: b => str(b.company, 2, 120) && b.answers && typeof b.answers === 'object' && Object.keys(b.answers).length <= 12 && opt(b.comment, 600),
+  // Registo para o selo: a entidade aceita todos os compromissos e deixa um e-mail (só para a moderação).
+  entity: b => str(b.name, 2, 160) && ENTITY_KINDS.includes(b.kind) && str(b.district, 2, 40) && opt(b.address, 200) && httpsUrl(b.url) && opt(b.notes, 600) &&
+    email(b.contact) && b.commitments && SEAL_COMMITMENTS.every(k => b.commitments[k] === true) && (b.transparente === undefined || bool(b.transparente)) &&
+    (b.facilities === undefined || (typeof b.facilities === 'object' && (b.facilities.duches === undefined || SHOWERS.includes(b.facilities.duches)))) && coord(b.lat, b.lng),
+  // Avaliação de quem lá foi: "wc" pode ser null (não se aplica).
+  sealReview: b => str(b.entityId, 1, 40) && b.answers && SEAL_QUESTIONS.every(k => bool(b.answers[k]) || (k === 'wc' && b.answers[k] === null)) && opt(b.comment, 600),
 }
 
 /** Campos guardados por tipo: tudo o resto é descartado. */
@@ -109,6 +125,12 @@ const pick = {
   stageReview: b => ({ track: b.track, answers: Object.fromEntries(STAGE_QUESTIONS.map(k => [k, b.answers[k]])), comment: b.comment?.trim() || undefined }),
   wish: b => ({ kind: b.kind, text: b.text.trim(), area: b.area, country: b.country }),
   employer: b => ({ company: b.company.trim(), answers: Object.fromEntries(Object.entries(b.answers).map(([k, v]) => [k, !!v])), comment: b.comment?.trim() || undefined }),
+  entity: b => ({ name: b.name.trim(), kind: b.kind, district: b.district, address: b.address?.trim() || undefined, url: b.url?.trim() || undefined,
+    notes: b.notes?.trim() || undefined, contact: b.contact.trim(), transparente: b.transparente || undefined,
+    commitments: Object.fromEntries(SEAL_COMMITMENTS.map(k => [k, true])),
+    facilities: b.facilities ? { wcNeutro: !!b.facilities.wcNeutro, vestiarioNeutro: !!b.facilities.vestiarioNeutro, cabinesIndividuais: !!b.facilities.cabinesIndividuais, duches: b.facilities.duches } : {},
+    lat: r4(b.lat), lng: r4(b.lng) }),
+  sealReview: b => ({ entityId: b.entityId, answers: Object.fromEntries(SEAL_QUESTIONS.map(k => [k, b.answers[k]])), comment: b.comment?.trim() || undefined }),
 }
 
 /* ---------- pré-moderação automática ---------- */
@@ -198,6 +220,36 @@ function employers() {
     by.set(k, cur)
   }
   return [...by.values()].filter(e => e.reviews >= 3).map(e => ({ company: e.company, score: e.total / e.reviews, reviews: e.reviews })).sort((a, b) => b.score - a.score)
+}
+
+/**
+ * Entidades registadas para o selo, com o estado calculado a partir das avaliações:
+ * "selo" (3+ avaliações recentes e 80%+ em cada pergunta), "em-avaliacao" (ainda poucas)
+ * ou "sem-selo" (avaliações abaixo do mínimo: o selo cai sozinho se a experiência piorar).
+ * O e-mail de contacto nunca sai do servidor.
+ */
+export function entities() {
+  const since = new Date(); since.setUTCMonth(since.getUTCMonth() - SEAL_MONTHS)
+  const from = since.toISOString().slice(0, 7)
+  const reviews = db.prepare("SELECT id, payload, month FROM submissions WHERE type = 'sealReview' AND status = 'approved' ORDER BY rowid DESC").all()
+    .map(r => ({ id: r.id, month: r.month, ...JSON.parse(r.payload) }))
+  return db.prepare("SELECT id, payload, month FROM submissions WHERE type = 'entity' AND status = 'approved' ORDER BY rowid DESC").all().map(r => {
+    const { contact, commitments, ...e } = JSON.parse(r.payload)
+    const all = reviews.filter(x => x.entityId === r.id)
+    const rs = all.filter(x => x.month >= from)
+    const scores = {}
+    for (const k of SEAL_QUESTIONS) {
+      const answered = rs.filter(x => typeof x.answers[k] === 'boolean')
+      if (answered.length) scores[k] = answered.filter(x => x.answers[k]).length / answered.length
+    }
+    const enough = rs.length >= SEAL_MIN_REVIEWS
+    const seal = !enough ? 'em-avaliacao' : Object.values(scores).every(v => v >= SEAL_THRESHOLD) ? 'selo' : 'sem-selo'
+    return {
+      id: r.id, since: r.month, ...e, commitments: Object.keys(commitments ?? {}), seal, reviewCount: rs.length,
+      scores: enough ? scores : undefined,
+      comments: all.filter(x => x.comment).slice(0, 20).map(x => ({ id: x.id, month: x.month, comment: x.comment })),
+    }
+  })
 }
 
 /** Intervalos por parte do percurso, só com K_EXPERIENCE ou mais relatos (nunca valores individuais). */
@@ -296,7 +348,7 @@ function isMod(req) {
   return timingSafeEqual(Buffer.from(token), Buffer.from(MOD_TOKEN))
 }
 
-const postRoutes = { '/api/stories': 'story', '/api/replies': 'reply', '/api/providers': 'provider', '/api/reviews': 'review', '/api/places': 'place', '/api/events': 'event', '/api/incidents': 'incident', '/api/mentorship': 'mentorship', '/api/employers': 'employer', '/api/experiences': 'experience', '/api/stage-reviews': 'stageReview', '/api/wishes': 'wish' }
+const postRoutes = { '/api/stories': 'story', '/api/replies': 'reply', '/api/providers': 'provider', '/api/reviews': 'review', '/api/places': 'place', '/api/events': 'event', '/api/incidents': 'incident', '/api/mentorship': 'mentorship', '/api/employers': 'employer', '/api/experiences': 'experience', '/api/stage-reviews': 'stageReview', '/api/entities': 'entity', '/api/seal-reviews': 'sealReview', '/api/wishes': 'wish' }
 
 export const server = createServer(async (req, res) => {
   const url = new URL(req.url ?? '/', 'http://x')
@@ -313,6 +365,7 @@ export const server = createServer(async (req, res) => {
       if (path === '/api/stories') return send(res, 200, stories())
       if (path === '/api/experiences') return send(res, 200, experienceStats())
       if (path === '/api/stage-reviews') return send(res, 200, stageReviews())
+      if (path === '/api/entities') return send(res, 200, entities())
       if (path === '/api/incidents/stats') return send(res, 200, incidentStats())
       if (path === '/mod') {
         res.writeHead(200, { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store', 'x-frame-options': 'DENY' })
@@ -340,6 +393,9 @@ export const server = createServer(async (req, res) => {
         const payload = pick[type](body)
         if (type === 'review' && !db.prepare("SELECT 1 FROM submissions WHERE id = ? AND type = 'provider' AND status = 'approved'").get(payload.providerId) && !payload.providerId.startsWith('pub-')) {
           return send(res, 404, { error: 'Profissional não encontrado' })
+        }
+        if (type === 'sealReview' && !db.prepare("SELECT 1 FROM submissions WHERE id = ? AND type = 'entity' AND status = 'approved'").get(payload.entityId)) {
+          return send(res, 404, { error: 'Entidade não encontrada' })
         }
         if (type === 'reply' && !isApprovedStory(payload.storyId)) return send(res, 404, { error: 'Testemunho não encontrado' })
         const { flags, fp } = flagsFor(type, payload)

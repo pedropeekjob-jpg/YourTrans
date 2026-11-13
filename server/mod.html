@@ -49,6 +49,8 @@
         : '<button class="ok" data-a="approve">Aprovar</button><button class="no" data-a="reject">Rejeitar e apagar</button>'
       el.innerHTML = '<div class="row"><b>' + esc(r.type) + '</b><span class="muted">' + esc(r.month) + (r.auto ? ' · automático' : '') + (r.reports ? ' · ' + r.reports + ' denúncia(s)' : '') + '</span>' +
         r.flags.map(f => '<span class="tag">' + esc(f) + '</span>').join('') + '</div><pre>' + esc(JSON.stringify(r.payload, null, 2)) + '</pre>' +
+        (r.type === 'entity' ? '<p class="muted">Pedido de selo: confirma que a entidade existe (site ou telefone) e responde ao e-mail de contacto antes de aprovar.' +
+          (r.payload.transparente ? ' Declara ter o selo TransParente: confirma na <a href="https://transparente.com.pt/eqi/" target="_blank" rel="noopener noreferrer">lista de Entidades Queer Inclusivas</a>; se não estiver lá, rejeita ou pede que volte a registar sem essa opção.' : '') + '</p>' : '') +
         '<div class="row">' + buttons + '</div>'
       el.querySelectorAll('button').forEach(b => b.onclick = async () => {
         await fetch('/api/mod/' + r.id, { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer ' + $('token').value }, body: JSON.stringify({ action: b.dataset.a }) })

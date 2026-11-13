@@ -149,6 +149,36 @@ test('cirurgiões guardam onde operam e a pesquisa encontra-os pelo hospital', a
   assert.equal((await post('/api/providers', { name: 'Dr. X', kind: 'Cirurgia', district: 'Lisboa', sector: 'Privado', worksAt: 'Hospital A' })).status, 400)
 })
 
+test('selo: registo sempre moderado, e-mail nunca público, selo com 3 avaliações boas', async () => {
+  const all = { nome: true, wc: true, formacao: true, regras: true, contacto: true, formularios: true }
+  const e = { name: 'Ginásio Arco-Íris', kind: 'Ginásio', district: 'Porto', contact: 'geral@exemplo.pt', commitments: all, transparente: true, lat: 41.15, lng: -8.61, facilities: { wcNeutro: true } }
+  assert.equal((await post('/api/entities', { ...e, commitments: { ...all, formacao: false } })).status, 400)
+  assert.equal((await post('/api/entities', { ...e, contact: 'sem-email' })).status, 400)
+  assert.equal((await post('/api/entities', { ...e, url: 'http://inseguro.pt' })).status, 400)
+  const r = await (await post('/api/entities', e)).json()
+  assert.equal(r.published, false)
+  assert.deepEqual(await (await fetch(base + '/api/entities')).json(), [])
+  const [item] = (await queue()).filter(x => x.type === 'entity')
+  assert.equal(item.payload.contact, 'geral@exemplo.pt')
+  assert.equal((await post('/api/seal-reviews', { entityId: item.id, answers: { nomeCerto: true, seguro: true, wc: null, recomendaria: true } })).status, 404)
+  await post('/api/mod/' + item.id, { action: 'approve' }, 'segredo-de-teste')
+
+  let [ent] = await (await fetch(base + '/api/entities')).json()
+  assert.equal(ent.contact, undefined)
+  assert.equal(ent.seal, 'em-avaliacao')
+  assert.equal(ent.transparente, true)
+  const good = { nomeCerto: true, seguro: true, wc: null, recomendaria: true }
+  for (let i = 0; i < 3; i++) assert.equal((await post('/api/seal-reviews', { entityId: ent.id, answers: good })).status, 201)
+  ;[ent] = await (await fetch(base + '/api/entities')).json()
+  assert.equal(ent.seal, 'selo')
+  assert.equal(ent.scores.wc, undefined)
+  await post('/api/seal-reviews', { entityId: ent.id, answers: { ...good, seguro: false }, comment: 'Na receção trataram-me pelo nome morto.' })
+  ;[ent] = await (await fetch(base + '/api/entities')).json()
+  assert.equal(ent.seal, 'sem-selo')
+  assert.equal(ent.comments.length, 1)
+  assert.equal((await post('/api/seal-reviews', { entityId: ent.id, answers: { ...good, seguro: null } })).status, 400)
+})
+
 test('sugestões "procurei e não encontrei" só a equipa as vê', async () => {
   assert.equal((await post('/api/wishes', { kind: 'procurei', text: 'x' })).status, 400)
   assert.equal((await post('/api/wishes', { kind: 'gostava', text: 'Lista de cabeleireiros seguros', area: 'inventada' })).status, 400)

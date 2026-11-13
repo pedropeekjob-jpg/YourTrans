@@ -13,6 +13,10 @@ import { tr } from '../i18n'
 import { SafeMap, type MapPlace } from '../components/SafeMap'
 import { PortugalOnly } from '../components/CountryInfoViews'
 import { useCountry } from '../lib/useCountry'
+import { useEntities } from '../lib/useEntities'
+import { transparenteEntities } from '../data/transparente'
+import { TRANSPARENTE_EQI_URL, entityKinds } from '../data/seal'
+import { SealBadge, TransparenteBadge } from '../components/SealBadges'
 import { directionsUrl, distance, formatDistance, inPortugal, locateOnce, round4, wazeUrl, type LatLng } from '../lib/geo'
 
 type Tab = 'alerta' | 'locais' | 'reportar'
@@ -90,8 +94,16 @@ function PlaceCard({ p, me, onRemove, onShow }: { p: Place; me: LatLng | null; o
         </div>
         {p.source === 'meu' && <button className="btn ghost sm" aria-label={tr('Remover')} onClick={() => onRemove(p.id)}><Icon name="trash" size={16} /></button>}
       </div>
+      {(p.seal || p.source === 'transparente') && <div className="row wrap" style={{ gap: 6 }}>
+        {p.seal && <SealBadge status={p.seal} />}
+        {p.transparente && <TransparenteBadge />}
+        {p.source === 'transparente' && <span className="badge accent">{p.eqiLevel ? tr('Rede EQI · nível {0}', p.eqiLevel) : tr('Rede EQI')}</span>}
+      </div>}
       <FacilityBadges f={p.facilities ?? {}} />
       {p.notes && <p className="small">{p.notes}</p>}
+      {p.source === 'transparente' && <span className="xs muted">{tr('Fonte:')}{' '}<a href={TRANSPARENTE_EQI_URL} target="_blank" rel="noopener noreferrer">{tr('TransParente, Entidades Queer Inclusivas')}</a></span>}
+      {p.source === 'transparente' && p.url && <a className="btn ghost sm" style={{ justifySelf: 'start' }} href={p.url} target="_blank" rel="noopener noreferrer"><Icon name="external" size={16} />{tr('Ver na TransParente')}</a>}
+      {p.entityId && <Link className="btn ghost sm" style={{ justifySelf: 'start' }} to={`/selo/${p.entityId}`}><Icon name="star" size={16} />{tr('Ver selo e avaliar')}</Link>}
       {pos && (
         <div className="row wrap" style={{ gap: 8 }}>
           <a className="btn sm" href={directionsUrl(pos, p.name)} target="_blank" rel="noopener noreferrer"><Icon name="map" size={16} />{tr('Ir para lá')}</a>
@@ -106,7 +118,10 @@ function PlaceCard({ p, me, onRemove, onShow }: { p: Place; me: LatLng | null; o
 export function Places() {
   const { vault, update } = useVault()
   const toast = useToast()
+  const [params] = useSearchParams()
   const [remote, setRemote] = useState<Place[]>([])
+  const { entities } = useEntities()
+  const [sealOnly, setSealOnly] = useState(false)
   const [filters, setFilters] = useState<Filter[]>([])
   const [kind, setKind] = useState('')
   const [district, setDistrict] = useState('')
@@ -117,7 +132,7 @@ export function Places() {
   const [view, setView] = useState<'mapa' | 'lista'>('mapa')
   const [me, setMe] = useState<LatLng | null>(null)
   const [locating, setLocating] = useState(false)
-  const [selected, setSelected] = useState<string | null>(null)
+  const [selected, setSelected] = useState<string | null>(params.get('local'))
 
   // A posição só é usada aqui, em memória: não é guardada nem enviada.
   const locate = async (forForm = false) => {
@@ -135,8 +150,18 @@ export function Places() {
   const all: Place[] = useMemo(() => [
     ...vault.places.map(p => ({ ...p, source: 'meu' as const })),
     ...remote.map(p => ({ ...p, source: 'comunidade' as const })),
-  ], [vault.places, remote])
-  const filtered = all.filter(p => (!kind || p.kind === kind) && (!district || p.district === district) && filters.every(f => matches(p.facilities ?? {}, f)))
+    // Entidades registadas para o selo (as que perderam o selo ficam só na página do selo).
+    ...entities.filter(e => e.seal !== 'sem-selo').map(e => ({
+      id: 'selo-' + e.id, entityId: e.id, name: e.name, kind: e.kind, district: e.district, notes: e.notes, facilities: e.facilities ?? {},
+      lat: e.lat, lng: e.lng, source: 'entidade' as const, seal: e.seal, transparente: e.transparente,
+    })),
+    // Entidades certificadas pela TransParente (com autorização), sem repetir as que já estão registadas no Casulo.
+    ...transparenteEntities.filter(t => !entities.some(e => e.name.trim().toLowerCase() === t.name.trim().toLowerCase())).map((t, i) => ({
+      id: 'tp-' + i, name: t.name, kind: t.kind, district: t.district, notes: [t.address, t.remote ? tr('Também atende à distância.') : ''].filter(Boolean).join(' · ') || undefined, facilities: t.facilities ?? {},
+      lat: t.lat, lng: t.lng, url: t.url, source: 'transparente' as const, transparente: t.seal, eqiLevel: t.level,
+    })),
+  ], [vault.places, remote, entities])
+  const filtered = all.filter(p => (!sealOnly || p.seal === 'selo' || p.transparente) && (!kind || p.kind === kind) && (!district || p.district === district) && filters.every(f => matches(p.facilities ?? {}, f)))
   const hasPos = (p: Place): p is MapPlace => typeof p.lat === 'number' && typeof p.lng === 'number'
   const dist = (p: Place) => (me && hasPos(p) ? distance(me, p) : Infinity)
   const list = me ? [...filtered].sort((a, b) => dist(a) - dist(b)) : filtered
@@ -161,14 +186,17 @@ export function Places() {
       <section className="card tint-mint">
         <h3>{tr('Locais trans safe')}</h3>
         <p className="small">{tr('Sítios onde a comunidade se sentiu bem-vinda, com informação sobre casas de banho e balneários: cabines individuais, duches individuais ou comuns e vestiários neutros.')}</p>
+        <Link to="/selo" className="small">{tr('🏅 Os marcadores dourados têm o Selo Casulo. Saber mais ou registar uma entidade')}</Link>
+        {transparenteEntities.length > 0 && <span className="xs muted">{tr('Inclui {0} Entidades Queer Inclusivas da rede EQI da TransParente, mostradas com autorização (as que não têm morada pública só aparecem na Lista).', transparenteEntities.length)}{' '}{tr('Fonte:')}{' '}<a href={TRANSPARENTE_EQI_URL} target="_blank" rel="noopener noreferrer">transparente.com.pt</a></span>}
       </section>
       <div className="chips">
+        <button className={'chip' + (sealOnly ? ' on' : '')} onClick={() => setSealOnly(!sealOnly)}>{tr('🏅 Com selo')}</button>
         {(Object.keys(filterLabels) as Filter[]).map(f => (
           <button key={f} className={'chip' + (filters.includes(f) ? ' on' : '')} onClick={() => setFilters(filters.includes(f) ? filters.filter(x => x !== f) : [...filters, f])}>{filterLabels[f]}</button>
         ))}
       </div>
       <div className="grid2">
-        <select className="input" value={kind} onChange={e => setKind(e.target.value)} aria-label={tr('Tipo de local')}><option value="">{tr('Todos os tipos')}</option>{placeKinds.map(k => <option key={k} value={k}>{tr(k)}</option>)}</select>
+        <select className="input" value={kind} onChange={e => setKind(e.target.value)} aria-label={tr('Tipo de local')}><option value="">{tr('Todos os tipos')}</option>{entityKinds.map(k => <option key={k} value={k}>{tr(k)}</option>)}</select>
         <select className="input" value={district} onChange={e => setDistrict(e.target.value)} aria-label={tr('Distrito')}><option value="">{tr('Todo o país')}</option>{districts.map(d => <option key={d}>{d}</option>)}</select>
       </div>
       <div className="row between" style={{ gap: 8 }}>
