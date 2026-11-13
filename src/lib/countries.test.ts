@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { hasIlgaPage, ilgaCountryUrl } from '../data/ilga'
 import { lessonsFor } from '../data/allies'
 import { annualEvents } from '../data/events'
 import { communityAllowed, countries, countryForLang, countryPack, isCountry, isStale, monthsSinceReview } from '../data/countries'
@@ -107,5 +108,12 @@ describe('conteúdo só de Portugal', () => {
   it('a agenda marca as marchas portuguesas', () => {
     expect(annualEvents.filter(e => e.pt).map(e => e.id)).toEqual(['marcha-lisboa', 'arraial', 'marcha-porto'])
     expect(annualEvents.filter(e => !e.pt).some(e => /Lisboa|Porto/.test(e.descriptionWorld ?? e.description))).toBe(false)
+  })
+})
+
+describe('ILGA World', () => {
+  it('todos os países têm página na base de dados da ILGA World', () => {
+    for (const c of countries) expect(hasIlgaPage(c.code)).toBe(true)
+    expect(ilgaCountryUrl('US')).toBe('https://database.ilga.org/united-states-of-america-lgbti')
   })
 })

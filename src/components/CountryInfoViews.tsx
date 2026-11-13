@@ -4,6 +4,7 @@ import { Icon } from './Icon'
 import { useCountry } from '../lib/useCountry'
 import { infoFor, type CountryInfo, type Source } from '../data/countryInfo'
 import { tr } from '../i18n'
+import { ILGA_GENDER_RECOGNITION, ILGA_MAPS, ilgaCountryUrl } from '../data/ilga'
 
 export function useCountryInfo(): CountryInfo | undefined {
   return infoFor(useCountry().code)
@@ -16,6 +17,22 @@ function Sources({ sources }: { sources: Source[] }) {
       <h3 className="small">{tr('Fontes oficiais')}</h3>
       <div className="row wrap">
         {sources.map(s => <a key={s.url + s.label} className="btn sm secondary" href={s.url} target="_blank" rel="noreferrer noopener"><Icon name="external" size={14} />{s.label}</a>)}
+      </div>
+    </section>
+  )
+}
+
+/** Fontes da ILGA World para o país escolhido: base de dados, reconhecimento legal de género e mapas. */
+export function IlgaSources() {
+  const c = useCountry()
+  return (
+    <section className="card flat">
+      <h3 className="small">{tr('Leis em {0} segundo a ILGA World', `${c.flag} ${c.name}`)}</h3>
+      <p className="xs muted">{tr('A ILGA World acompanha as leis sobre orientação sexual, identidade de género e características sexuais em todos os países. É a primeira fonte da nossa revisão mensal.')}</p>
+      <div className="row wrap">
+        <a className="btn sm secondary" href={ilgaCountryUrl(c.code)} target="_blank" rel="noreferrer noopener"><Icon name="external" size={14} />{tr('{0} na base de dados da ILGA World', c.name)}</a>
+        <a className="btn sm secondary" href={ILGA_GENDER_RECOGNITION} target="_blank" rel="noreferrer noopener"><Icon name="external" size={14} />{tr('Reconhecimento legal de género no mundo')}</a>
+        <a className="btn sm secondary" href={ILGA_MAPS} target="_blank" rel="noreferrer noopener"><Icon name="external" size={14} />{tr('Mapas da ILGA World')}</a>
       </div>
     </section>
   )
@@ -83,6 +100,7 @@ export function CountryRights({ info }: { info: CountryInfo }) {
         </div>
       </section>
       <Sources sources={info.rights.sources} />
+      <IlgaSources />
       <Reviewed />
     </>
   )
@@ -106,7 +124,7 @@ export function NoCountryInfo({ what, children }: { what: string; children?: Rea
           <a className="btn sm danger" href={`tel:${c.emergency}`}><Icon name="phone" size={14} />{tr('Emergência {0}', c.emergency)}</a>
           <Link className="btn sm secondary" to="/comunidade?tab=apoio">{tr('Contactos de apoio')}</Link>
           <a className="btn sm secondary" href="https://findahelpline.com" target="_blank" rel="noreferrer noopener"><Icon name="external" size={14} />{tr('Linhas de apoio no mundo')}</a>
-          <a className="btn sm secondary" href="https://database.ilga.org" target="_blank" rel="noreferrer noopener"><Icon name="external" size={14} />{tr('Leis do teu país (ILGA World)')}</a>
+          <a className="btn sm secondary" href={ilgaCountryUrl(c.code)} target="_blank" rel="noreferrer noopener"><Icon name="external" size={14} />{tr('Leis do teu país (ILGA World)')}</a>
         </div>
       </section>
       {children && (

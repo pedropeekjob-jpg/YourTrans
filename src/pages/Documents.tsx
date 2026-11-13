@@ -8,7 +8,7 @@ import { checklistPT, type ChecklistItem } from '../data/guides'
 import { countries } from '../data/countries'
 import { useCountry } from '../lib/useCountry'
 import { CountryPicker, StaleNotice } from '../components/CountryPicker'
-import { NoCountryInfo, PortugalOnly, useCountryInfo } from '../components/CountryInfoViews'
+import { IlgaSources, NoCountryInfo, PortugalOnly, useCountryInfo } from '../components/CountryInfoViews'
 import { buildLetter, letterKinds, type LetterFields, type LetterKind } from '../lib/letters'
 import { tr } from '../i18n'
 
@@ -118,6 +118,7 @@ function Steps() {
           )
         })}
       </div>
+      {pack.guide && <IlgaSources />}
       <p className="xs muted">{tr('Informação revista em')}{' '}{guide.reviewedAt}{pack.code === 'PT' || !pack.guide ? tr('. Não substitui aconselhamento jurídico: confirma valores e prazos nas fontes oficiais. A ILGA Portugal tem apoio jurídico gratuito.') : tr('. Não substitui aconselhamento jurídico: confirma valores e prazos nas fontes oficiais.')}</p>
     </>
   )

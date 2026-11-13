@@ -7,7 +7,7 @@ import { Empty, Seg, Sheet, copyText, fmtDate, useToast } from '../components/ui
 import { LEGAL_REVIEWED, buildTemplate, freeLegalHelp, rightTopics, routes, templateLabels, type RightTopic, type TemplateFields, type TemplateId } from '../data/legal'
 import { uid, type Incident } from '../lib/types'
 import { tr } from '../i18n'
-import { CountryRights, NoCountryInfo, useCountryInfo } from '../components/CountryInfoViews'
+import { CountryRights, IlgaSources, NoCountryInfo, useCountryInfo } from '../components/CountryInfoViews'
 import { useCountry } from '../lib/useCountry'
 
 type Tab = 'direitos' | 'agir' | 'registo'
@@ -35,6 +35,7 @@ export function Rights() {
         {tab === 'direitos' && <Topics />}
         {tab === 'agir' && <Act initialTemplate={params.get('modelo') as TemplateId | null} />}
         {tab === 'registo' && <Incidents />}
+        {tab === 'direitos' && <IlgaSources />}
         <p className="xs muted" style={{ textAlign: 'center' }}>{tr('Informação geral, não é aconselhamento jurídico. Revisto em')}{' '}{LEGAL_REVIEWED}{tr('. Para o teu caso concreto, fala com um/a advogado/a ou com o apoio jurídico da ILGA.')}</p>
       </div>
     </>
