@@ -83,14 +83,15 @@ try {
 const FREE_TEXT = {
   story: ['title', 'body', 'nickname', 'warning'], reply: ['body', 'nickname'], review: ['comment'], provider: ['name', 'notes'],
   place: ['name', 'kind', 'notes'], event: ['title', 'place'], employer: ['company', 'comment'], incident: ['description'], mentorship: ['nickname', 'stage'],
-  stageReview: ['comment'], experience: [],
+  stageReview: ['comment'], experience: [], entity: ['name', 'address', 'notes'], sealReview: ['comment'], wish: ['text'],
 }
 
 /** Em locais, profissionais e eventos uma morada é normal; num testemunho expõe alguém. */
-const ADDRESS_OK = new Set(['place', 'provider', 'event'])
+const ADDRESS_OK = new Set(['place', 'provider', 'event', 'entity'])
 
 /** Tipos que nunca são publicados sem uma pessoa (precisam de verificação, não só de filtro). */
-export const ALWAYS_HUMAN = new Set(['provider', 'mentorship', 'incident'])
+// Entidades que pedem o selo também: alguém confirma que existem (e, se o declaram, o selo TransParente).
+export const ALWAYS_HUMAN = new Set(['provider', 'mentorship', 'incident', 'entity'])
 
 const SHORTENERS = /(^|\.)(bit\.ly|tinyurl\.com|t\.co|goo\.gl|is\.gd|cutt\.ly|rebrand\.ly|ow\.ly|shorturl\.at|t\.ly)$/i
 

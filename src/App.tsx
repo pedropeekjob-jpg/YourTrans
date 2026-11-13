@@ -14,6 +14,7 @@ import { Health } from './pages/Health'
 import { ProviderPage } from './pages/ProviderPage'
 import { Journal } from './pages/Journal'
 import { Safety } from './pages/Safety'
+import { Seal, SealEntityPage } from './pages/Seal'
 import { Community } from './pages/Community'
 import { Work } from './pages/Work'
 import { Settings } from './pages/Settings'
@@ -25,6 +26,7 @@ import { Me } from './pages/Me'
 import { Help } from './pages/Help'
 import { DataCare } from './pages/DataCare'
 import { Privacy } from './pages/Privacy'
+import { Suggest } from './pages/Suggest'
 const Transfer = lazy(() => import('./pages/Transfer').then(m => ({ default: m.Transfer })))
 import { AllyCards, AllyForMe, AllyHome, AllyLearn, AllyPractice, Receive } from './pages/Ally'
 
@@ -64,8 +66,11 @@ function Screen() {
           <Route path="/para-mim" element={<AllyForMe />} />
           <Route path="/receber/:data" element={<Receive />} />
           <Route path="/comunidade" element={<Community />} />
+          <Route path="/selo" element={<Seal />} />
+          <Route path="/selo/:id" element={<SealEntityPage />} />
           <Route path="/definicoes" element={<Settings />} />
           <Route path="/privacidade" element={<Privacy />} />
+          <Route path="/sugerir" element={<Suggest />} />
           <Route path="/dados" element={<DataCare />} />
           <Route path="/passar" element={<Suspense fallback={null}><Transfer /></Suspense>} />
           <Route path="*" element={<AllyHome />} />
@@ -86,10 +91,13 @@ function Screen() {
           <Route path="/saude/:id" element={<ProviderPage />} />
           <Route path="/diario" element={<Journal />} />
           <Route path="/seguranca" element={<Safety />} />
+          <Route path="/selo" element={<Seal />} />
+          <Route path="/selo/:id" element={<SealEntityPage />} />
           <Route path="/comunidade" element={<Community />} />
           <Route path="/emprego" element={<Work />} />
           <Route path="/definicoes" element={<Settings />} />
           <Route path="/privacidade" element={<Privacy />} />
+          <Route path="/sugerir" element={<Suggest />} />
           <Route path="/dados" element={<DataCare />} />
           <Route path="/passar" element={<Suspense fallback={null}><Transfer /></Suspense>} />
           <Route path="*" element={<Home />} />

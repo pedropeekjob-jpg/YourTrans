@@ -119,6 +119,10 @@ p { margin: 0; }
 .card.tint-rose { background: var(--rose-soft); box-shadow: none; }
 .card.tint-mint { background: var(--mint-soft); box-shadow: none; }
 .card.tint-amber { background: var(--amber-soft); box-shadow: none; }
+.card.sealed { position: relative; overflow: hidden; padding-top: 22px; background: linear-gradient(135deg, rgba(91, 206, 250, .16), rgba(245, 169, 184, .18)), var(--surface); box-shadow: inset 0 0 0 2px rgba(91, 206, 250, .6), var(--shadow); }
+/* Bandeira trans em cinco faixas no topo do cartão. */
+.card.sealed::before { content: ''; position: absolute; inset: 0 0 auto 0; height: 10px; background: linear-gradient(#5bcefa 0 20%, #f5a9b8 20% 40%, #fff 40% 60%, #f5a9b8 60% 80%, #5bcefa 80%); }
+.sealed-tag { justify-self: start; font-size: .75rem; font-weight: 700; letter-spacing: .02em; padding: 3px 10px; border-radius: 999px; color: #14131b; background: linear-gradient(90deg, #5bcefa, #f5a9b8 35%, #fff 50%, #f5a9b8 65%, #5bcefa); box-shadow: 0 0 0 1px rgba(20, 19, 27, .12); }
 .card.tint-danger { background: var(--danger-soft); box-shadow: none; }
 .muted { color: var(--muted); }
 .small { font-size: .875rem; }
@@ -130,6 +134,7 @@ p { margin: 0; }
 .stack { display: grid; gap: 8px; }
 .stack-lg { display: grid; gap: 14px; }
 .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
 
 .hero {
   background: var(--hero); color: var(--hero-ink); border-radius: 26px; padding: 20px 20px 26px; display: grid; gap: 14px;
@@ -193,6 +198,8 @@ p { margin: 0; }
 .badge.accent { background: var(--accent-soft); color: var(--accent); }
 .badge.mint { background: var(--mint-soft); color: var(--mint); }
 .badge.amber { background: var(--amber-soft); color: #a86812; }
+.badge.seal { background: #fff3cf; color: #8a5a00; border: 1px solid #e3a72f; }
+a.badge { text-decoration: none; }
 
 /* Formulários */
 label.field { display: grid; gap: 6px; font-size: .875rem; font-weight: 600; }
@@ -345,6 +352,9 @@ textarea.input { min-height: 110px; resize: vertical; }
 .map-pin span::after { content: ''; position: absolute; inset: 6px; border-radius: 50%; background: #fff; }
 .map-pin.community { --pin: var(--sky); }
 .map-pin.mine { --pin: var(--rose); }
+.map-pin.seal { --pin: #e3a72f; }
+.map-pin.tp { --pin: #9b6bd6; }
+.map-pin.seal span::after { background: #fff3cf; }
 .map-pin.on span { box-shadow: 0 0 0 3px var(--text), 0 0 22px var(--pin); }
 .map-pin.on { z-index: 2; }
 .map-pin.me { width: 20px; height: 20px; }
@@ -363,3 +373,8 @@ textarea.input { min-height: 110px; resize: vertical; }
 .install-safety summary::-webkit-details-marker { display: none; }
 .install-safety summary::after { content: '▾'; margin-left: auto; color: var(--muted); }
 .install-safety[open] summary::after { content: '▴'; }
+
+/* Explicação em pares título/texto (ex.: "O que é e como funciona" do cartão). */
+.explain { margin: 10px 0 0; display: grid; gap: 4px; }
+.explain dt { font-weight: 650; margin-top: 6px; }
+.explain dd { margin: 0; }

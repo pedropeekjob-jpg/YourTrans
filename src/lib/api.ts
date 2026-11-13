@@ -3,6 +3,7 @@
 import type { Provider, ReviewQuestion } from '../data/health'
 import type { Place } from './types'
 import type { Story } from '../data/stories'
+import type { SealCommitment, SealEntity, SealQuestion } from '../data/seal'
 
 /** Servidor da comunidade (Render, Frankfurt). VITE_API_URL sobrepõe-se; "off" desliga. */
 const RAW = (import.meta.env.VITE_API_URL as string | undefined) || 'https://casulo-comunidade.onrender.com'
@@ -44,6 +45,9 @@ export const api = {
     req<Sent>('/api/reviews', { method: 'POST', body: JSON.stringify({ providerId, answers, comment }) }),
   incident: (data: { district: string; kind: string; setting: string; description: string; reported: boolean }) =>
     req<Sent>('/api/incidents', { method: 'POST', body: JSON.stringify(data) }),
+  /** "Procurei e não encontrei": só a equipa lê, nunca é publicado. */
+  wish: (w: { kind: 'procurei' | 'gostava'; text: string; area?: string; country?: string }) =>
+    req<Sent>('/api/wishes', { method: 'POST', body: JSON.stringify(w) }),
   safePlaces: () => req<Place[]>('/api/places'),
   events: () => req<{ id: string; title: string; date: string; place?: string; url?: string; district?: string }[]>('/api/events'),
   suggestEvent: (e: { title: string; date: string; place?: string; url?: string; district?: string }) =>
@@ -61,6 +65,12 @@ export const api = {
   support: (storyId: string) => req<{ ok: true; support: number }>(`/api/stories/${encodeURIComponent(storyId)}/support`, { method: 'POST', body: '{}' }),
   /** Denuncia algo publicado: sai do ar até a moderação o rever. */
   report: (id: string) => req<{ ok: true }>(`/api/report/${encodeURIComponent(id)}`, { method: 'POST', body: '{}' }),
+  entities: () => req<SealEntity[]>('/api/entities'),
+  /** Pedido de selo: fica sempre à espera da moderação; o e-mail nunca é publicado. */
+  registerEntity: (e: Pick<SealEntity, 'name' | 'kind' | 'district' | 'address' | 'url' | 'notes' | 'transparente' | 'facilities' | 'lat' | 'lng'> & { contact: string; commitments: Record<SealCommitment, boolean> }) =>
+    req<Sent>('/api/entities', { method: 'POST', body: JSON.stringify(e) }),
+  sealReview: (entityId: string, answers: Record<SealQuestion, boolean | null>, comment: string) =>
+    req<Sent>('/api/seal-reviews', { method: 'POST', body: JSON.stringify({ entityId, answers, comment }) }),
   suggestPlace: (p: Omit<Place, 'id' | 'source'>) =>
     req<Sent>('/api/places', { method: 'POST', body: JSON.stringify(p) }),
 }

@@ -1,0 +1,138 @@
+// Gerado por scripts/transparente.mjs a partir de https://transparente.com.pt/eqi/ — não editar à mão.
+// Entidades Queer Inclusivas (EQI) da plataforma TransParente, mostradas com autorização
+// (dada ao Pedro a 13/11/2026), citando sempre a TransParente como fonte, com ligação.
+import type { Facilities } from '../lib/types'
+
+export const TRANSPARENTE_UPDATED = '2026-11-13'
+
+export interface TransparenteEntity {
+  name: string
+  /** Um dos tipos do mapa (src/data/seal.ts, entityKinds). */
+  kind: string
+  district: string
+  address?: string
+  /** Também atende à distância. */
+  remote?: boolean
+  /** Página da entidade na TransParente. */
+  url: string
+  /** Tem o selo TransParente (as outras são da rede EQI por confiança, sem selo). */
+  seal: boolean
+  /** Nível EQI: 1 iniciante, 2 confiante, 3 excelente. */
+  level?: 1 | 2 | 3
+  facilities?: Facilities
+  lat?: number
+  lng?: number
+}
+
+export const transparenteEntities: TransparenteEntity[] = [
+  {
+    name: "Acesso Cultura",
+    kind: "Associação",
+    district: "Lisboa",
+    url: "https://transparente.com.pt/entidade-inclusiva/acesso-cultura/",
+    seal: false,
+    level: 1
+  },
+  {
+    name: "Affirmative Q Psicologia Clinica",
+    kind: "Saúde",
+    district: "Online",
+    remote: true,
+    url: "https://transparente.com.pt/entidade-inclusiva/affirmative-q-psicologia-clinica/",
+    seal: false,
+    level: 2
+  },
+  {
+    name: "ÁGORA Porto",
+    kind: "Cultura",
+    district: "Porto",
+    url: "https://transparente.com.pt/entidade-inclusiva/agora-porto/",
+    seal: false,
+    level: 2,
+    address: "Rua da Constituição, 2555, 4250-173 Porto",
+    lat: 41.1646,
+    lng: -8.628
+  },
+  {
+    name: "AMPLOS",
+    kind: "Associação",
+    district: "Lisboa",
+    url: "https://transparente.com.pt/entidade-inclusiva/amplos/",
+    seal: false,
+    address: "Rua Conde de Arnoso, 5-B, 1700-112 Lisboa",
+    lat: 38.7563,
+    lng: -9.1362
+  },
+  {
+    name: "Leandro Treinarte – Personal Trainer",
+    kind: "Outro",
+    district: "Online",
+    remote: true,
+    url: "https://transparente.com.pt/entidade-inclusiva/leandro-treinarte-personal-trainer/",
+    seal: true,
+    level: 3
+  },
+  {
+    name: "LGBTI Viseu",
+    kind: "Associação",
+    district: "Viseu",
+    url: "https://transparente.com.pt/entidade-inclusiva/lgbti-viseu/",
+    seal: false,
+    level: 2
+  },
+  {
+    name: "MUSSOC",
+    kind: "Associação",
+    district: "Lisboa",
+    url: "https://transparente.com.pt/entidade-inclusiva/mussoc/",
+    seal: false,
+    level: 1,
+    address: "Rua dos Lagares d'El-Rei, 21C, 1.º Frente, 1700-268 Lisboa",
+    lat: 38.7482,
+    lng: -9.1351
+  },
+  {
+    name: "Nucleo AMPLOS do Baixo-Alentejo",
+    kind: "Associação",
+    district: "Beja",
+    url: "https://transparente.com.pt/entidade-inclusiva/nucleo-amplos-do-baixo-alentejo/",
+    seal: false
+  },
+  {
+    name: "Opus Diversidades",
+    kind: "Associação",
+    district: "Lisboa",
+    url: "https://transparente.com.pt/entidade-inclusiva/opus-diversidades/",
+    seal: true,
+    level: 2,
+    address: "Rua José Estêvão, 2, 2.º Esq., 1150-192 Lisboa",
+    lat: 38.7274,
+    lng: -9.1373
+  },
+  {
+    name: "Rita Andrade, Psicóloga e Educadora Menstrual",
+    kind: "Saúde",
+    district: "Online",
+    remote: true,
+    url: "https://transparente.com.pt/entidade-inclusiva/rita-andrade-psicologa/",
+    seal: true,
+    level: 2
+  },
+  {
+    name: "Sheila Habib, Educadora Menstrual",
+    kind: "Saúde",
+    district: "Lisboa",
+    remote: true,
+    url: "https://transparente.com.pt/entidade-inclusiva/sheila-habib-educadora-menstrual/",
+    seal: true,
+    level: 2
+  },
+  {
+    name: "Taiane Mendes – Estética LGBTQIA",
+    kind: "Saúde",
+    district: "Lisboa",
+    url: "https://transparente.com.pt/entidade-inclusiva/estetica-lgbtqia/",
+    seal: true,
+    level: 1
+  }
+]

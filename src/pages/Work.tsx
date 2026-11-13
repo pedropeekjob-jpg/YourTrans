@@ -53,6 +53,7 @@ export function Work() {
         <section className="card tint-sky">
           <h3>{tr('Empresas com inclusão trans real')}</h3>
           <p className="small">{tr('Avaliações feitas por pessoas trans, com critérios concretos e não só declarações. As melhores recebem o selo')}{' '}<b>{tr('Inclusão Trans')}</b> {tr('no ranking de empregadores.')}</p>
+          <Link to="/selo" className="small">{tr('A tua empresa quer o Selo Casulo? Regista-a aqui.')}</Link>
         </section>
 
         {ranking.length > 0 && (

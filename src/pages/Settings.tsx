@@ -123,6 +123,10 @@ export function Settings() {
           </ul>
           <Link to="/privacidade" className="small">{tr('Ler a política de privacidade')}</Link>
         </section>
+        <Link to="/sugerir" className="item card flat" style={{ textDecoration: 'none', color: 'inherit' }}>
+          <div className="grow"><h3>{tr('Procurei e não encontrei')}</h3><p className="small muted">{tr('Diz-nos o que falta ou o que gostavas que existisse')}</p></div>
+          <Icon name="chevron" />
+        </Link>
         <div className="stack" style={{ justifyItems: 'center', gap: 4, marginTop: 8 }}>
           <CasuloLogo size={36} />
           <p className="xs muted" style={{ textAlign: 'center' }}><b>Casulo</b> · {tr('Versão 0.1 · feito com a comunidade')}</p>
