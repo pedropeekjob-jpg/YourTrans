@@ -11,6 +11,7 @@ import { annualEvents, nextOccurrence } from '../data/events'
 import { api, apiEnabled } from '../lib/api'
 import { downloadIcs, icsEvent } from '../lib/ics'
 import { uid } from '../lib/types'
+import type { SupportOrg } from '../data/support'
 import { Stories } from './Stories'
 import { Places } from './Safety'
 import { PortugalOnly } from '../components/CountryInfoViews'
@@ -56,6 +57,7 @@ export function Support() {
   const { support } = useCountry()
   const urgent = support.filter(o => o.phone)
   const orgs = support.filter(o => o.kind === 'associação')
+  const projects = support.filter(o => o.kind === 'projeto')
   return (
     <>
       <CountryNotice part="support" />
@@ -74,24 +76,35 @@ export function Support() {
         </div>
       </section>
       {!ally && <Link to="/partilhar" className="card tint-sky" style={{ textDecoration: 'none', color: 'inherit' }}>
-        <div className="row"><Icon name="heart" /><h3 className="grow">{tr('Pessoas que me apoiam')}</h3><Icon name="chevron" /></div>
-        <p className="small">{tr('Envia à família, amigues, colegas ou professores um cartão com o que te ajuda, ou um plano de transição para o trabalho ou a escola.')}</p>
+        <div className="row"><Icon name="heart" /><h3 className="grow">{tr('Cartão para quem me apoia')}</h3><Icon name="chevron" /></div>
+        <p className="small">{tr('Um cartão com o teu nome, pronomes, o que te ajuda e quem já sabe, para enviares à família, amigues, colegas ou professores. Também há um plano para o trabalho ou a escola.')}</p>
       </Link>}
-      <section className="stack">
-        <h2>{tr('Associações')}</h2>
-        <p className="small muted">{tr('Apoio psicológico, jurídico e grupos de partilha moderados por pessoas da comunidade.')}</p>
-        <div className="list">
-          {orgs.map(o => (
-            <a key={o.id} className="item" href={o.url} target="_blank" rel="noreferrer noopener">
-              <div className="lead" style={{ background: 'var(--accent-soft)', color: 'var(--accent)' }}><Icon name="people" /></div>
-              <div className="grow"><h3>{o.name}</h3><p className="small muted">{o.description}</p><span className="xs muted">{o.area}</span></div>
-              <Icon name="external" size={18} />
-            </a>
-          ))}
-        </div>
-      </section>
+      <OrgList title={tr('Associações')} intro={tr('Apoio psicológico, jurídico e grupos de partilha moderados por pessoas da comunidade.')} orgs={orgs} />
+      {projects.length > 0 && <OrgList title={tr('Projetos')} intro={tr('Iniciativas com um foco próprio, muitas vezes dentro de uma associação.')} orgs={projects} />}
       <p className="xs muted">{tr('Contactos públicos verificados em outubro de 2026. Confirma horários nos sites oficiais.')}</p>
     </>
+  )
+}
+
+function OrgList({ title, intro, orgs }: { title: string; intro: string; orgs: SupportOrg[] }) {
+  return (
+    <section className="stack">
+      <h2>{title}</h2>
+      <p className="small muted">{intro}</p>
+      <div className="list">
+        {orgs.map(o => (
+          <a key={o.id} className="item" href={o.url} target="_blank" rel="noreferrer noopener">
+            <div className="lead" style={{ background: o.kind === 'projeto' ? 'var(--sky-soft)' : 'var(--accent-soft)', color: o.kind === 'projeto' ? 'var(--sky)' : 'var(--accent)' }}><Icon name={o.kind === 'projeto' ? 'sparkle' : 'people'} /></div>
+            <div className="grow">
+              <h3>{o.name}</h3>
+              {o.partOf && <span className="badge" style={{ width: 'fit-content' }}>{tr('Projeto da {0}', o.partOf)}</span>}
+              <p className="small muted">{o.description}</p><span className="xs muted">{o.area}</span>
+            </div>
+            <Icon name="external" size={18} />
+          </a>
+        ))}
+      </div>
+    </section>
   )
 }
 

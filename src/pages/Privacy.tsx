@@ -51,6 +51,7 @@ export function Privacy() {
           tr('Relatos de discriminação: a descrição só é vista pela moderação. Publicamos apenas números agregados, e só quando há 5 ou mais relatos, para ninguém ser identificado.'),
           tr('Pedidos de mentoria: o contacto que deixas só é visto pela moderação, para fazer a ligação, e é apagado ao fim de 6 meses.'),
           tr('Registo para o Selo Casulo: o e-mail da entidade só é visto pela moderação, nunca é publicado, e é apagado quando o registo é rejeitado ou retirado.'),
+          tr('Sugestões “Procurei e não encontrei”: guardamos o texto, a zona da app e o país escolhido. Só a equipa as lê, nunca são publicadas e são apagadas ao fim de 12 meses.'),
           tr('Não escrevas no texto dados que te identifiquem a ti ou a outras pessoas. A moderação retira-os ou rejeita o envio.'),
         ]} />
 

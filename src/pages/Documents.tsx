@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useVault } from '../lib/vault-context'
 import { TopBar } from '../components/Layout'
@@ -17,7 +17,14 @@ type Tab = 'passos' | 'checklist' | 'pedidos'
 export function Documents() {
   const [params] = useSearchParams()
   const pack = useCountry()
-  const [tab, setTab] = useState<Tab>((params.get('tab') as Tab) || 'passos')
+  const [tab, setTabState] = useState<Tab>((params.get('tab') as Tab) || 'passos')
+  const tabsRef = useRef<HTMLDivElement>(null)
+  const setTab = (t: Tab) => setTabState(t)
+  /** Muda de separador e sobe até aos separadores, no topo da página. */
+  const jumpTo = (t: Tab) => {
+    setTabState(t)
+    requestAnimationFrame(() => tabsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
+  }
   const [letterPreset, setLetterPreset] = useState<{ kind: LetterKind; entity: string } | null>(
     params.get('kind') ? { kind: params.get('kind') as LetterKind, entity: '' } : null)
 
@@ -31,12 +38,14 @@ export function Documents() {
     <>
       <TopBar title={tr('Documentos')} />
       <div className="page">
-        <Seg value={tab} onChange={setTab} options={[
-          { id: 'passos', label: tr('Passo a passo') },
-          { id: 'checklist', label: tr('Checklist') },
-          { id: 'pedidos', label: tr('Pedidos') },
-        ]} />
-        {tab === 'passos' && <><CountryPicker />{pack.guide ? <Steps /> : <NoCountryInfo what={tr('O passo a passo da mudança de nome e género')}><Steps /></NoCountryInfo>}</>}
+        <div ref={tabsRef} id="separadores" style={{ scrollMarginTop: 72 }}>
+          <Seg value={tab} onChange={setTab} options={[
+            { id: 'passos', label: tr('Passo a passo') },
+            { id: 'checklist', label: tr('Checklist') },
+            { id: 'pedidos', label: tr('Pedidos') },
+          ]} />
+        </div>
+        {tab === 'passos' && <><CountryPicker />{pack.guide ? <Steps onJump={jumpTo} /> : <NoCountryInfo what={tr('O passo a passo da mudança de nome e género')}><Steps onJump={jumpTo} /></NoCountryInfo>}</>}
         {tab === 'checklist' && <Checklist onLetter={openLetter} />}
         {tab === 'pedidos' && <PortugalOnly what={tr('As cartas prontas e a checklist de entidades')}><Letters key={letterPreset?.kind + (letterPreset?.entity ?? '')} preset={letterPreset} /></PortugalOnly>}
       </div>
@@ -44,7 +53,7 @@ export function Documents() {
   )
 }
 
-function Steps() {
+function Steps({ onJump }: { onJump: (t: Tab) => void }) {
   const { vault, update } = useVault()
   const pack = useCountry()
   // Países sem guia próprio mostram o de Portugal, com aviso.
@@ -94,6 +103,11 @@ function Steps() {
                 {isOpen && (
                   <div className="card" style={{ gap: 10 }}>
                     <p className="small">{s.body}</p>
+                    {s.detail && (
+                      <ul className="small" style={{ margin: 0, paddingLeft: 18, display: 'grid', gap: 4 }}>
+                        {s.detail.map(d => <li key={d}>{d}</li>)}
+                      </ul>
+                    )}
                     {s.where && <p className="small"><b>{tr('Onde:')}</b> {s.where}</p>}
                     {s.cost && <p className="small"><b>{tr('Custo:')}</b> {s.cost}</p>}
                     {s.time && <p className="small"><b>{tr('Prazo:')}</b> {s.time}</p>}
@@ -103,7 +117,18 @@ function Steps() {
                         {s.docs.map(d => <span key={d} className="small">• {d}</span>)}
                       </div>
                     )}
-                    {s.link && <a className="small row" href={s.link.url} target="_blank" rel="noreferrer noopener"><Icon name="external" size={16} />{s.link.label}</a>}
+                    {[...(s.links ?? []), ...(s.link ? [s.link] : [])].map(l => (
+                      <a key={l.url} className="small row" href={l.url} target="_blank" rel="noreferrer noopener"><Icon name="external" size={16} />{l.label}</a>
+                    ))}
+                    {s.goTo && (
+                      <div className="row wrap">
+                        {s.goTo.map(t => (
+                          <a key={t} className="btn sm secondary" href="#separadores" onClick={e => { e.preventDefault(); onJump(t) }}>
+                            <Icon name={t === 'checklist' ? 'check' : 'doc'} size={16} />{t === 'checklist' ? tr('Abrir a checklist') : tr('Abrir os pedidos')} ↑
+                          </a>
+                        ))}
+                      </div>
+                    )}
                     <button className={'btn sm ' + (isDone ? 'secondary' : '')}
                       onClick={() => {
                         update(v => ({ ...v, guideSteps: { ...v.guideSteps, [s.id]: !isDone } }))
@@ -186,6 +211,8 @@ function Letters({ preset }: { preset: { kind: LetterKind; entity: string } | nu
     entity, reference,
   }
   const setStored = (k: keyof LetterFields, val: string) => update(v => ({ ...v, letterFields: { ...v.letterFields, [k]: val } }))
+  // O e-mail é obrigatório: é por aí que a entidade confirma a alteração por escrito.
+  const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(fields.email.trim())
   const letter = buildLetter(kind, fields)
   const full = tr('Assunto: {0}\n\n{1}', letter.subject, letter.body)
 
@@ -227,15 +254,18 @@ function Letters({ preset }: { preset: { kind: LetterKind; entity: string } | nu
         </label>
         <div className="grid2">
           <label className="field">{tr('Localidade')}<input className="input" value={fields.city} onChange={e => setStored('city', e.target.value)} /></label>
-          <label className="field">{tr('E-mail (opcional)')}<input className="input" type="email" value={fields.email} onChange={e => setStored('email', e.target.value)} /></label>
+          <label className="field">{tr('E-mail')}<input className="input" type="email" required aria-invalid={!emailOk} value={fields.email} onChange={e => setStored('email', e.target.value)} autoComplete="email" /></label>
         </div>
       </div>
+      {!emailOk && <p className="xs muted" role="note">{tr('O e-mail é obrigatório: é por aí que a entidade te responde e confirma a alteração por escrito.')}</p>}
       <div className="letter" aria-label={tr('Pré-visualização do pedido')}><b>{tr('Assunto:')}{' '}{letter.subject}</b>{'\n\n'}{letter.body}</div>
       <div className="grid2">
-        <button className="btn" onClick={async () => toast((await copyText(full)) ? tr('Copiado') : tr('Não foi possível copiar'))}><Icon name="copy" size={18} />{tr('Copiar')}</button>
-        <button className="btn secondary" onClick={share}><Icon name="share" size={18} />{tr('Partilhar')}</button>
-        <a className="btn secondary" href={`mailto:?subject=${encodeURIComponent(letter.subject)}&body=${encodeURIComponent(letter.body)}`}>{tr('E-mail')}</a>
-        <button className="btn secondary" onClick={download}>{tr('Descarregar')}</button>
+        <button className="btn" disabled={!emailOk} onClick={async () => toast((await copyText(full)) ? tr('Copiado') : tr('Não foi possível copiar'))}><Icon name="copy" size={18} />{tr('Copiar')}</button>
+        <button className="btn secondary" disabled={!emailOk} onClick={share}><Icon name="share" size={18} />{tr('Partilhar')}</button>
+        {emailOk
+          ? <a className="btn secondary" href={`mailto:?subject=${encodeURIComponent(letter.subject)}&body=${encodeURIComponent(letter.body)}`}>{tr('E-mail')}</a>
+          : <button className="btn secondary" disabled>{tr('E-mail')}</button>}
+        <button className="btn secondary" disabled={!emailOk} onClick={download}>{tr('Descarregar')}</button>
       </div>
     </>
   )

@@ -74,6 +74,8 @@ export const SEAL_THRESHOLD = 0.8
 const SEAL_MONTHS = 24
 const email = v => typeof v === 'string' && v.length <= 120 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim())
 const httpsUrl = v => v === undefined || v === null || v === '' || (typeof v === 'string' && v.length <= 300 && /^https:\/\/[^\s]+$/.test(v))
+/** Zonas da app para as sugestões (iguais a src/pages/Suggest.tsx). */
+export const WISH_AREAS = ['percurso', 'documentos', 'saude', 'direitos', 'comunidade', 'seguranca', 'trabalho', 'outro']
 const int = (v, min, max) => Number.isInteger(v) && v >= min && v <= max
 const thisYear = () => new Date().getUTCFullYear()
 
@@ -94,6 +96,9 @@ const validators = {
     int(b.year, thisYear() - 5, thisYear()) &&
     (b.kind === 'espera' ? int(b.value, 0, 240) : b.kind === 'custo' ? int(b.value, 1, 200_000) && b.sector === 'Privado' : int(b.value, 1, 5_000) && MATERIAL.includes(b.item)),
   stageReview: b => TRACKS.includes(b.track) && b.answers && STAGE_QUESTIONS.every(k => bool(b.answers[k])) && opt(b.comment, 600),
+  // "Procurei e não encontrei": só para a equipa, nunca é publicado.
+  wish: b => ['procurei', 'gostava'].includes(b.kind) && str(b.text, 5, 1000) && (b.area === undefined || WISH_AREAS.includes(b.area)) &&
+    (b.country === undefined || (typeof b.country === 'string' && /^[A-Z]{2}$/.test(b.country))),
   employer: b => str(b.company, 2, 120) && b.answers && typeof b.answers === 'object' && Object.keys(b.answers).length <= 12 && opt(b.comment, 600),
   // Registo para o selo: a entidade aceita todos os compromissos e deixa um e-mail (só para a moderação).
   entity: b => str(b.name, 2, 160) && ENTITY_KINDS.includes(b.kind) && str(b.district, 2, 40) && opt(b.address, 200) && httpsUrl(b.url) && opt(b.notes, 600) &&
@@ -118,6 +123,7 @@ const pick = {
   mentorship: b => ({ role: b.role, nickname: b.nickname.trim(), stage: b.stage, topics: b.topics.map(String).slice(0, 12), contact: b.contact.trim() }),
   experience: b => ({ track: b.track, kind: b.kind, sector: b.sector, year: b.year, value: b.value, item: b.kind === 'material' ? b.item : undefined }),
   stageReview: b => ({ track: b.track, answers: Object.fromEntries(STAGE_QUESTIONS.map(k => [k, b.answers[k]])), comment: b.comment?.trim() || undefined }),
+  wish: b => ({ kind: b.kind, text: b.text.trim(), area: b.area, country: b.country }),
   employer: b => ({ company: b.company.trim(), answers: Object.fromEntries(Object.entries(b.answers).map(([k, v]) => [k, !!v])), comment: b.comment?.trim() || undefined }),
   entity: b => ({ name: b.name.trim(), kind: b.kind, district: b.district, address: b.address?.trim() || undefined, url: b.url?.trim() || undefined,
     notes: b.notes?.trim() || undefined, contact: b.contact.trim(), transparente: b.transparente || undefined,
@@ -137,8 +143,11 @@ function flagsFor(type, payload, id = '') {
   return { flags, fp }
 }
 
+/** Tipos que só a equipa lê: nunca são publicados. */
+const RECEIVED_ONLY = new Set(['incident', 'wish'])
+
 /** Decide o estado: publicado se estiver limpo e o tipo o permitir, senão fica à espera. */
-const decide = (type, flags) => type === 'incident' ? 'received' : AUTO && !ALWAYS_HUMAN.has(type) && flags.length === 0 ? 'approved' : 'pending'
+const decide = (type, flags) => RECEIVED_ONLY.has(type) ? 'received' : AUTO && !ALWAYS_HUMAN.has(type) && flags.length === 0 ? 'approved' : 'pending'
 
 /** Passa pelo filtro o que já estava à espera (ao arrancar, ou a pedido em /mod). */
 export function retriage() {
@@ -288,10 +297,13 @@ function incidentStats() {
 
 /* ---------- prazos de conservação ---------- */
 
-/** Pedidos de mentoria (têm contacto) são apagados ao fim de 6 meses. */
+/** Pedidos de mentoria (têm contacto) são apagados ao fim de 6 meses; sugestões ao fim de 12. */
 function purgeOld() {
   const d = new Date(); d.setMonth(d.getMonth() - 6)
   db.prepare("DELETE FROM submissions WHERE type = 'mentorship' AND month < ?").run(d.toISOString().slice(0, 7))
+  // Sugestões "procurei e não encontrei": apagadas ao fim de 12 meses.
+  const y = new Date(); y.setMonth(y.getMonth() - 12)
+  db.prepare("DELETE FROM submissions WHERE type = 'wish' AND month < ?").run(y.toISOString().slice(0, 7))
 }
 purgeOld()
 setInterval(purgeOld, 86_400_000).unref()
@@ -336,7 +348,7 @@ function isMod(req) {
   return timingSafeEqual(Buffer.from(token), Buffer.from(MOD_TOKEN))
 }
 
-const postRoutes = { '/api/stories': 'story', '/api/replies': 'reply', '/api/providers': 'provider', '/api/reviews': 'review', '/api/places': 'place', '/api/events': 'event', '/api/incidents': 'incident', '/api/mentorship': 'mentorship', '/api/employers': 'employer', '/api/experiences': 'experience', '/api/stage-reviews': 'stageReview', '/api/entities': 'entity', '/api/seal-reviews': 'sealReview' }
+const postRoutes = { '/api/stories': 'story', '/api/replies': 'reply', '/api/providers': 'provider', '/api/reviews': 'review', '/api/places': 'place', '/api/events': 'event', '/api/incidents': 'incident', '/api/mentorship': 'mentorship', '/api/employers': 'employer', '/api/experiences': 'experience', '/api/stage-reviews': 'stageReview', '/api/entities': 'entity', '/api/seal-reviews': 'sealReview', '/api/wishes': 'wish' }
 
 export const server = createServer(async (req, res) => {
   const url = new URL(req.url ?? '/', 'http://x')
@@ -363,7 +375,8 @@ export const server = createServer(async (req, res) => {
         if (!isMod(req)) return send(res, 401, { error: 'Sem autorização' })
         const status = url.searchParams.get('status') ?? 'pending'
         const onlyAuto = url.searchParams.get('auto') === '1'
-        const rows = db.prepare(`SELECT id, type, payload, status, flags, month, auto, reports FROM submissions WHERE status = ?${onlyAuto ? ' AND auto = 1' : ''} ORDER BY rowid DESC LIMIT 200`).all(status)
+        const type = url.searchParams.get('type')
+        const rows = db.prepare(`SELECT id, type, payload, status, flags, month, auto, reports FROM submissions WHERE status = ?${onlyAuto ? ' AND auto = 1' : ''}${type ? ' AND type = ?' : ''} ORDER BY rowid DESC LIMIT 200`).all(...(type ? [status, type] : [status]))
           .map(r => ({ ...r, payload: JSON.parse(r.payload), flags: JSON.parse(r.flags) }))
         // Risco de autolesão primeiro: pode haver alguém a precisar de resposta.
         const rank = r => (r.flags.includes('risco de autolesão') ? 0 : r.flags.includes('ameaça') ? 1 : 2)

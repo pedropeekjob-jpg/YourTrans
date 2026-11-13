@@ -60,7 +60,7 @@ export function buildLetter(kind: LetterKind, f: LetterFields): { subject: strin
     `Peço ainda que os dados anteriores não sejam utilizados em comunicações futuras e que me confirmem por escrito ` +
     `a conclusão da retificação, no prazo de um mês previsto no artigo 12.º, n.º 3, do RGPD.\n\n` +
     `Com os melhores cumprimentos,\n\n${name}` +
-    (f.email.trim() ? `\n${f.email.trim()}` : '') +
+    `\n${f.email.trim() || '[o teu e-mail]'}` +
     `\n${f.city.trim() ? f.city.trim() + ', ' : ''}${today()}\n\n` +
     `Anexo: cópia do Cartão de Cidadão (pode ocultar a fotografia e os números que não sejam necessários).`
 
@@ -81,7 +81,7 @@ function buildReferral(f: LetterFields): { subject: string; body: string } {
     `• saber se posso preservar a fertilidade antes de iniciar hormonas;\n` +
     `• ser tratado/a pelo nome ${name} e garantir que os rastreios de que preciso continuam a ser agendados, independentemente do sexo no registo.\n\n` +
     `Agradeço desde já a sua atenção.\n\n${name}` +
-    (f.email.trim() ? `\n${f.email.trim()}` : '') +
+    `\n${f.email.trim() || '[o teu e-mail]'}` +
     `\n${f.city.trim() ? f.city.trim() + ', ' : ''}${today()}`
   return { subject: 'Pedido de referenciação: consulta de identidade de género', body }
 }

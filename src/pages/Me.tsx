@@ -79,6 +79,11 @@ export function Me() {
             <div className="grow"><h3>{tr('Privacidade e definições')}</h3><p className="small muted">{tr('Código, modo privado, cópia de segurança e perfil')}</p></div>
             <Icon name="chevron" />
           </Link>
+          <Link to="/sugerir" className="item">
+            <div className="lead" style={{ background: 'var(--sky-soft)', color: 'var(--sky)' }}><Icon name="chat" /></div>
+            <div className="grow"><h3>{tr('Procurei e não encontrei')}</h3><p className="small muted">{tr('Diz-nos o que falta ou o que gostavas que existisse')}</p></div>
+            <Icon name="chevron" />
+          </Link>
         </div>
       </div>
     </>

@@ -178,3 +178,14 @@ test('selo: registo sempre moderado, e-mail nunca público, selo com 3 avaliaç�
   assert.equal(ent.comments.length, 1)
   assert.equal((await post('/api/seal-reviews', { entityId: ent.id, answers: { ...good, seguro: null } })).status, 400)
 })
+
+test('sugestões "procurei e não encontrei" só a equipa as vê', async () => {
+  assert.equal((await post('/api/wishes', { kind: 'procurei', text: 'x' })).status, 400)
+  assert.equal((await post('/api/wishes', { kind: 'gostava', text: 'Lista de cabeleireiros seguros', area: 'inventada' })).status, 400)
+  const r = await post('/api/wishes', { kind: 'procurei', text: 'Onde mudar o nome na carta de condução', area: 'documentos', country: 'PT', extra: 'descartado' })
+  assert.equal(r.status, 201)
+  assert.equal((await r.json()).published, false)
+  const q = await queue('status=received&type=wish')
+  assert.deepEqual(q.map(x => x.payload), [{ kind: 'procurei', text: 'Onde mudar o nome na carta de condução', area: 'documentos', country: 'PT' }])
+  assert.ok((await queue('status=received&type=incident')).every(x => x.type === 'incident'))
+})
