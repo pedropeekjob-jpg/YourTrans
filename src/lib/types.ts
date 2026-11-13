@@ -92,6 +92,8 @@ export interface Place {
   entityId?: string
   seal?: 'selo' | 'em-avaliacao' | 'sem-selo'
   transparente?: boolean
+  /** Nível na rede EQI da TransParente (1 a 3). */
+  eqiLevel?: number
   /** Coordenadas do local (opcionais, arredondadas a ~11 m). */
   lat?: number
   lng?: number

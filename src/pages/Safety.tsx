@@ -15,7 +15,7 @@ import { PortugalOnly } from '../components/CountryInfoViews'
 import { useCountry } from '../lib/useCountry'
 import { useEntities } from '../lib/useEntities'
 import { transparenteEntities } from '../data/transparente'
-import { TRANSPARENTE_EQI_URL } from '../data/seal'
+import { TRANSPARENTE_EQI_URL, entityKinds } from '../data/seal'
 import { SealBadge, TransparenteBadge } from '../components/SealBadges'
 import { directionsUrl, distance, formatDistance, inPortugal, locateOnce, round4, wazeUrl, type LatLng } from '../lib/geo'
 
@@ -94,7 +94,11 @@ function PlaceCard({ p, me, onRemove, onShow }: { p: Place; me: LatLng | null; o
         </div>
         {p.source === 'meu' && <button className="btn ghost sm" aria-label={tr('Remover')} onClick={() => onRemove(p.id)}><Icon name="trash" size={16} /></button>}
       </div>
-      {(p.seal || p.transparente) && <div className="row wrap" style={{ gap: 6 }}>{p.seal && <SealBadge status={p.seal} />}{p.transparente && <TransparenteBadge />}</div>}
+      {(p.seal || p.source === 'transparente') && <div className="row wrap" style={{ gap: 6 }}>
+        {p.seal && <SealBadge status={p.seal} />}
+        {p.transparente && <TransparenteBadge />}
+        {p.source === 'transparente' && <span className="badge accent">{p.eqiLevel ? tr('Rede EQI · nível {0}', p.eqiLevel) : tr('Rede EQI')}</span>}
+      </div>}
       <FacilityBadges f={p.facilities ?? {}} />
       {p.notes && <p className="small">{p.notes}</p>}
       {p.source === 'transparente' && <span className="xs muted">{tr('Fonte:')}{' '}<a href={TRANSPARENTE_EQI_URL} target="_blank" rel="noopener noreferrer">{tr('TransParente, Entidades Queer Inclusivas')}</a></span>}
@@ -153,8 +157,8 @@ export function Places() {
     })),
     // Entidades certificadas pela TransParente (com autorização), sem repetir as que já estão registadas no Casulo.
     ...transparenteEntities.filter(t => !entities.some(e => e.name.trim().toLowerCase() === t.name.trim().toLowerCase())).map((t, i) => ({
-      id: 'tp-' + i, name: t.name, kind: t.kind, district: t.district, notes: t.address, facilities: t.facilities ?? {},
-      lat: t.lat, lng: t.lng, url: t.url, source: 'transparente' as const, transparente: true,
+      id: 'tp-' + i, name: t.name, kind: t.kind, district: t.district, notes: t.remote ? tr('Também atende à distância.') : undefined, facilities: t.facilities ?? {},
+      lat: t.lat, lng: t.lng, url: t.url, source: 'transparente' as const, transparente: t.seal, eqiLevel: t.level,
     })),
   ], [vault.places, remote, entities])
   const filtered = all.filter(p => (!sealOnly || p.seal === 'selo' || p.transparente) && (!kind || p.kind === kind) && (!district || p.district === district) && filters.every(f => matches(p.facilities ?? {}, f)))
@@ -183,7 +187,7 @@ export function Places() {
         <h3>{tr('Locais trans safe')}</h3>
         <p className="small">{tr('Sítios onde a comunidade se sentiu bem-vinda, com informação sobre casas de banho e balneários: cabines individuais, duches individuais ou comuns e vestiários neutros.')}</p>
         <Link to="/selo" className="small">{tr('🏅 Os marcadores dourados têm o Selo Casulo. Saber mais ou registar uma entidade')}</Link>
-        {transparenteEntities.length > 0 && <span className="xs muted">{tr('Os marcadores roxos são Entidades Queer Inclusivas certificadas pela TransParente, mostradas com autorização.')}{' '}{tr('Fonte:')}{' '}<a href={TRANSPARENTE_EQI_URL} target="_blank" rel="noopener noreferrer">transparente.com.pt</a></span>}
+        {transparenteEntities.length > 0 && <span className="xs muted">{tr('Inclui {0} Entidades Queer Inclusivas da rede EQI da TransParente, mostradas com autorização (veem-se na Lista; a TransParente não publica moradas).', transparenteEntities.length)}{' '}{tr('Fonte:')}{' '}<a href={TRANSPARENTE_EQI_URL} target="_blank" rel="noopener noreferrer">transparente.com.pt</a></span>}
       </section>
       <div className="chips">
         <button className={'chip' + (sealOnly ? ' on' : '')} onClick={() => setSealOnly(!sealOnly)}>{tr('🏅 Com selo')}</button>
@@ -192,7 +196,7 @@ export function Places() {
         ))}
       </div>
       <div className="grid2">
-        <select className="input" value={kind} onChange={e => setKind(e.target.value)} aria-label={tr('Tipo de local')}><option value="">{tr('Todos os tipos')}</option>{placeKinds.map(k => <option key={k} value={k}>{tr(k)}</option>)}</select>
+        <select className="input" value={kind} onChange={e => setKind(e.target.value)} aria-label={tr('Tipo de local')}><option value="">{tr('Todos os tipos')}</option>{entityKinds.map(k => <option key={k} value={k}>{tr(k)}</option>)}</select>
         <select className="input" value={district} onChange={e => setDistrict(e.target.value)} aria-label={tr('Distrito')}><option value="">{tr('Todo o país')}</option>{districts.map(d => <option key={d}>{d}</option>)}</select>
       </div>
       <div className="row between" style={{ gap: 8 }}>
