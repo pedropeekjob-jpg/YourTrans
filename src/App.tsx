@@ -25,6 +25,7 @@ import { Me } from './pages/Me'
 import { Help } from './pages/Help'
 import { DataCare } from './pages/DataCare'
 import { Privacy } from './pages/Privacy'
+import { Suggest } from './pages/Suggest'
 const Transfer = lazy(() => import('./pages/Transfer').then(m => ({ default: m.Transfer })))
 import { AllyCards, AllyForMe, AllyHome, AllyLearn, AllyPractice, Receive } from './pages/Ally'
 
@@ -66,6 +67,7 @@ function Screen() {
           <Route path="/comunidade" element={<Community />} />
           <Route path="/definicoes" element={<Settings />} />
           <Route path="/privacidade" element={<Privacy />} />
+          <Route path="/sugerir" element={<Suggest />} />
           <Route path="/dados" element={<DataCare />} />
           <Route path="/passar" element={<Suspense fallback={null}><Transfer /></Suspense>} />
           <Route path="*" element={<AllyHome />} />
@@ -90,6 +92,7 @@ function Screen() {
           <Route path="/emprego" element={<Work />} />
           <Route path="/definicoes" element={<Settings />} />
           <Route path="/privacidade" element={<Privacy />} />
+          <Route path="/sugerir" element={<Suggest />} />
           <Route path="/dados" element={<DataCare />} />
           <Route path="/passar" element={<Suspense fallback={null}><Transfer /></Suspense>} />
           <Route path="*" element={<Home />} />

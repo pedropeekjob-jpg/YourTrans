@@ -3,7 +3,9 @@ import { tr } from '../i18n'
 export interface SupportOrg {
   id: string
   name: string
-  kind: 'associação' | 'linha' | 'emergência' | 'serviço público'
+  kind: 'associação' | 'projeto' | 'linha' | 'emergência' | 'serviço público'
+  /** Projetos: a associação a que pertencem. */
+  partOf?: string
   description: string
   phone?: string
   url?: string
@@ -17,6 +19,7 @@ export const supportOrgs: SupportOrg[] = [
   { id: 'apav', name: tr('APAV – Linha de Apoio à Vítima'), kind: 'linha', area: tr('Nacional'), phone: '116006', url: 'https://apav.pt', description: tr('Apoio gratuito e confidencial a vítimas de crime, incluindo crimes de ódio.') },
   { id: 'ilga', name: tr('ILGA Portugal'), kind: 'associação', area: tr('Lisboa e nacional'), url: 'https://ilga-portugal.pt', description: tr('Apoio psicológico, jurídico e social, grupos de partilha e o Observatório da Discriminação.') },
   { id: 'opus', name: tr('Opus Diversidades'), kind: 'associação', area: tr('Lisboa e nacional'), url: 'https://opusdiversidades.org', description: tr('Associação LGBTI+ com apoio comunitário, psicológico e projetos de inclusão.') },
+  { id: 'transparente', name: tr('TransParente'), kind: 'projeto', partOf: tr('Opus Diversidades'), area: tr('Nacional e online'), url: 'https://transparente.com.pt', description: tr('Plataforma digital feita por pessoas trans: formação sobre diversidade, apoio a famílias, empregadores inclusivos e um mapa de entidades e espaços seguros.') },
   { id: 'rea', name: tr('rede ex aequo'), kind: 'associação', area: tr('Nacional (jovens)'), url: 'https://www.rea.pt', description: tr('Associação de jovens LGBTI+ e apoiantes, com grupos locais em várias cidades.') },
   { id: 'amplos', name: tr('AMPLOS'), kind: 'associação', area: tr('Nacional (famílias)'), url: 'https://www.amplos.pt', description: tr('Associação de mães e pais pela liberdade de orientação sexual e identidade de género.') },
   { id: 'casaqui', name: tr('Casa Qui'), kind: 'associação', area: tr('Lisboa'), url: 'https://casa-qui.pt', description: tr('Apoio a pessoas LGBTI+ em situação de vulnerabilidade, incluindo acolhimento.') },

@@ -44,6 +44,9 @@ export const api = {
     req<Sent>('/api/reviews', { method: 'POST', body: JSON.stringify({ providerId, answers, comment }) }),
   incident: (data: { district: string; kind: string; setting: string; description: string; reported: boolean }) =>
     req<Sent>('/api/incidents', { method: 'POST', body: JSON.stringify(data) }),
+  /** "Procurei e não encontrei": só a equipa lê, nunca é publicado. */
+  wish: (w: { kind: 'procurei' | 'gostava'; text: string; area?: string; country?: string }) =>
+    req<Sent>('/api/wishes', { method: 'POST', body: JSON.stringify(w) }),
   safePlaces: () => req<Place[]>('/api/places'),
   events: () => req<{ id: string; title: string; date: string; place?: string; url?: string; district?: string }[]>('/api/events'),
   suggestEvent: (e: { title: string; date: string; place?: string; url?: string; district?: string }) =>

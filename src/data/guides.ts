@@ -7,12 +7,22 @@ export interface GuideStep {
   id: string
   title: string
   body: string
+  /** Pontos extra, mostrados em lista por baixo do texto. */
+  detail?: string[]
   where?: string
   cost?: string
   time?: string
   docs?: string[]
   link?: { label: string; url: string }
+  /** Ligações extra (por exemplo, o formulário oficial). */
+  links?: { label: string; url: string }[]
+  /** Leva para outro separador da página de Documentos (checklist ou pedidos). */
+  goTo?: ('checklist' | 'pedidos')[]
 }
+
+/** Requerimento oficial do IRN (Lei 38/2018). Tem um quadrado para pedir um novo assento de nascimento. */
+const IRN_FORM_ADULT = 'https://irn.justica.gov.pt/Portals/33/Impressos/Registo%20Civil/Requerimento%20mudan%C3%A7a%20sexo_maior_v2.pdf'
+const IRN_FORM_MINOR = 'https://irn.justica.gov.pt/Portals/33/Impressos/Registo%20Civil/Requerimento%20mudan%C3%A7a%20sexo_menor%20-%2027-05-2021_v2.pdf'
 
 export interface CountryGuide {
   country: CountryCode
@@ -51,27 +61,37 @@ export const guides: CountryGuide[] = [
         title: tr('Fazer o pedido numa Conservatória do Registo Civil'),
         body:
           tr('Podes dirigir-te a qualquer conservatória do registo civil, não tem de ser a da tua área. ') +
-          tr('Indicas a mudança da menção do sexo e o novo nome próprio. Quem vive no estrangeiro pode tratar num posto consular. ') +
+          tr('Indicas a mudança da menção do sexo e o novo nome próprio no requerimento oficial do IRN: podes descarregá-lo e levá-lo já preenchido, ou preenchê-lo no local. Quem vive no estrangeiro pode tratar num posto consular. ') +
           tr('Algumas conservatórias funcionam por marcação: liga ou marca online antes.'),
         where: tr('Conservatória do Registo Civil (ou consulado)'),
-        docs: [tr('Cartão de Cidadão válido'), tr('Requerimento (preenchido no local)'), tr('Se 16-17 anos: relatório e presença dos representantes legais')],
+        docs: [tr('Cartão de Cidadão válido'), tr('Requerimento do IRN (preenchido antes ou no local)'), tr('Se 16-17 anos: relatório e presença dos representantes legais')],
+        links: [
+          { label: tr('Requerimento oficial, maiores de 18 anos (IRN, PDF)'), url: IRN_FORM_ADULT },
+          { label: tr('Requerimento oficial, 16 e 17 anos (IRN, PDF)'), url: IRN_FORM_MINOR },
+        ],
         link: { label: tr('Marcar atendimento (IRN)'), url: 'https://agendamento.irn.mj.pt' },
       },
       {
         id: 'pt-cost',
-        title: tr('Pagar o emolumento'),
+        title: tr('Custo do pedido: gratuito'),
         body:
-          tr('O procedimento tem um custo fixado na tabela de emolumentos dos registos. ') +
-          tr('Confirma o valor atual antes de ires, porque pode ser atualizado.'),
-        cost: tr('Valor de referência: cerca de 200 € (confirmar no IRN)'),
+          tr('A mudança da menção do sexo e do nome próprio no registo civil já não tem custo. Antes custava cerca de 200 €; se te pedirem esse valor, lembra que o procedimento é gratuito. ') +
+          tr('O único custo do processo é o do novo Cartão de Cidadão (passo 5).'),
+        cost: tr('Gratuito (antes eram cerca de 200 €)'),
       },
       {
         id: 'pt-decision',
         title: tr('Aguardar a decisão'),
         body:
-          tr('O/a conservador/a decide e, sendo deferido, faz o averbamento no assento de nascimento. ') +
+          tr('O/a conservador/a decide e, sendo deferido, faz o averbamento (uma anotação) no teu assento de nascimento. ') +
           tr('A lei prevê um prazo curto para a decisão.'),
+        detail: [
+          tr('Tu decides se queres também uma nova certidão de nascimento. No requerimento há um quadrado para pedir um novo assento de nascimento.'),
+          tr('Se o assinalares, é feito um assento novo, sem qualquer referência à mudança: as certidões passam a mostrar só o nome e o sexo atuais.'),
+          tr('Se não o assinalares, a mudança fica apenas averbada no assento antigo.'),
+        ],
         time: tr('Até 8 dias úteis'),
+        links: [{ label: tr('Ver o quadrado no requerimento (IRN, PDF)'), url: IRN_FORM_ADULT }],
       },
       {
         id: 'pt-cc',
@@ -80,7 +100,7 @@ export const guides: CountryGuide[] = [
           tr('Com o registo atualizado, pede um novo Cartão de Cidadão com o nome e sexo corretos. ') +
           tr('Podes fazê-lo logo na conservatória ou num balcão do Cartão de Cidadão / Loja do Cidadão.'),
         where: tr('Conservatória, Loja do Cidadão ou Espaço Cidadão'),
-        cost: tr('Taxa normal do Cartão de Cidadão (confirmar valores e prazos de urgência)'),
+        cost: tr('Taxa normal do Cartão de Cidadão: é o único custo do processo (confirma valores e prazos de urgência)'),
         link: { label: tr('Cartão de Cidadão (ePortugal)'), url: 'https://eportugal.gov.pt' },
       },
       {
@@ -89,9 +109,10 @@ export const guides: CountryGuide[] = [
         body:
           tr('O novo CC não atualiza automaticamente todas as entidades. Usa a checklist e o gerador de pedidos para tratar ') +
           tr('de bancos, Segurança Social, Finanças, escola, trabalho e contratos.'),
+        goTo: ['checklist', 'pedidos'],
       },
     ],
-    reviewedAt: '2026-10',
+    reviewedAt: '2026-11',
   },
   {
     country: 'BR',
@@ -122,6 +143,7 @@ export const guides: CountryGuide[] = [
         id: 'br-after',
         title: tr('Atualizar os restantes documentos'),
         body: tr('Com a certidão retificada, atualiza RG, CPF, título de eleitor, passaporte, CNH, banco e trabalho.'),
+        goTo: ['checklist'],
       },
     ],
     reviewedAt: '2026-10',
@@ -173,6 +195,7 @@ export const guides: CountryGuide[] = [
         id: 'es-after',
         title: tr('Atualizar tudo o resto'),
         body: tr('Com o novo DNI, atualiza a Segurança Social, a Agência Tributária, o banco, a escola, o trabalho e os contratos.'),
+        goTo: ['checklist'],
       },
     ],
     reviewedAt: '2026-11',
@@ -225,6 +248,7 @@ export const guides: CountryGuide[] = [
         id: 'fr-after',
         title: tr('Atualizar tudo o resto'),
         body: tr('Atualiza a Segurança Social (Ameli), a CAF, as Finanças, o banco, a escola, o trabalho e os contratos.'),
+        goTo: ['checklist'],
       },
     ],
     reviewedAt: '2026-11',

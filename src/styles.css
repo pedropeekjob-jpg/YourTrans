@@ -363,3 +363,8 @@ textarea.input { min-height: 110px; resize: vertical; }
 .install-safety summary::-webkit-details-marker { display: none; }
 .install-safety summary::after { content: '▾'; margin-left: auto; color: var(--muted); }
 .install-safety[open] summary::after { content: '▴'; }
+
+/* Explicação em pares título/texto (ex.: "O que é e como funciona" do cartão). */
+.explain { margin: 10px 0 0; display: grid; gap: 4px; }
+.explain dt { font-weight: 650; margin-top: 6px; }
+.explain dd { margin: 0; }

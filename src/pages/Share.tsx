@@ -85,9 +85,22 @@ export function Share() {
 
   return (
     <>
-      <TopBar title={tr('Pessoas que me apoiam')} back />
+      <TopBar title={tr('Cartão para quem me apoia')} back />
       <div className="page">
-        <p className="small muted">{tr('Diz às pessoas à tua volta o que te ajuda, sem teres de repetir a conversa vezes sem conta. Elas recebem uma ligação, guardam o cartão na app e aprendem a apoiar-te.')}</p>
+        <details className="card tint-sky" open={!vault.supportCard}>
+          <summary style={{ fontWeight: 650, cursor: 'pointer' }}>{tr('O que é e como funciona')}</summary>
+          <dl className="small explain">
+            <dt>{tr('O que é')}</dt>
+            <dd>{tr('Um cartão com o nome e os pronomes que usas, o que te ajuda, o que te magoa e quem já sabe. No separador ao lado há também um plano para o trabalho ou a escola.')}</dd>
+            <dt>{tr('Para que serve')}</dt>
+            <dd>{tr('Para não teres de repetir a mesma conversa a cada pessoa, e para quem te apoia saber o que dizer e o que evitar.')}</dd>
+            <dt>{tr('Como é partilhado')}</dt>
+            <dd>{tr('Tocas em Partilhar e crias uma ligação ou um QR, de preferência com uma palavra-passe que dizes pessoalmente. A pessoa abre-o no telemóvel dela e o cartão fica guardado no Casulo dela. Nada passa pelos nossos servidores.')}</dd>
+            <dt>{tr('Porque partilhar')}</dt>
+            <dd>{tr('Quem gosta de ti muitas vezes quer ajudar e não sabe como. O cartão diz-lhe, com as tuas palavras, e a lista de quem já sabe evita que alguém conte por ti a quem ainda não sabe.')}</dd>
+          </dl>
+          <p className="xs muted">{tr('Só partilhas se e quando quiseres. Para mudar alguma coisa, envia uma ligação nova.')}</p>
+        </details>
         <Seg<Tab> value={tab} onChange={t => setParams({ tab: t }, { replace: true })} options={[{ id: 'cartao', label: tr('O meu cartão') }, { id: 'plano', label: tr('Trabalho ou escola') }]} />
 
         {tab === 'cartao' && (
@@ -111,8 +124,8 @@ export function Share() {
               <ChipPicker options={hurtSuggestions} value={card.hurts} onChange={hurts => setCard({ hurts })} placeholder={tr('Escreve outra coisa')} />
             </section>
             <section className="card">
-              <h3>{tr('Quem já sabe')}</h3>
-              <p className="xs muted">{tr('Assim ninguém conta a quem ainda não sabe. Toca no estado para mudar.')}</p>
+              <h3>{tr('Quem já sabe (e quem ainda não)')}</h3>
+              <p className="xs muted">{tr('Acrescenta pessoas ou grupos e toca no estado para o mudar: “Sabe”, “Ainda não: eu conto” ou “Não sabe: não fales disto”. Quem recebe o cartão vê esta lista e sabe com quem pode falar de ti, para ninguém contar por ti.')}</p>
               {card.whoKnows.map(w => (
                 <div key={w.id} className="row between">
                   <span className="small grow">{w.who}</span>
