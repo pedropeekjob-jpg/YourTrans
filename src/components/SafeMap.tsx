@@ -102,7 +102,8 @@ export function SafeMap({ places = [], user, selected, onSelect, pick, onPick, h
     if (!m || !ml || !ready) return
     markers.current.forEach(x => x.remove())
     markers.current = places.map(p => {
-      const el = markerEl((p.source === 'comunidade' ? 'community' : 'mine') + (p.id === selected ? ' on' : ''), p.name)
+      const cls = p.seal === 'selo' ? 'seal' : p.source === 'meu' ? 'mine' : 'community'
+      const el = markerEl(cls + (p.id === selected ? ' on' : ''), p.name)
       el.addEventListener('click', ev => { ev.stopPropagation(); cb.current.onSelect?.(p.id) })
       return new ml.Marker({ element: el, anchor: 'bottom' }).setLngLat([p.lng, p.lat]).addTo(m)
     })

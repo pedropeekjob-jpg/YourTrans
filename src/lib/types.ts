@@ -85,7 +85,11 @@ export interface Place {
   district: string
   notes?: string
   facilities: Facilities
-  source?: 'meu' | 'comunidade'
+  source?: 'meu' | 'comunidade' | 'entidade'
+  /** Só em entidades registadas para o Selo Casulo. */
+  entityId?: string
+  seal?: 'selo' | 'em-avaliacao' | 'sem-selo'
+  transparente?: boolean
   /** Coordenadas do local (opcionais, arredondadas a ~11 m). */
   lat?: number
   lng?: number

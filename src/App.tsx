@@ -14,6 +14,7 @@ import { Health } from './pages/Health'
 import { ProviderPage } from './pages/ProviderPage'
 import { Journal } from './pages/Journal'
 import { Safety } from './pages/Safety'
+import { Seal, SealEntityPage } from './pages/Seal'
 import { Community } from './pages/Community'
 import { Work } from './pages/Work'
 import { Settings } from './pages/Settings'
@@ -64,6 +65,8 @@ function Screen() {
           <Route path="/para-mim" element={<AllyForMe />} />
           <Route path="/receber/:data" element={<Receive />} />
           <Route path="/comunidade" element={<Community />} />
+          <Route path="/selo" element={<Seal />} />
+          <Route path="/selo/:id" element={<SealEntityPage />} />
           <Route path="/definicoes" element={<Settings />} />
           <Route path="/privacidade" element={<Privacy />} />
           <Route path="/dados" element={<DataCare />} />
@@ -86,6 +89,8 @@ function Screen() {
           <Route path="/saude/:id" element={<ProviderPage />} />
           <Route path="/diario" element={<Journal />} />
           <Route path="/seguranca" element={<Safety />} />
+          <Route path="/selo" element={<Seal />} />
+          <Route path="/selo/:id" element={<SealEntityPage />} />
           <Route path="/comunidade" element={<Community />} />
           <Route path="/emprego" element={<Work />} />
           <Route path="/definicoes" element={<Settings />} />

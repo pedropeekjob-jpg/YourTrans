@@ -3,7 +3,7 @@ import { TopBar } from '../components/Layout'
 import { tr } from '../i18n'
 
 /** Política de privacidade. Atualizar a data sempre que o texto mudar. */
-export const PRIVACY_UPDATED = '2026-11-11'
+export const PRIVACY_UPDATED = '2026-11-13'
 export const PRIVACY_CONTACT = 'privacidade@casulo.space'
 /** Responsável pelo tratamento (pessoa singular). */
 export const PRIVACY_CONTROLLER = 'Pedro Oliveira'
@@ -42,14 +42,15 @@ export function Privacy() {
         ]} />
 
         <Section title={tr('2. O que partilhas com a comunidade')} items={[
-          tr('Só quando o escolhes: locais seguros, testemunhos, perguntas e respostas, eventos, avaliações de profissionais, de empregadores e de etapas do percurso de saúde, relatos de custos e tempos de espera, relatos de discriminação e pedidos de mentoria.'),
+          tr('Só quando o escolhes: locais seguros, testemunhos, perguntas e respostas, eventos, avaliações de profissionais, de empregadores e de etapas do percurso de saúde, relatos de custos e tempos de espera, relatos de discriminação, pedidos de mentoria, registos de entidades para o Selo Casulo e avaliações dessas entidades.'),
           tr('Guardamos apenas o texto e as opções do formulário e o mês do envio. Não pedimos nome, e-mail nem conta. A alcunha é opcional.'),
           tr('A localização de um local seguro é arredondada (cerca de 10 metros) e só é aceite dentro de Portugal.'),
           tr('Cada envio passa por um filtro automático que corre só no nosso servidor, sem enviar o texto a outros serviços. O que está limpo é publicado; o que tiver insultos, ameaças, dados pessoais, publicidade ou sinais de crise fica à espera de uma pessoa da moderação. O que é rejeitado é apagado de imediato.'),
-          tr('Profissionais de saúde e pedidos de mentoria são sempre vistos por uma pessoa antes de aparecerem. Qualquer pessoa pode denunciar o que está publicado, e o conteúdo sai do ar até ser revisto.'),
+          tr('Profissionais de saúde, pedidos de mentoria e registos para o Selo Casulo são sempre vistos por uma pessoa antes de aparecerem. Qualquer pessoa pode denunciar o que está publicado, e o conteúdo sai do ar até ser revisto.'),
           tr('Relatos de custos e tempos de espera: guardamos só a parte do percurso, o setor, o ano e o valor, sem texto. Mostramos apenas intervalos (mínimo, mediana e máximo) e só quando há 3 ou mais relatos.'),
           tr('Relatos de discriminação: a descrição só é vista pela moderação. Publicamos apenas números agregados, e só quando há 5 ou mais relatos, para ninguém ser identificado.'),
           tr('Pedidos de mentoria: o contacto que deixas só é visto pela moderação, para fazer a ligação, e é apagado ao fim de 6 meses.'),
+          tr('Registo para o Selo Casulo: o e-mail da entidade só é visto pela moderação, nunca é publicado, e é apagado quando o registo é rejeitado ou retirado.'),
           tr('Não escrevas no texto dados que te identifiquem a ti ou a outras pessoas. A moderação retira-os ou rejeita o envio.'),
         ]} />
 

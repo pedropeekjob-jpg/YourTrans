@@ -130,6 +130,7 @@ p { margin: 0; }
 .stack { display: grid; gap: 8px; }
 .stack-lg { display: grid; gap: 14px; }
 .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
 
 .hero {
   background: var(--hero); color: var(--hero-ink); border-radius: 26px; padding: 20px 20px 26px; display: grid; gap: 14px;
@@ -193,6 +194,8 @@ p { margin: 0; }
 .badge.accent { background: var(--accent-soft); color: var(--accent); }
 .badge.mint { background: var(--mint-soft); color: var(--mint); }
 .badge.amber { background: var(--amber-soft); color: #a86812; }
+.badge.seal { background: #fff3cf; color: #8a5a00; border: 1px solid #e3a72f; }
+a.badge { text-decoration: none; }
 
 /* Formulários */
 label.field { display: grid; gap: 6px; font-size: .875rem; font-weight: 600; }
@@ -345,6 +348,8 @@ textarea.input { min-height: 110px; resize: vertical; }
 .map-pin span::after { content: ''; position: absolute; inset: 6px; border-radius: 50%; background: #fff; }
 .map-pin.community { --pin: var(--sky); }
 .map-pin.mine { --pin: var(--rose); }
+.map-pin.seal { --pin: #e3a72f; }
+.map-pin.seal span::after { background: #fff3cf; }
 .map-pin.on span { box-shadow: 0 0 0 3px var(--text), 0 0 22px var(--pin); }
 .map-pin.on { z-index: 2; }
 .map-pin.me { width: 20px; height: 20px; }
