@@ -2214,5 +2214,8 @@
 "Também atende à distância.": "Auch aus der Ferne.",
 "Rede EQI · nível {0}": "EQI-Netzwerk · Stufe {0}",
 "Rede EQI": "EQI-Netzwerk",
-"Inclui {0} Entidades Queer Inclusivas da rede EQI da TransParente, mostradas com autorização (as que não têm morada pública só aparecem na Lista).": "Enthält {0} queer-inklusive Organisationen aus dem EQI-Netzwerk von TransParente, mit Erlaubnis gezeigt (ohne öffentliche Adresse nur in der Liste)."
+"Inclui {0} Entidades Queer Inclusivas da rede EQI da TransParente, mostradas com autorização (as que não têm morada pública só aparecem na Lista).": "Enthält {0} queer-inklusive Organisationen aus dem EQI-Netzwerk von TransParente, mit Erlaubnis gezeigt (ohne öffentliche Adresse nur in der Liste).",
+"Rede EQI da TransParente": "EQI-Netzwerk von TransParente",
+"Entidades Queer Inclusivas avaliadas pela TransParente, mostradas com autorização. Ainda não têm avaliações no Casulo.": "Von TransParente geprüfte queer-inklusive Organisationen, mit Erlaubnis gezeigt. Noch keine Bewertungen im Casulo.",
+"Mais {0} locais sem morada no mapa: ver na Lista": "{0} weitere Orte ohne Adresse auf der Karte: in der Liste ansehen"
 }

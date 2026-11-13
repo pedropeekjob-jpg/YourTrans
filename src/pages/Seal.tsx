@@ -10,6 +10,7 @@ import { FacilityBadges } from './Safety'
 import { districts } from '../data/health'
 import { api, apiEnabled } from '../lib/api'
 import { useEntities } from '../lib/useEntities'
+import { transparenteEntities } from '../data/transparente'
 import { SealBadge, TransparenteBadge } from '../components/SealBadges'
 import { inPortugal, round4, type LatLng } from '../lib/geo'
 import type { Facilities } from '../lib/types'
@@ -81,16 +82,19 @@ function Entities() {
   const [district, setDistrict] = useState('')
   const list = entities.filter(e => (!only || e.seal === 'selo') && (!district || e.district === district))
     .sort((a, b) => Number(b.seal === 'selo') - Number(a.seal === 'selo') || b.reviewCount - a.reviewCount)
-  if (!apiEnabled) return <Empty icon="star" title={tr('Sem ligação ao servidor')} text={tr('As entidades com selo aparecem quando houver ligação.')} />
+  // Rede EQI da TransParente (com autorização), sem repetir as já registadas no Casulo.
+  const eqi = transparenteEntities.filter(t => (!only || t.seal) && (!district || t.district === district) &&
+    !entities.some(e => e.name.trim().toLowerCase() === t.name.trim().toLowerCase()))
   return (
     <>
       <div className="row between" style={{ gap: 8 }}>
         <button className={'chip' + (only ? ' on' : '')} onClick={() => setOnly(!only)}>{tr('🏅 Só com selo')}</button>
         <select className="input" style={{ maxWidth: 180 }} value={district} onChange={e => setDistrict(e.target.value)} aria-label={tr('Distrito')}><option value="">{tr('Todo o país')}</option>{districts.map(d => <option key={d}>{d}</option>)}</select>
       </div>
-      {list.length === 0 ? (
+      {!apiEnabled && <p className="small muted" style={{ margin: 0 }}>{tr('As entidades com selo aparecem quando houver ligação.')}</p>}
+      {list.length === 0 && eqi.length === 0 ? (
         <Empty icon="star" title={loaded ? tr('Ainda não há entidades aqui') : tr('A carregar…')} text={tr('Conheces um sítio que devia ter o selo? Partilha esta página com quem lá trabalha.')} />
-      ) : (
+      ) : list.length === 0 ? null : (
         <div className="stack">
           {list.map(e => (
             <Link key={e.id} to={`/selo/${e.id}`} className="card" style={{ textDecoration: 'none', color: 'inherit' }}>
@@ -105,6 +109,29 @@ function Entities() {
             </Link>
           ))}
         </div>
+      )}
+      {eqi.length > 0 && (
+        <>
+          <h2 style={{ fontSize: '1.05rem', margin: '8px 0 0' }}>{tr('Rede EQI da TransParente')}{' '}<span className="muted small">({eqi.length})</span></h2>
+          <p className="xs muted" style={{ margin: 0 }}>{tr('Entidades Queer Inclusivas avaliadas pela TransParente, mostradas com autorização. Ainda não têm avaliações no Casulo.')}{' '}{tr('Fonte:')}{' '}<a href={TRANSPARENTE_EQI_URL} target="_blank" rel="noopener noreferrer">transparente.com.pt</a></p>
+          <div className="stack">
+            {eqi.map(t => (
+              <a key={t.url} href={t.url} target="_blank" rel="noopener noreferrer" className="card" style={{ textDecoration: 'none', color: 'inherit' }}>
+                <div className="row between" style={{ alignItems: 'flex-start' }}>
+                  <div className="stack" style={{ gap: 2 }}>
+                    <h3>{t.name}</h3>
+                    <span className="small muted">{tr(t.kind)} · {t.district}{t.address ? ' · ' + t.address : ''}</span>
+                  </div>
+                  <Icon name="external" size={18} />
+                </div>
+                <div className="row wrap" style={{ gap: 6 }}>
+                  {t.seal && <TransparenteBadge link={false} />}
+                  <span className="badge accent">{t.level ? tr('Rede EQI · nível {0}', t.level) : tr('Rede EQI')}</span>
+                </div>
+              </a>
+            ))}
+          </div>
+        </>
       )}
     </>
   )

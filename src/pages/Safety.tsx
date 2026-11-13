@@ -208,6 +208,11 @@ export function Places() {
       {view === 'mapa' && (
         <>
           <SafeMap places={onMap} user={me} selected={selected} onSelect={setSelected} height="min(60vh, 460px)" />
+          {filtered.length > onMap.length && !sel && (
+            <button className="btn ghost sm" style={{ justifySelf: 'start' }} onClick={() => setView('lista')}>
+              <Icon name="pin" size={16} />{tr('Mais {0} locais sem morada no mapa: ver na Lista', filtered.length - onMap.length)}
+            </button>
+          )}
           {sel ? <PlaceCard p={sel} me={me} onRemove={remove} /> : (
             <p className="small muted" style={{ margin: 0 }}>
               {onMap.length ? tr('Toca num marcador para ver os detalhes.') : tr('Ainda não há locais com posição no mapa.')}{' '}
