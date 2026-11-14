@@ -3,7 +3,6 @@ import { guides, type CountryGuide } from './guides'
 import { supportOrgs, supportOrgsBR, supportOrgsES, supportOrgsFR, type SupportOrg } from './support'
 import { guidesWorld } from './guidesWorld'
 import { emergencyOrg, supportWorld } from './supportWorld'
-import { infoFor } from './countryInfo'
 
 // Pacotes por país. A língua e o país são independentes: uma pessoa brasileira
 // em Lisboa pode ler o pacote de Portugal em português do Brasil.
@@ -72,6 +71,14 @@ function countryName(code: string): string {
 
 /** Bandeira em emoji a partir do código ISO. */
 const flagOf = (code: string) => String.fromCodePoint(...[...code].map(ch => 0x1f1e6 + ch.charCodeAt(0) - 65))
+
+/**
+ * Países com informação de direitos e saúde em countryInfo.ts. Fica aqui só a lista de códigos para o
+ * texto completo não entrar no arranque: vai num ficheiro à parte, que o service worker guarda na mesma
+ * para toda a gente (o servidor nunca fica a saber o país de ninguém). Um teste garante que coincidem.
+ */
+export const COUNTRIES_WITH_INFO = new Set(['AR', 'BR', 'CA', 'CL', 'CO', 'DE', 'ES', 'FR', 'MX', 'US', 'UY'])
+const infoFor = (code: string) => COUNTRIES_WITH_INFO.has(code)
 
 const none: Coverage = { guide: false, letters: false, health: false, rights: false, support: false }
 

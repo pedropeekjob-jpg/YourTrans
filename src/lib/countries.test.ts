@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { hasIlgaPage, ilgaCountryUrl } from '../data/ilga'
 import { lessonsFor } from '../data/allies'
 import { annualEvents } from '../data/events'
-import { communityAllowed, countries, countryForLang, countryPack, isCountry, isStale, monthsSinceReview } from '../data/countries'
+import { COUNTRIES_WITH_INFO, communityAllowed, countries, countryForLang, countryPack, isCountry, isStale, monthsSinceReview } from '../data/countries'
 import { emptyVault } from './types'
 
 describe('pacotes por país', () => {
@@ -82,6 +82,9 @@ describe('validade da informação', () => {
 
 describe('direitos, saúde e entidades por país', async () => {
   const { countryInfo } = await import('../data/countryInfo')
+  it('a lista de códigos com informação coincide com countryInfo', () => {
+    expect([...COUNTRIES_WITH_INFO].sort()).toEqual(countryInfo.map(i => i.country).sort())
+  })
   it('cada país com guia tem direitos, saúde e entidades', () => {
     for (const c of countries.filter(c => c.guide && c.code !== 'PT')) {
       const info = countryInfo.find(i => i.country === c.code)
