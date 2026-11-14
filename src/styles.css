@@ -190,7 +190,9 @@ p { margin: 0; }
 .seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; background: var(--surface-2); border-radius: 14px; padding: 4px; gap: 4px; }
 .seg button { border: 0; background: transparent; padding: 9px 4px; border-radius: 11px; font-weight: 650; font-size: .875rem; cursor: pointer; color: var(--muted); }
 .seg button.on { background: var(--surface); color: var(--text); box-shadow: var(--shadow); }
-.seg.scroll { grid-auto-columns: max-content; overflow-x: auto; scrollbar-width: none; }
+.seg.scroll { grid-auto-columns: max-content; overflow-x: auto; scrollbar-width: none; scroll-padding-inline: 24px;
+  /* Esbate a ponta direita: mostra que há mais separadores para o lado. */
+  mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); }
 .seg.scroll::-webkit-scrollbar { display: none; }
 .seg.scroll button { padding: 9px 14px; white-space: nowrap; }
 

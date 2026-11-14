@@ -21,7 +21,8 @@ export function useMilestones(): Milestone[] {
   const healthDone = health.filter(h => vault.healthPath.steps[h.step.id]?.done).length
   return [
     { id: 'apoio', title: tr('Contar a quem me apoia'), to: '/partilhar', done: !!vault.supportCard },
-    ...(pack.guide?.steps ?? []).map(st => ({ id: st.id, title: st.title, to: '/documentos', done: !!vault.guideSteps[st.id] })),
+    // Só ações contam como etapas; passos de informação (como o custo) ficam no guia.
+    ...(pack.guide?.steps ?? []).filter(st => !st.info).map(st => ({ id: st.id, title: st.title, to: '/documentos', done: !!vault.guideSteps[st.id] })),
     ...(entities.length ? [{ id: 'entidades', title: tr('Atualizar banco, escola, trabalho e contratos'), to: '/documentos?tab=checklist', done: checks === entities.length, sub: tr('{0}/{1} passos', checks, entities.length) }] : []),
     // Só entra no caminho se a pessoa escolheu partes do percurso de saúde.
     ...(health.length ? [{ id: 'saude', title: tr('O meu percurso de saúde'), to: '/percurso/saude', done: healthDone === health.length, sub: tr('{0}/{1} passos', healthDone, health.length) }] : []),
