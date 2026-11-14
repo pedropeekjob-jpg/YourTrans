@@ -378,3 +378,8 @@ textarea.input { min-height: 110px; resize: vertical; }
 .explain { margin: 10px 0 0; display: grid; gap: 4px; }
 .explain dt { font-weight: 650; margin-top: 6px; }
 .explain dd { margin: 0; }
+
+/* Acessibilidade: contorno visível ao navegar por teclado ou leitor de ecrã (não aparece ao tocar). */
+:where(a, button, [role="button"], [tabindex], summary, select, input[type="checkbox"], input[type="radio"]):focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 2px; border-radius: inherit;
+}

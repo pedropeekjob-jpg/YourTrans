@@ -27,6 +27,8 @@ const RATE_LIMIT = Number(process.env.RATE_LIMIT ?? 30)
 
 mkdirSync(dirname(DB_PATH), { recursive: true })
 const db = new DatabaseSync(DB_PATH)
+// WAL: as leituras não esperam pelas escritas (e vice-versa).
+db.exec('PRAGMA journal_mode = WAL; PRAGMA synchronous = NORMAL; PRAGMA busy_timeout = 3000;')
 db.exec(`
   CREATE TABLE IF NOT EXISTS submissions (
     id TEXT PRIMARY KEY,
@@ -44,6 +46,8 @@ const cols = new Set(db.prepare('PRAGMA table_info(submissions)').all().map(c =>
 if (!cols.has('auto')) db.exec('ALTER TABLE submissions ADD COLUMN auto INTEGER NOT NULL DEFAULT 0')
 if (!cols.has('reports')) db.exec('ALTER TABLE submissions ADD COLUMN reports INTEGER NOT NULL DEFAULT 0')
 if (!cols.has('fp')) db.exec('ALTER TABLE submissions ADD COLUMN fp TEXT')
+// Procura de textos repetidos (corre a cada envio).
+db.exec('CREATE INDEX IF NOT EXISTS idx_type_fp ON submissions(type, fp)')
 
 /* ---------- validação ---------- */
 
@@ -88,7 +92,7 @@ const validators = {
   story: b => ['testemunho', 'pergunta'].includes(b.kind) && STORY_TOPICS.includes(b.topic) && STORY_PHASES.includes(b.phase) &&
     str(b.title, 3, 120) && str(b.body, 20, 4000) && opt(b.nickname, 40) && opt(b.warning, 120),
   reply: b => str(b.storyId, 1, 40) && str(b.body, 2, 1500) && opt(b.nickname, 40),
-  event: b => str(b.title, 3, 160) && !isNaN(Date.parse(b.date)) && opt(b.place, 160) && opt(b.url, 300),
+  event: b => str(b.title, 3, 160) && !isNaN(Date.parse(b.date)) && opt(b.place, 160) && httpsUrl(b.url),
   incident: b => str(b.kind, 2, 60) && str(b.setting, 2, 60) && str(b.district, 2, 40) && opt(b.description, 1000) && bool(b.reported),
   mentorship: b => ['mentee', 'mentor'].includes(b.role) && str(b.nickname, 1, 40) && str(b.stage, 2, 60) && Array.isArray(b.topics) && b.topics.length <= 12 && str(b.contact, 5, 120),
   // Relato anónimo: só números e escolhas fixas, sem texto livre.
@@ -185,12 +189,16 @@ function limited(req) {
 
 function stories() {
   const rows = db.prepare("SELECT id, payload, month FROM submissions WHERE type = 'story' AND status = 'approved' ORDER BY rowid DESC").all()
-  const replies = db.prepare("SELECT id, payload, month FROM submissions WHERE type = 'reply' AND status = 'approved' ORDER BY rowid").all()
-    .map(r => ({ id: r.id, month: r.month, ...JSON.parse(r.payload) }))
+  // Respostas agrupadas por testemunho de uma vez (antes: uma procura na lista toda por testemunho).
+  const replies = new Map()
+  for (const r of db.prepare("SELECT id, payload, month FROM submissions WHERE type = 'reply' AND status = 'approved' ORDER BY rowid").all()) {
+    const { storyId, body, nickname } = JSON.parse(r.payload)
+    replies.set(storyId, [...(replies.get(storyId) ?? []), { id: r.id, body, nickname, month: r.month }])
+  }
   const support = new Map(db.prepare('SELECT story_id, count FROM support').all().map(r => [r.story_id, r.count]))
   return rows.map(r => ({
     id: r.id, month: r.month, ...JSON.parse(r.payload), support: support.get(r.id) ?? 0,
-    replies: replies.filter(x => x.storyId === r.id).map(({ id, body, nickname, month }) => ({ id, body, nickname, month })),
+    replies: replies.get(r.id) ?? [],
   }))
 }
 
@@ -200,9 +208,10 @@ const approved = type => db.prepare("SELECT id, payload FROM submissions WHERE t
   .map(r => ({ id: r.id, ...JSON.parse(r.payload) }))
 
 function providers() {
-  const reviews = approved('review')
+  const reviews = new Map()
+  for (const r of approved('review')) reviews.set(r.providerId, [...(reviews.get(r.providerId) ?? []), r])
   return approved('provider').map(p => {
-    const rs = reviews.filter(r => r.providerId === p.id)
+    const rs = reviews.get(p.id) ?? []
     const scores = {}
     if (rs.length) for (const k of ['nomeCerto', 'semJulgamento', 'conhecimento', 'recomendaria']) scores[k] = rs.filter(r => r.answers[k]).length / rs.length
     return { ...p, source: 'comunidade', reviewCount: rs.length, scores: rs.length ? scores : undefined }
@@ -306,7 +315,7 @@ function purgeOld() {
   db.prepare("DELETE FROM submissions WHERE type = 'wish' AND month < ?").run(y.toISOString().slice(0, 7))
 }
 purgeOld()
-setInterval(purgeOld, 86_400_000).unref()
+setInterval(() => { purgeOld(); publicCache.clear() }, 86_400_000).unref()
 
 /* ---------- HTTP ---------- */
 
@@ -348,6 +357,36 @@ function isMod(req) {
   return timingSafeEqual(Buffer.from(token), Buffer.from(MOD_TOKEN))
 }
 
+/* ---------- leituras públicas em cache ---------- */
+
+/**
+ * As leituras públicas são calculadas a partir da base de dados toda. Guardamos o resultado
+ * durante 30 s e esquecemo-lo a cada escrita (envio, apoio, denúncia, moderação), para que
+ * muitas pessoas a abrir a app ao mesmo tempo não repitam o mesmo trabalho.
+ */
+const PUBLIC_TTL = 30_000
+const publicCache = new Map()
+function cached(path, compute) {
+  const hit = publicCache.get(path)
+  if (hit && Date.now() - hit.at < PUBLIC_TTL) return hit.data
+  const data = compute()
+  publicCache.set(path, { at: Date.now(), data })
+  return data
+}
+const invalidate = () => publicCache.clear()
+
+const publicRoutes = {
+  '/api/providers': () => providers(),
+  '/api/places': () => approved('place').map(p => ({ ...p, source: 'comunidade' })),
+  '/api/events': () => approved('event').filter(e => Date.parse(e.date) > Date.now() - 86_400_000),
+  '/api/employers': () => employers(),
+  '/api/stories': () => stories(),
+  '/api/experiences': () => experienceStats(),
+  '/api/stage-reviews': () => stageReviews(),
+  '/api/entities': () => entities(),
+  '/api/incidents/stats': () => incidentStats(),
+}
+
 const postRoutes = { '/api/stories': 'story', '/api/replies': 'reply', '/api/providers': 'provider', '/api/reviews': 'review', '/api/places': 'place', '/api/events': 'event', '/api/incidents': 'incident', '/api/mentorship': 'mentorship', '/api/employers': 'employer', '/api/experiences': 'experience', '/api/stage-reviews': 'stageReview', '/api/entities': 'entity', '/api/seal-reviews': 'sealReview', '/api/wishes': 'wish' }
 
 export const server = createServer(async (req, res) => {
@@ -358,15 +397,7 @@ export const server = createServer(async (req, res) => {
 
     if (req.method === 'GET') {
       if (path === '/api/health') return send(res, 200, { ok: true })
-      if (path === '/api/providers') return send(res, 200, providers())
-      if (path === '/api/places') return send(res, 200, approved('place').map(p => ({ ...p, source: 'comunidade' })))
-      if (path === '/api/events') return send(res, 200, approved('event').filter(e => Date.parse(e.date) > Date.now() - 86_400_000))
-      if (path === '/api/employers') return send(res, 200, employers())
-      if (path === '/api/stories') return send(res, 200, stories())
-      if (path === '/api/experiences') return send(res, 200, experienceStats())
-      if (path === '/api/stage-reviews') return send(res, 200, stageReviews())
-      if (path === '/api/entities') return send(res, 200, entities())
-      if (path === '/api/incidents/stats') return send(res, 200, incidentStats())
+      if (publicRoutes[path]) return send(res, 200, cached(path, publicRoutes[path]))
       if (path === '/mod') {
         res.writeHead(200, { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store', 'x-frame-options': 'DENY' })
         return res.end(readFileSync(join(here, 'mod.html')))
@@ -385,6 +416,7 @@ export const server = createServer(async (req, res) => {
     }
 
     if (req.method === 'POST') {
+      invalidate()
       const type = postRoutes[path]
       if (type) {
         if (limited(req)) return send(res, 429, { error: 'Demasiados pedidos. Tenta mais tarde.' })

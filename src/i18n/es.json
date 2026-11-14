@@ -2173,5 +2173,9 @@
 "🔊 Ouvir": "🔊 Escuchar",
 "🚪 Cabines individuais": "🚪 Cabinas individuales",
 "🚻 WC neutro": "🚻 Baño neutro",
-"🚿 Duches individuais": "🚿 Duchas individuales"
+"🚿 Duches individuais": "🚿 Duchas individuales",
+"O servidor está a demorar. Tenta daqui a pouco.": "El servidor está tardando. Inténtalo de nuevo en un momento.",
+"Sem ligação ao servidor. Tenta daqui a pouco.": "Sin conexión con el servidor. Inténtalo de nuevo en un momento.",
+"Demasiados pedidos. Tenta mais tarde.": "Demasiadas solicitudes. Inténtalo más tarde.",
+"Dados inválidos": "Datos no válidos"
 }

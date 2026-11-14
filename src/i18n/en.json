@@ -2222,5 +2222,9 @@
 "🔊 Ouvir": "🔊 Listen",
 "🚪 Cabines individuais": "🚪 Private cubicles",
 "🚻 WC neutro": "🚻 Gender-neutral toilet",
-"🚿 Duches individuais": "🚿 Private showers"
+"🚿 Duches individuais": "🚿 Private showers",
+"O servidor está a demorar. Tenta daqui a pouco.": "The server is taking a while. Try again shortly.",
+"Sem ligação ao servidor. Tenta daqui a pouco.": "No connection to the server. Try again shortly.",
+"Demasiados pedidos. Tenta mais tarde.": "Too many requests. Try again later.",
+"Dados inválidos": "Invalid data"
 }

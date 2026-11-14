@@ -1176,5 +1176,9 @@
 "✨ Momento de euforia guardado": "✨ Momento de euforia salvo",
 "🏅 Os marcadores dourados têm o Selo Casulo. Saber mais ou registar uma entidade": "🏅 Os marcadores dourados têm o Selo Casulo. Saiba mais ou cadastre uma entidade",
 "🚻 WC neutro": "🚻 Banheiro neutro",
-"🚿 Duches individuais": "🚿 Chuveiros individuais"
+"🚿 Duches individuais": "🚿 Chuveiros individuais",
+"O servidor está a demorar. Tenta daqui a pouco.": "O servidor está demorando. Tente de novo daqui a pouco.",
+"Sem ligação ao servidor. Tenta daqui a pouco.": "Sem conexão com o servidor. Tente de novo daqui a pouco.",
+"Demasiados pedidos. Tenta mais tarde.": "Muitas solicitações. Tente mais tarde.",
+"Dados inválidos": "Dados inválidos"
 }

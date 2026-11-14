@@ -147,6 +147,9 @@ export function VaultProvider({ children }: { children: ReactNode }) {
 
   const replaceVault = useCallback(async (v: Vault) => {
     if (!keyRef.current) return
+    // Uma gravação pendente (dos últimos 300 ms) não pode escrever por cima do cofre importado.
+    window.clearTimeout(saveTimer.current)
+    pending.current = null
     await storage.saveVault(keyRef.current, v)
     setVault(v)
   }, [])

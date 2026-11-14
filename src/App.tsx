@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect } from 'react'
+import { Suspense, lazy, useEffect, type ComponentType } from 'react'
 import { HashRouter, Route, Routes } from 'react-router-dom'
 import { VaultProvider, useVault } from './lib/vault-context'
 import { ToastProvider } from './components/ui'
@@ -8,27 +8,50 @@ import { NewPinSheet, RecoveryCodeSheet } from './components/Recovery'
 import { Lock } from './components/Lock'
 import { Onboarding } from './pages/Onboarding'
 import { Home } from './pages/Home'
-import { Documents } from './pages/Documents'
-import { NameRehearsal } from './pages/NameRehearsal'
-import { Health } from './pages/Health'
-import { ProviderPage } from './pages/ProviderPage'
-import { Journal } from './pages/Journal'
-import { Safety } from './pages/Safety'
-import { Seal, SealEntityPage } from './pages/Seal'
-import { Community } from './pages/Community'
-import { Work } from './pages/Work'
-import { Settings } from './pages/Settings'
-import { Share } from './pages/Share'
-import { Rights } from './pages/Rights'
-import { Journey } from './pages/Journey'
-import { HealthPath } from './pages/HealthPath'
-import { Me } from './pages/Me'
-import { Help } from './pages/Help'
-import { DataCare } from './pages/DataCare'
-import { Privacy } from './pages/Privacy'
-import { Suggest } from './pages/Suggest'
-const Transfer = lazy(() => import('./pages/Transfer').then(m => ({ default: m.Transfer })))
-import { AllyCards, AllyForMe, AllyHome, AllyLearn, AllyPractice, Receive } from './pages/Ally'
+
+/**
+ * Ecrã carregado só quando é aberto. Se a app foi atualizada entretanto e o ficheiro antigo
+ * já não existe, recarrega uma vez para ir buscar a versão nova (em vez de ficar em branco).
+ */
+function page<M extends Record<string, unknown>>(load: () => Promise<M>, name: keyof M & string) {
+  return lazy(() => load().then(
+    m => { try { sessionStorage.removeItem('reload-chunk') } catch { /* ignorado */ } return { default: m[name] as ComponentType } },
+    err => {
+      try {
+        if (!sessionStorage.getItem('reload-chunk')) { sessionStorage.setItem('reload-chunk', '1'); location.reload(); return new Promise<never>(() => {}) }
+      } catch { /* ignorado */ }
+      throw err
+    },
+  ))
+}
+
+const Documents = page(() => import('./pages/Documents'), 'Documents')
+const NameRehearsal = page(() => import('./pages/NameRehearsal'), 'NameRehearsal')
+const Health = page(() => import('./pages/Health'), 'Health')
+const ProviderPage = page(() => import('./pages/ProviderPage'), 'ProviderPage')
+const Journal = page(() => import('./pages/Journal'), 'Journal')
+const Safety = page(() => import('./pages/Safety'), 'Safety')
+const Seal = page(() => import('./pages/Seal'), 'Seal')
+const SealEntityPage = page(() => import('./pages/Seal'), 'SealEntityPage')
+const Community = page(() => import('./pages/Community'), 'Community')
+const Work = page(() => import('./pages/Work'), 'Work')
+const Settings = page(() => import('./pages/Settings'), 'Settings')
+const Share = page(() => import('./pages/Share'), 'Share')
+const Rights = page(() => import('./pages/Rights'), 'Rights')
+const Journey = page(() => import('./pages/Journey'), 'Journey')
+const HealthPath = page(() => import('./pages/HealthPath'), 'HealthPath')
+const Me = page(() => import('./pages/Me'), 'Me')
+const Help = page(() => import('./pages/Help'), 'Help')
+const DataCare = page(() => import('./pages/DataCare'), 'DataCare')
+const Privacy = page(() => import('./pages/Privacy'), 'Privacy')
+const Suggest = page(() => import('./pages/Suggest'), 'Suggest')
+const Transfer = page(() => import('./pages/Transfer'), 'Transfer')
+const AllyCards = page(() => import('./pages/Ally'), 'AllyCards')
+const AllyForMe = page(() => import('./pages/Ally'), 'AllyForMe')
+const AllyHome = page(() => import('./pages/Ally'), 'AllyHome')
+const AllyLearn = page(() => import('./pages/Ally'), 'AllyLearn')
+const AllyPractice = page(() => import('./pages/Ally'), 'AllyPractice')
+const Receive = page(() => import('./pages/Ally'), 'Receive')
 
 function Shell() {
   return <><Screen /><RecoveryCodeSheet /><NewPinSheet /></>
@@ -57,6 +80,9 @@ function Screen() {
   return (
     <HashRouter>
       <Layout>
+        {/* Cada ecrã é um ficheiro à parte: o arranque só lê o Início; os outros já estão
+            guardados pelo service worker e abrem sem rede. */}
+        <Suspense fallback={null}>
         {ally ? (
         <Routes>
           <Route path="/" element={<AllyHome />} />
@@ -72,7 +98,7 @@ function Screen() {
           <Route path="/privacidade" element={<Privacy />} />
           <Route path="/sugerir" element={<Suggest />} />
           <Route path="/dados" element={<DataCare />} />
-          <Route path="/passar" element={<Suspense fallback={null}><Transfer /></Suspense>} />
+          <Route path="/passar" element={<Transfer />} />
           <Route path="*" element={<AllyHome />} />
         </Routes>
         ) : (
@@ -99,10 +125,11 @@ function Screen() {
           <Route path="/privacidade" element={<Privacy />} />
           <Route path="/sugerir" element={<Suggest />} />
           <Route path="/dados" element={<DataCare />} />
-          <Route path="/passar" element={<Suspense fallback={null}><Transfer /></Suspense>} />
+          <Route path="/passar" element={<Transfer />} />
           <Route path="*" element={<Home />} />
         </Routes>
         )}
+        </Suspense>
       </Layout>
     </HashRouter>
   )

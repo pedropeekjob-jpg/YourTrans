@@ -4,6 +4,7 @@ import type { Provider, ReviewQuestion } from '../data/health'
 import type { Place } from './types'
 import type { Story } from '../data/stories'
 import type { SealCommitment, SealEntity, SealQuestion } from '../data/seal'
+import { tr } from '../i18n'
 
 /** Servidor da comunidade (Render, Frankfurt). VITE_API_URL sobrepõe-se; "off" desliga. */
 const RAW = (import.meta.env.VITE_API_URL as string | undefined) || 'https://casulo-comunidade.onrender.com'
@@ -14,16 +15,40 @@ export const apiEnabled = Boolean(BASE)
 /** Resposta a um envio: published diz se passou o filtro e já está visível. */
 export type Sent = { ok: true; published?: boolean }
 
-async function req<T>(path: string, init?: RequestInit): Promise<T> {
+/** Leituras recentes (1 minuto): mudar de separador não volta a gastar dados nem a esperar pelo servidor. */
+const CACHE_MS = 60_000
+const cache = new Map<string, { at: number; data: Promise<unknown> }>()
+/** O servidor gratuito pode demorar a acordar; mais do que isto e desistimos com uma mensagem. */
+const TIMEOUT_MS = 25_000
+
+async function send<T>(path: string, init?: RequestInit): Promise<T> {
   if (!BASE) throw new Error('offline')
   const res = await fetch(BASE + path, {
     ...init,
     headers: { 'content-type': 'application/json' },
     credentials: 'omit',
     referrerPolicy: 'no-referrer',
+    signal: AbortSignal.timeout?.(TIMEOUT_MS),
+  }).catch(e => {
+    throw new Error(tr(e instanceof DOMException && e.name === 'TimeoutError' ? 'O servidor está a demorar. Tenta daqui a pouco.' : 'Sem ligação ao servidor. Tenta daqui a pouco.'))
   })
-  if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error ?? `Erro ${res.status}`)
+  // As mensagens de erro do servidor vêm em português: traduzidas aqui quando há tradução.
+  if (!res.ok) throw new Error(tr((await res.json().catch(() => ({}))).error ?? `Erro ${res.status}`))
   return res.json() as Promise<T>
+}
+
+async function req<T>(path: string, init?: RequestInit): Promise<T> {
+  if (init?.method && init.method !== 'GET') {
+    // Um envio pode mudar o que se lê (publicado logo, apoio, denúncia): esquecer as leituras guardadas.
+    cache.clear()
+    return send<T>(path, init)
+  }
+  const hit = cache.get(path)
+  if (hit && Date.now() - hit.at < CACHE_MS) return hit.data as Promise<T>
+  const data = send<T>(path, init)
+  cache.set(path, { at: Date.now(), data })
+  data.catch(() => cache.delete(path))
+  return data
 }
 
 /** Intervalo agregado de relatos anónimos (só existe com 3 ou mais). */

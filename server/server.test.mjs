@@ -189,3 +189,13 @@ test('sugestões "procurei e não encontrei" só a equipa as vê', async () => {
   assert.deepEqual(q.map(x => x.payload), [{ kind: 'procurei', text: 'Onde mudar o nome na carta de condução', area: 'documentos', country: 'PT' }])
   assert.ok((await queue('status=received&type=incident')).every(x => x.type === 'incident'))
 })
+
+test('eventos só aceitam ligações https e aparecem logo depois de publicados', async () => {
+  const date = new Date(Date.now() + 7 * 86_400_000).toISOString()
+  assert.equal((await post('/api/events', { title: 'Marcha teste', date, url: 'javascript:alert(1)' })).status, 400)
+  assert.equal((await post('/api/events', { title: 'Marcha teste', date, url: 'http://exemplo.pt' })).status, 400)
+  const before = await (await fetch(base + '/api/events')).json()
+  assert.equal((await post('/api/events', { title: 'Marcha teste', date, url: 'https://exemplo.pt' })).status, 201)
+  const after = await (await fetch(base + '/api/events')).json()
+  assert.equal(after.length, before.length + 1)
+})

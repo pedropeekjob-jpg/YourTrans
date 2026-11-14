@@ -1,6 +1,6 @@
 // Camada de armazenamento: tudo o que é pessoal é guardado cifrado no IndexedDB.
 // Metadados (modo, sal) não revelam conteúdo.
-import { createStore, get, set, del, clear, keys } from 'idb-keyval'
+import { createStore, get, set, del, clear, keys, promisifyRequest } from 'idb-keyval'
 import {
   decryptBytes, decryptJSON, deriveKey, encryptBytes, encryptJSON, fromB64, generateDataKey, generateRecoveryCode,
   generateDeviceKey, importDataKey, normalizeRecoveryCode, PBKDF2_ITERATIONS, randomBytes, toB64, type Sealed,
@@ -121,37 +121,44 @@ export async function saveVault(key: CryptoKey, vault: Vault): Promise<void> {
   await set(VAULT, await encryptJSON(key, vault), store)
 }
 
-/** Recifra tudo (cofre + fotos) com uma nova chave. */
-async function rekey(oldKey: CryptoKey, newKey: CryptoKey, vault: Vault): Promise<void> {
-  const all = await keys(store)
-  for (const k of all) {
+/**
+ * Recifra tudo (cofre + fotos) com uma nova chave e grava de uma só vez.
+ * Primeiro cifra tudo em memória; depois grava fotos, cofre e metadados numa única
+ * transação do IndexedDB. Se a app fechar a meio, fica tudo como estava (antes,
+ * podia ficar parte com a chave nova e o resto com a antiga, e perdiam-se dados).
+ */
+async function rekey(oldKey: CryptoKey, newKey: CryptoKey, vault: Vault, finalWrites: [string, unknown][], remove: string[] = []): Promise<void> {
+  const writes: [string, unknown][] = []
+  for (const k of await keys(store)) {
     if (typeof k === 'string' && k.startsWith(PHOTO_PREFIX)) {
       const sealed = await get<Sealed>(k, store)
-      if (sealed) await set(k, await encryptBytes(newKey, await decryptBytes(oldKey, sealed)), store)
+      if (sealed) writes.push([k, await encryptBytes(newKey, await decryptBytes(oldKey, sealed))])
     }
   }
-  await saveVault(newKey, vault)
+  writes.push([VAULT, await encryptJSON(newKey, vault)], ...finalWrites)
+  await store('readwrite', s => {
+    for (const [k, v] of writes) s.put(v, k)
+    for (const k of remove) s.delete(k)
+    return promisifyRequest(s.transaction)
+  })
 }
 
 /** Ativa (ou muda) o PIN: cria uma chave de dados nova, recifra tudo e devolve um código de recuperação novo. */
 export async function setPin(oldKey: CryptoKey, vault: Vault, pin: string): Promise<{ key: CryptoKey; recoveryCode: string }> {
   const { raw, key } = await generateDataKey()
-  await rekey(oldKey, key, vault)
   const salt = randomBytes(16)
   const recSalt = randomBytes(16)
   const recoveryCode = generateRecoveryCode()
   const wrapPin = await encryptBytes(await deriveKey(pin, salt), raw)
   const wrapRec = await encryptBytes(await deriveKey(normalizeRecoveryCode(recoveryCode), recSalt), raw)
-  await set(META, { v: 1, mode: 'pin', salt: toB64(salt), iterations: PBKDF2_ITERATIONS, wrapPin, wrapRec, recSalt: toB64(recSalt) } satisfies Meta, store)
-  await del(DEVICE_KEY, store)
+  const meta: Meta = { v: 1, mode: 'pin', salt: toB64(salt), iterations: PBKDF2_ITERATIONS, wrapPin, wrapRec, recSalt: toB64(recSalt) }
+  await rekey(oldKey, key, vault, [[META, meta]], [DEVICE_KEY])
   return { key, recoveryCode }
 }
 
 export async function removePin(oldKey: CryptoKey, vault: Vault): Promise<CryptoKey> {
   const key = await generateDeviceKey()
-  await rekey(oldKey, key, vault)
-  await set(DEVICE_KEY, key, store)
-  await set(META, { v: 1, mode: 'device' } satisfies Meta, store)
+  await rekey(oldKey, key, vault, [[DEVICE_KEY, key], [META, { v: 1, mode: 'device' } satisfies Meta]])
   return key
 }
 

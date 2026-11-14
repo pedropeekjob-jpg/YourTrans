@@ -25,6 +25,19 @@ describe('armazenamento', () => {
     const { vault: v } = await storage.unlockPin('2468')
     expect(v.settings.displayName).toBe('Sam')
   }, 20_000)
+
+  it('as fotos acompanham a troca de chave ao ligar e desligar o PIN', async () => {
+    await storage.wipeAll()
+    const { key, vault } = await storage.initDevice()
+    await storage.savePhoto(key, 'f1', new Uint8Array([1, 2, 3]))
+    const { key: pinKey } = await storage.setPin(key, vault, '1357')
+    expect(Array.from((await storage.loadPhoto(pinKey, 'f1'))!)).toEqual([1, 2, 3])
+    const deviceKey = await storage.removePin(pinKey, vault)
+    expect((await storage.getMeta())?.mode).toBe('device')
+    const { key: reopened } = await storage.unlockDevice()
+    expect(Array.from((await storage.loadPhoto(reopened, 'f1'))!)).toEqual([1, 2, 3])
+    expect(Array.from((await storage.loadPhoto(deviceKey, 'f1'))!)).toEqual([1, 2, 3])
+  }, 20_000)
 })
 
 describe('pedidos', () => {

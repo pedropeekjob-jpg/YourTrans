@@ -2222,5 +2222,9 @@
 "🔊 Ouvir": "🔊 Anhören",
 "🚪 Cabines individuais": "🚪 Private Kabinen",
 "🚻 WC neutro": "🚻 Geschlechtsneutrale Toilette",
-"🚿 Duches individuais": "🚿 Private Duschen"
+"🚿 Duches individuais": "🚿 Private Duschen",
+"O servidor está a demorar. Tenta daqui a pouco.": "Der Server braucht gerade lange. Versuch es gleich noch einmal.",
+"Sem ligação ao servidor. Tenta daqui a pouco.": "Keine Verbindung zum Server. Versuch es gleich noch einmal.",
+"Demasiados pedidos. Tenta mais tarde.": "Zu viele Anfragen. Versuch es später noch einmal.",
+"Dados inválidos": "Ungültige Daten"
 }
