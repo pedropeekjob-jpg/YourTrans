@@ -16,6 +16,14 @@ export const apiEnabled = Boolean(BASE)
 /** Resposta a um envio: published diz se passou o filtro e já está visível. */
 export type Sent = { ok: true; published?: boolean }
 
+/**
+ * Assinatura do aparelho (ver Vault.authorId). Só vai junto com o que fica publicado com texto;
+ * relatos anónimos de custos, incidentes e sugestões nunca a levam, para não se poderem ligar.
+ */
+let author: string | undefined
+export function setAuthor(id: string | undefined) { author = id }
+const SIGNED = new Set(['/api/stories', '/api/replies', '/api/reviews', '/api/stage-reviews', '/api/seal-reviews', '/api/places', '/api/events', '/api/employers'])
+
 /** Leituras recentes (1 minuto): mudar de separador não volta a gastar dados nem a esperar pelo servidor. */
 const CACHE_MS = 60_000
 const cache = new Map<string, { at: number; data: Promise<unknown> }>()
@@ -42,6 +50,7 @@ async function req<T>(path: string, init?: RequestInit): Promise<T> {
   if (init?.method && init.method !== 'GET') {
     // Um envio pode mudar o que se lê (publicado logo, apoio, denúncia): esquecer as leituras guardadas.
     cache.clear()
+    if (author && SIGNED.has(path) && typeof init.body === 'string') init = { ...init, body: JSON.stringify({ ...JSON.parse(init.body), author }) }
     return send<T>(path, init)
   }
   const hit = cache.get(path)
@@ -55,7 +64,7 @@ async function req<T>(path: string, init?: RequestInit): Promise<T> {
 /** Intervalo agregado de relatos anónimos (só existe com 3 ou mais). */
 export interface ExperienceStat { track: string; kind: 'custo' | 'espera' | 'material'; sector: 'SNS' | 'Privado'; item?: string; n: number; min: number; max: number; median: number; fromYear: number; toYear: number }
 export type StageQuestion = 'respeito' | 'informacao' | 'tempoRazoavel' | 'recomendaria'
-export interface StageReviewStat { track: string; n: number; scores?: Record<StageQuestion, number>; comments: { id: string; month: string; comment: string }[] }
+export interface StageReviewStat { track: string; n: number; scores?: Record<StageQuestion, number>; comments: { id: string; month: string; comment: string; author?: string }[] }
 
 /** Acesso de uma entidade ao seu painel: o código e a chave dados no registo. */
 export interface EntityLogin { id: string; key: string }
@@ -93,6 +102,11 @@ export const api = {
   entityReport: (l: EntityLogin) => req<EntityReport>('/api/entity/report', asEntity(l)),
   redeemVoucher: (l: EntityLogin, code: string) => req<{ ok: true }>('/api/entity/redeem', asEntity(l, { code })),
 
+  /** Avisos de lembretes: chave pública do servidor, horas a avisar e esquecer o aparelho. */
+  pushKey: () => req<{ key: string }>('/api/push/key'),
+  pushSync: (subscription: PushSubscriptionJSON, times: number[]) =>
+    req<{ ok: true; scheduled: number }>('/api/push/sync', { method: 'POST', body: JSON.stringify({ subscription, times }) }),
+  pushForget: (endpoint: string) => req<{ ok: true }>('/api/push/forget', { method: 'POST', body: JSON.stringify({ endpoint }) }),
   experiences: () => req<ExperienceStat[]>('/api/experiences'),
   sendExperience: (e: { track: string; kind: ExperienceStat['kind']; sector: ExperienceStat['sector']; year: number; value: number; item?: string }) =>
     req<Sent>('/api/experiences', { method: 'POST', body: JSON.stringify(e) }),

@@ -6,6 +6,7 @@ import { Icon } from './Icon'
 import { Seg, Sheet, fmtDate, useToast } from './ui'
 import { ShareNote } from '../pages/Privacy'
 import { scoreBadge } from '../pages/Health'
+import { BlockButton, useBlocking } from './Block'
 import type { Track } from '../data/healthPath'
 import { locale, tr } from '../i18n'
 
@@ -58,6 +59,7 @@ export function TrackCommunity({ track }: { track: Track }) {
   const { providers } = useProviders()
   const toast = useToast()
   const [sheet, setSheet] = useState(false)
+  const { isBlocked } = useBlocking()
   const stats = (data?.exp ?? []).filter(s => s.track === track.id)
   const review = data?.reviews.find(r => r.track === track.id)
   const surgeons = track.group === 'cirurgia' ? providers.filter(p => p.kind === 'Cirurgia') : []
@@ -101,12 +103,15 @@ export function TrackCommunity({ track }: { track: Track }) {
             )}
             {review && review.comments.length > 0 && (
               <div className="stack" style={{ gap: 8 }}>
-                {review.comments.map(c => (
+                {review.comments.filter(c => !isBlocked(c.author)).map(c => (
                   <div key={c.id} className="card flat" style={{ padding: 10, gap: 4 }}>
                     <p className="small">“{c.comment}”</p>
                     <div className="row between">
                       <span className="xs muted">{fmtDate(c.month + '-01T00:00:00', { month: 'short', year: 'numeric' })}</span>
-                      <button className="btn ghost sm" style={{ padding: 0, minHeight: 0 }} onClick={() => denounce(c.id)}>{tr('Denunciar')}</button>
+                      <div className="row" style={{ gap: 10 }}>
+                        <button className="btn ghost sm" style={{ padding: 0, minHeight: 0 }} onClick={() => denounce(c.id)}>{tr('Denunciar')}</button>
+                        <BlockButton author={c.author} compact />
+                      </div>
                     </div>
                   </div>
                 ))}

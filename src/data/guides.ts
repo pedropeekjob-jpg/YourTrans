@@ -7,6 +7,8 @@ export interface GuideStep {
   id: string
   title: string
   body: string
+  /** Só informação (ex.: custo), não é uma ação: aparece no guia mas não conta como etapa do caminho. */
+  info?: boolean
   /** Pontos extra, mostrados em lista por baixo do texto. */
   detail?: string[]
   where?: string
@@ -73,6 +75,7 @@ export const guides: CountryGuide[] = [
       },
       {
         id: 'pt-cost',
+        info: true,
         title: tr('Custo do pedido: gratuito'),
         body:
           tr('A mudança da menção do sexo e do nome próprio no registo civil já não tem custo. Antes custava cerca de 200 €; se te pedirem esse valor, lembra que o procedimento é gratuito. ') +

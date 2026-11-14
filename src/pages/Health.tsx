@@ -81,6 +81,8 @@ function Directory({ initialKind = '', initialQuery = '' }: { initialKind?: Prov
       <section className="card tint-rose">
         <h3>{tr('Avaliado pela comunidade')}</h3>
         <p className="small">{tr('Cada avaliação responde a perguntas simples, como "trataram-me pelo nome certo?". Tudo é moderado antes de ser publicado.')}</p>
+        {/* Sem servidor, diz logo no topo o que se está a ver (antes ficava no fim da lista). */}
+        {!online && <p className="xs muted">{tr('A mostrar a informação pública incluída na app. As avaliações da comunidade aparecem quando houver ligação ao servidor.')}</p>}
       </section>
       <input className="input" placeholder={tr('Procurar por nome, hospital ou clínica')} value={q} onChange={e => setQ(e.target.value)} aria-label={tr('Procurar profissionais')} />
       <div className="chips">
@@ -123,7 +125,6 @@ function Directory({ initialKind = '', initialQuery = '' }: { initialKind?: Prov
         </div>
       )}
       <button className="btn secondary block" onClick={() => setSuggest(true)}><Icon name="plus" size={18} />{tr('Sugerir profissional ou serviço')}</button>
-      {!online && <p className="xs muted">{tr('A mostrar a informação pública incluída na app. As avaliações da comunidade aparecem quando houver ligação ao servidor.')}</p>}
       <SuggestSheet open={suggest} onClose={() => setSuggest(false)} />
     </>
   )

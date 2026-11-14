@@ -22,7 +22,8 @@ type Tab = 'apoio' | 'testemunhos' | 'agenda' | 'locais' | 'mentoria'
 
 export function Community() {
   const [params, setParams] = useSearchParams()
-  const tab = (params.get('tab') as Tab) || 'apoio'
+  // Abre nas Partilhas: as linhas de crise estão sempre a um toque no botão Ajuda e no separador Apoio.
+  const tab = (params.get('tab') as Tab) || 'testemunhos'
   const pack = useCountry()
   // Em países hostis, partilhas, agenda, locais e mentoria podem expor a pessoa: fica só o apoio.
   if (!communityAllowed(pack)) return (
@@ -41,7 +42,7 @@ export function Community() {
     <>
       <TopBar title={tr('Comunidade')} />
       <div className="page">
-        <Seg value={tab} onChange={t => setParams({ tab: t }, { replace: true })} options={[{ id: 'apoio', label: tr('Apoio') }, { id: 'testemunhos', label: tr('Partilhas') }, { id: 'agenda', label: tr('Agenda') }, { id: 'locais', label: tr('Locais seguros') }, { id: 'mentoria', label: tr('Mentoria') }]} />
+        <Seg value={tab} onChange={t => setParams({ tab: t }, { replace: true })} options={[{ id: 'testemunhos', label: tr('Partilhas') }, { id: 'agenda', label: tr('Agenda') }, { id: 'locais', label: tr('Locais seguros') }, { id: 'mentoria', label: tr('Mentoria') }, { id: 'apoio', label: tr('Apoio') }]} />
         {tab === 'apoio' && <Support />}
         {tab === 'testemunhos' && <Stories initialTopic={params.get('tema') ?? undefined} />}
         {tab === 'agenda' && <Agenda />}

@@ -84,6 +84,8 @@ export default defineConfig({
       // só volta a descarregar o que mudou.
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,woff2}'],
+        // Avisos dos lembretes com a app fechada (public/push-sw.js).
+        importScripts: ['push-sw.js'],
         globIgnores: ['**/maplibre-gl-*'],
         runtimeCaching: [
           { urlPattern: ({ url }) => url.origin === self.location.origin && /\/assets\/maplibre-gl-.*\.(js|css)$/.test(url.pathname),

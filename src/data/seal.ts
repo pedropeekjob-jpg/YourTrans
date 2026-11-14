@@ -53,7 +53,7 @@ export interface SealEntity {
   seal: SealStatus
   reviewCount: number
   scores?: Partial<Record<SealQuestion, number>>
-  comments: { id: string; month: string; comment: string }[]
+  comments: { id: string; month: string; comment: string; author?: string }[]
   /** Pacote pago ativo (mostrado sempre como pago; não mexe no selo nem na ordem). */
   partner?: PlanId
   profile?: EntityProfile

@@ -1,0 +1,30 @@
+# Servidor comunitário do Casulo nos Cloudflare Workers + D1 (alternativa ao Render).
+# Passos completos em docs/api-workers.md. Publicar a partir desta pasta: npx wrangler deploy
+name = "casulo-api"
+main = "worker-entry.mjs"
+compatibility_date = "2026-11-01"
+workers_dev = false
+
+# api.casulo.space passa a apontar para este Worker (o Render pode ficar ligado até confirmares).
+routes = [{ pattern = "api.casulo.space", custom_domain = true }]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "casulo-comunidade"
+# Preencher com o id que o comando "npx wrangler d1 create casulo-comunidade" mostra.
+database_id = "PREENCHER"
+
+[vars]
+# Origens da app: o site e as apps das lojas (Capacitor usa https://localhost no Android e capacitor://localhost no iOS).
+ALLOWED_ORIGIN = "https://casulo.space,https://www.casulo.space,https://localhost,capacitor://localhost"
+AUTO_MODERATION = "on"
+RATE_LIMIT = "30"
+# Segredos (não ficam aqui): npx wrangler secret put DATA_KEY / MOD_TOKEN / MOD_TOKENS
+
+[triggers]
+crons = ["* * * * *", "0 3 * * *"]
+
+[[rules]]
+type = "Text"
+globs = ["**/*.html"]
+fallthrough = true

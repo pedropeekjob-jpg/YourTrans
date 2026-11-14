@@ -6,6 +6,7 @@ import { Layout } from './components/Layout'
 import { allowSplash, hideSplash } from './lib/splash'
 import { NewPinSheet, RecoveryCodeSheet } from './components/Recovery'
 import { Lock } from './components/Lock'
+import { useReminderPushSync } from './lib/notify'
 import { Onboarding } from './pages/Onboarding'
 import { Home } from './pages/Home'
 
@@ -52,6 +53,10 @@ const AllyHome = page(() => import('./pages/Ally'), 'AllyHome')
 const AllyLearn = page(() => import('./pages/Ally'), 'AllyLearn')
 const AllyPractice = page(() => import('./pages/Ally'), 'AllyPractice')
 const Receive = page(() => import('./pages/Ally'), 'Receive')
+const Search = page(() => import('./pages/Search'), 'Search')
+const NameCard = page(() => import('./pages/NameCard'), 'NameCard')
+const Voice = page(() => import('./pages/Voice'), 'Voice')
+const Travel = page(() => import('./pages/Travel'), 'Travel')
 const Business = page(() => import('./pages/Business'), 'Business')
 const EntityPanel = page(() => import('./pages/Business'), 'EntityPanel')
 const Transparency = page(() => import('./pages/Business'), 'Transparency')
@@ -83,6 +88,8 @@ function Screen() {
     if (theme === 'system') document.documentElement.removeAttribute('data-theme')
     else document.documentElement.setAttribute('data-theme', theme)
   }, [vault?.settings.theme])
+
+  useReminderPushSync(vault?.reminders, vault?.settings.pushReminders, vault?.settings.discreetNotifications)
 
   if (status === 'loading') return null
   if (status === 'locked') return <Lock />
@@ -137,6 +144,10 @@ function Screen() {
           <Route path="/percurso" element={<Journey />} />
           <Route path="/percurso/saude" element={<HealthPath />} />
           <Route path="/eu" element={<Me />} />
+          <Route path="/procurar" element={<Search />} />
+          <Route path="/cartao-nome" element={<NameCard />} />
+          <Route path="/voz" element={<Voice />} />
+          <Route path="/viagem" element={<Travel />} />
           <Route path="/ajuda" element={<Help />} />
           <Route path="/partilhar" element={<Share />} />
           <Route path="/direitos" element={<Rights />} />
