@@ -4,6 +4,8 @@ import assert from 'node:assert/strict'
 process.env.DB_PATH = ':memory:'
 process.env.MOD_TOKEN = 'segredo-de-teste'
 process.env.RATE_LIMIT = '1000'
+process.env.MOD_TOKENS = 'Ana:codigo-da-ana-123456, Curto:123'
+process.env.DATA_KEY = 'chave-de-teste'
 const { server } = await import('./index.mjs')
 let base
 before(async () => { await new Promise(r => server.listen(0, r)); base = `http://127.0.0.1:${server.address().port}` })
@@ -36,18 +38,42 @@ test('locais guardam coordenadas arredondadas e só em Portugal', async () => {
   assert.deepEqual([p.lat, p.lng], [38.7223, -9.1393])
 })
 
-test('uma denúncia tira do ar o que foi publicado automaticamente', async () => {
+/** Denúncia vinda de uma ligação diferente (o servidor usa o IP só para contar pessoas distintas). */
+const report = (id, ip) => fetch(base + '/api/report/' + id, { method: 'POST', headers: { 'content-type': 'application/json', 'cf-connecting-ip': ip }, body: '{}' })
+const placeVisible = async name => !!(await (await fetch(base + '/api/places')).json()).find(x => x.name === name)
+
+test('denúncias: 2 pessoas tiram o automático, 3 o aprovado; a mesma pessoa só conta uma vez', async () => {
   const p = (await (await fetch(base + '/api/places')).json()).find(x => x.name === 'Café Perto')
-  assert.equal((await post('/api/report/' + p.id, {})).status, 200)
-  assert.equal((await (await fetch(base + '/api/places')).json()).find(x => x.name === 'Café Perto'), undefined)
+  assert.equal((await report(p.id, '10.0.0.1')).status, 200)
+  assert.equal((await report(p.id, '10.0.0.1')).status, 200)
+  assert.ok(await placeVisible('Café Perto'), 'uma só pessoa não chega para tirar do ar')
+  await report(p.id, '10.0.0.2')
+  assert.equal(await placeVisible('Café Perto'), false)
   assert.ok((await queue()).find(x => x.id === p.id).flags.includes('denunciado'))
-  // Aprovado por uma pessoa: só sai com várias denúncias.
+  // Aprovado por uma pessoa: só sai com 3 denúncias de ligações diferentes (as antigas não contam).
   await post('/api/mod/' + p.id, { action: 'approve' }, 'segredo-de-teste')
-  await post('/api/report/' + p.id, {}); await post('/api/report/' + p.id, {})
-  assert.ok((await (await fetch(base + '/api/places')).json()).find(x => x.name === 'Café Perto'))
-  await post('/api/report/' + p.id, {})
-  assert.equal((await (await fetch(base + '/api/places')).json()).find(x => x.name === 'Café Perto'), undefined)
-  assert.equal((await post('/api/report/nao-existe', {})).status, 404)
+  await report(p.id, '10.0.0.1'); await report(p.id, '10.0.0.2')
+  assert.ok(await placeVisible('Café Perto'))
+  await report(p.id, '10.0.0.3')
+  assert.equal(await placeVisible('Café Perto'), false)
+  assert.equal((await report('nao-existe', '10.0.0.9')).status, 404)
+})
+
+test('o X-Forwarded-For falsificado não engana a contagem', async () => {
+  const r = await (await post('/api/places', { name: 'Loja Falsa', kind: 'Loja', district: 'Porto', facilities: {} })).json()
+  assert.equal(r.published, true)
+  const id = (await (await fetch(base + '/api/places')).json()).find(x => x.name === 'Loja Falsa').id
+  // O cliente escolhe o primeiro valor; o proxy acrescenta o verdadeiro no fim.
+  for (const fake of ['1.1.1.1', '2.2.2.2']) {
+    await fetch(base + '/api/report/' + id, { method: 'POST', headers: { 'x-forwarded-for': `${fake}, 9.9.9.9` }, body: '{}' })
+  }
+  assert.ok(await placeVisible('Loja Falsa'))
+})
+
+test('ações de moderação ficam registadas com o nome', async () => {
+  const log = await (await fetch(base + '/api/mod/log', { headers: H })).json()
+  assert.ok(log.some(l => l.moderator === 'equipa' && l.action === 'approve' && l.type === 'place'))
+  assert.equal((await fetch(base + '/api/mod/log')).status, 401)
 })
 
 test('profissionais de saúde esperam sempre por uma pessoa', async () => {
@@ -198,4 +224,35 @@ test('eventos só aceitam ligações https e aparecem logo depois de publicados'
   assert.equal((await post('/api/events', { title: 'Marcha teste', date, url: 'https://exemplo.pt' })).status, 201)
   const after = await (await fetch(base + '/api/events')).json()
   assert.equal(after.length, before.length + 1)
+})
+
+test('cada moderadora tem o seu código; códigos curtos são ignorados', async () => {
+  const ana = { authorization: 'Bearer codigo-da-ana-123456' }
+  assert.equal((await fetch(base + '/api/mod/queue', { headers: ana })).status, 200)
+  assert.equal((await fetch(base + '/api/mod/queue', { headers: { authorization: 'Bearer 123' } })).status, 401)
+  await fetch(base + '/api/mod/retriage', { method: 'POST', headers: ana })
+  const log = await (await fetch(base + '/api/mod/log', { headers: ana })).json()
+  assert.equal(log[0].moderator, 'Ana')
+})
+
+test('contactos de mentoria ficam cifrados e só a moderação os lê', async () => {
+  assert.equal((await post('/api/mentorship', { role: 'mentee', nickname: 'Rio', stage: 'início', topics: ['hormonas'], contact: 'rio@exemplo.pt' })).status, 201)
+  const item = (await queue()).find(x => x.type === 'mentorship' && x.payload.nickname === 'Rio')
+  assert.equal(item.payload.contact, 'rio@exemplo.pt')
+})
+
+test('bloquear um autor: as publicações saem e as novas ficam à espera', async () => {
+  const author = 'aparelho-de-teste-0123456789'
+  const s1 = await (await post('/api/stories', { kind: 'testemunho', topic: 'voz', phase: 'meses', title: 'A minha voz', body: 'Um texto calmo com mais de vinte letras.', author })).json()
+  assert.equal(s1.published, true)
+  const story = (await (await fetch(base + '/api/stories')).json()).find(x => x.title === 'A minha voz')
+  assert.match(story.author, /^[\w-]{16}$/)
+  assert.ok(!JSON.stringify(story).includes(author), 'o código do aparelho nunca é publicado')
+  assert.equal((await (await post('/api/mod/' + story.id, { action: 'ban' }, 'segredo-de-teste')).json()).hidden, 1)
+  assert.equal((await (await fetch(base + '/api/stories')).json()).find(x => x.title === 'A minha voz'), undefined)
+  const s2 = await (await post('/api/stories', { kind: 'testemunho', topic: 'voz', phase: 'meses', title: 'Outra vez', body: 'Outro texto calmo com mais de vinte letras.', author })).json()
+  assert.equal(s2.published, false)
+  assert.ok((await queue()).find(x => x.payload.title === 'Outra vez').flags.includes('autor bloqueado'))
+  // Outro aparelho continua a publicar normalmente.
+  assert.equal((await (await post('/api/stories', { kind: 'testemunho', topic: 'voz', phase: 'meses', title: 'De outra pessoa', body: 'Mais um texto calmo com vinte letras.', author: 'outro-aparelho-0123456789' })).json()).published, true)
 })
