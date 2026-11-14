@@ -6,6 +6,7 @@ import {
   generateDeviceKey, importDataKey, normalizeRecoveryCode, PBKDF2_ITERATIONS, randomBytes, toB64, type Sealed,
 } from './crypto'
 import { emptyVault, type Vault } from './types'
+import { createPasskey, prfToKey, passkeySecret, type PasskeyWrap } from './passkey'
 
 const store = createStore('notas-db', 'kv')
 
@@ -24,6 +25,8 @@ interface Meta {
   /** A mesma chave de dados, embrulhada com a chave do código de recuperação. */
   wrapRec?: Sealed
   recSalt?: string
+  /** Passkey: a mesma chave de dados, embrulhada com o segredo PRF do autenticador. */
+  passkey?: PasskeyWrap & { wrap: Sealed }
 }
 
 const META = 'meta'
@@ -102,6 +105,41 @@ export async function unlockRecovery(code: string): Promise<{ key: CryptoKey; va
     await registerFailure(meta)
     throw new Error('Código de recuperação incorreto')
   }
+}
+
+/**
+ * Liga o desbloqueio com passkey. Pede o código atual para recuperar a chave de dados (a chave em uso
+ * não é exportável, de propósito). Mudar ou remover o código apaga a passkey (a chave de dados muda).
+ */
+export async function enablePasskey(pin: string, label: string): Promise<void> {
+  const meta = await pinMeta()
+  if (!meta.wrapPin) throw new Error('Formato antigo: muda o código primeiro')
+  const kek = await deriveKey(pin, fromB64(meta.salt!), meta.iterations ?? PBKDF2_ITERATIONS)
+  let raw: Uint8Array<ArrayBuffer>
+  try { raw = await decryptBytes(kek, meta.wrapPin) } catch { throw new Error('PIN incorreto') }
+  const { wrap, prf } = await createPasskey(label)
+  const sealed = await encryptBytes(await prfToKey(prf), raw)
+  await set(META, { ...meta, passkey: { ...wrap, wrap: sealed } }, store)
+}
+
+export async function disablePasskey(): Promise<void> {
+  const meta = await getMeta()
+  if (meta?.passkey) await set(META, { ...meta, passkey: undefined }, store)
+}
+
+export async function hasPasskey(): Promise<boolean> {
+  return !!(await getMeta())?.passkey
+}
+
+/** Entra com a passkey. Uma falha aqui não conta como tentativa errada (é o autenticador que verifica). */
+export async function unlockPasskey(): Promise<{ key: CryptoKey; vault: Vault }> {
+  const meta = await pinMeta()
+  if (!meta.passkey) throw new Error('Sem passkey')
+  const prf = await passkeySecret(meta.passkey)
+  const key = await importDataKey(await decryptBytes(await prfToKey(prf), meta.passkey.wrap))
+  const vault = await loadVault(key)
+  if (meta.failures) await set(META, { ...meta, failures: 0, lockedUntil: undefined }, store)
+  return { key, vault }
 }
 
 export async function hasRecovery(): Promise<boolean> {

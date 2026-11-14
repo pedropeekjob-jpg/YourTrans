@@ -14,6 +14,7 @@ import { allyRoles } from '../data/allies'
 import { tr } from '../i18n'
 import { DiscreetNameToggle } from '../components/InstallCard'
 import { newAuthorId } from '../lib/types'
+import { passkeySupported } from '../lib/passkey'
 
 export function Settings() {
   const { vault, update, mode, setPin, removePin, lock, wipe, hasRecovery } = useVault()
@@ -71,6 +72,7 @@ export function Settings() {
               </div>
             )}
           </div>
+          {mode === 'pin' && <PasskeyRow />}
           <label className="field">{tr('Bloquear ao sair da app')}<select className="input" value={s.autoLockMinutes} onChange={e => set('autoLockMinutes', Number(e.target.value))} disabled={mode !== 'pin'}>
               <option value={0}>{tr('Imediatamente')}</option><option value={1}>{tr('Após 1 minuto')}</option><option value={5}>{tr('Após 5 minutos')}</option><option value={30}>{tr('Após 30 minutos')}</option>
             </select>
@@ -136,6 +138,40 @@ export function Settings() {
         </div>
       </div>
     </>
+  )
+}
+
+/** Desbloquear com impressão digital ou rosto (passkey com PRF). Só aparece onde funciona. */
+function PasskeyRow() {
+  const { hasPasskey, enablePasskey, disablePasskey, hasRecovery } = useVault()
+  const toast = useToast()
+  const [asking, setAsking] = useState(false)
+  const [pin, setPinV] = useState('')
+  const [busy, setBusy] = useState(false)
+  if (!passkeySupported() || !hasRecovery) return null
+  const enable = async () => {
+    setBusy(true)
+    try { await enablePasskey(pin); setAsking(false); toast(tr('Impressão digital ou rosto ativos')) } catch (e) {
+      const m = e instanceof Error ? e.message : ''
+      toast(m === 'PIN incorreto' ? tr('Código incorreto') : m === 'prf-unsupported' ? tr('Este aparelho ou browser ainda não suporta isto. Continua a usar o código.') : tr('Não foi possível ativar.'))
+    } finally { setBusy(false); setPinV('') }
+  }
+  return (
+    <div className="stack" style={{ gap: 6 }}>
+      <b className="small">{tr('Impressão digital ou rosto')}</b>
+      {hasPasskey ? (
+        <div className="row wrap"><span className="badge mint">{tr('Ativo')}</span>
+          <button className="btn sm ghost" onClick={async () => { await disablePasskey(); toast(tr('Desligado')) }}>{tr('Desligar')}</button></div>
+      ) : asking ? (
+        <div className="row">
+          <input className="input grow" type="password" inputMode="numeric" autoFocus placeholder={tr('Código atual')} value={pin} onChange={e => setPinV(e.target.value.replace(/\D/g, '').slice(0, 8))} />
+          <button className="btn" disabled={busy || pin.length < 4} onClick={() => void enable()}>{tr('Ativar')}</button>
+        </div>
+      ) : (
+        <button className="btn sm secondary" style={{ justifySelf: 'start' }} onClick={() => setAsking(true)}>{tr('Ativar')}</button>
+      )}
+      <p className="xs muted">{tr('Entra sem escrever o código. O código continua a funcionar e o desbloqueio nunca sai deste aparelho. Se mudares o código, tens de voltar a ativar.')}</p>
+    </div>
   )
 }
 

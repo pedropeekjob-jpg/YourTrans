@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState, ty
 import * as storage from './storage'
 import { newAuthorId, type Vault } from './types'
 import { setAuthor } from './api'
+import { appName } from './install'
 
 type Status = 'loading' | 'locked' | 'open'
 
@@ -12,6 +13,11 @@ interface Ctx {
   key: CryptoKey | null
   update: (fn: (v: Vault) => Vault) => void
   unlock: (pin: string) => Promise<void>
+  /** Entra com a passkey (impressão digital/rosto), se estiver ligada. */
+  unlockPasskey: () => Promise<void>
+  hasPasskey: boolean
+  enablePasskey: (pin: string) => Promise<void>
+  disablePasskey: () => Promise<void>
   /** Entra com o código de recuperação; depois é preciso escolher um código novo. */
   unlockRecovery: (code: string) => Promise<void>
   /** Sai imediatamente para outro site; se houver código, bloqueia a app. */
@@ -44,6 +50,7 @@ export function VaultProvider({ children }: { children: ReactNode }) {
   const [recoveryCode, setRecoveryCode] = useState<string | null>(null)
   const [hasRecovery, setHasRecovery] = useState(false)
   const [needsNewPin, setNeedsNewPin] = useState(false)
+  const [hasPasskey, setHasPasskey] = useState(false)
   const keyRef = useRef<CryptoKey | null>(null)
   const saveTimer = useRef<number | undefined>(undefined)
   const pending = useRef<Vault | null>(null)
@@ -61,6 +68,7 @@ export function VaultProvider({ children }: { children: ReactNode }) {
     ;(async () => {
       const meta = await storage.getMeta()
       setHasRecovery(!!meta?.wrapRec)
+      setHasPasskey(!!meta?.passkey)
       if (!meta) {
         const { key, vault } = await storage.initDevice()
         keyRef.current = key
@@ -116,6 +124,24 @@ export function VaultProvider({ children }: { children: ReactNode }) {
     setStatus('open')
   }, [])
 
+  const unlockPasskey = useCallback(async () => {
+    const { key, vault } = await storage.unlockPasskey()
+    keyRef.current = key
+    setVault(vault)
+    setStatus('open')
+  }, [])
+
+  const enablePasskey = useCallback(async (pin: string) => {
+    // O nome que aparece no gestor de passkeys segue o nome da app (discreto, se for o caso).
+    await storage.enablePasskey(pin, appName())
+    setHasPasskey(true)
+  }, [])
+
+  const disablePasskey = useCallback(async () => {
+    await storage.disablePasskey()
+    setHasPasskey(false)
+  }, [])
+
   const unlockRecovery = useCallback(async (code: string) => {
     const { key, vault } = await storage.unlockRecovery(code)
     keyRef.current = key
@@ -130,6 +156,7 @@ export function VaultProvider({ children }: { children: ReactNode }) {
     const res = await storage.setPin(keyRef.current, vault, pin)
     keyRef.current = res.key
     setMode('pin')
+    setHasPasskey(false)
     setHasRecovery(true)
     setNeedsNewPin(false)
     setRecoveryCode(res.recoveryCode)
@@ -142,6 +169,7 @@ export function VaultProvider({ children }: { children: ReactNode }) {
     await flush()
     keyRef.current = await storage.removePin(keyRef.current, vault)
     setMode('device')
+    setHasPasskey(false)
     setHasRecovery(false)
     setNeedsNewPin(false)
   }, [flush, vault])
@@ -203,7 +231,7 @@ export function VaultProvider({ children }: { children: ReactNode }) {
     vault: vault ?? (null as unknown as Vault),
     mode,
     key: keyRef.current,
-    update, unlock, unlockRecovery, panic, lock, setPin, removePin, replaceVault, wipe,
+    update, unlock, unlockPasskey, hasPasskey, enablePasskey, disablePasskey, unlockRecovery, panic, lock, setPin, removePin, replaceVault, wipe,
     recoveryCode, clearRecoveryCode, hasRecovery, needsNewPin,
   }
   return <VaultCtx.Provider value={value}>{children}</VaultCtx.Provider>
