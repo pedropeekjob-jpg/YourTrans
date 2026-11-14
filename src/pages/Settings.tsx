@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useVault } from '../lib/vault-context'
 import { TopBar } from '../components/Layout'
@@ -14,7 +14,7 @@ import { allyRoles } from '../data/allies'
 import { tr } from '../i18n'
 import { DiscreetNameToggle } from '../components/InstallCard'
 import { newAuthorId } from '../lib/types'
-import { passkeySupported } from '../lib/passkey'
+import { passkeySupported, prfSupported } from '../lib/passkey'
 
 export function Settings() {
   const { vault, update, mode, setPin, removePin, lock, wipe, hasRecovery } = useVault()
@@ -148,12 +148,20 @@ function PasskeyRow() {
   const [asking, setAsking] = useState(false)
   const [pin, setPinV] = useState('')
   const [busy, setBusy] = useState(false)
-  if (!passkeySupported() || !hasRecovery) return null
+  const [prf, setPrf] = useState<boolean | null>(null)
+  const [why, setWhy] = useState('')
+  useEffect(() => { void prfSupported().then(setPrf) }, [])
+  // Esconde só quando o browser diz claramente que não dá (ou se a passkey já está ligada, mostra sempre).
+  if (!passkeySupported() || !hasRecovery || (prf === false && !hasPasskey)) return null
   const enable = async () => {
     setBusy(true)
+    setWhy('')
     try { await enablePasskey(pin); setAsking(false); toast(tr('Impressão digital ou rosto ativos')) } catch (e) {
       const m = e instanceof Error ? e.message : ''
-      toast(m === 'PIN incorreto' ? tr('Código incorreto') : m === 'prf-unsupported' ? tr('Este aparelho ou browser ainda não suporta isto. Continua a usar o código.') : tr('Não foi possível ativar.'))
+      if (m === 'PIN incorreto') toast(tr('Código incorreto'))
+      else if (m === 'cancelled') toast(tr('Cancelado. Podes tentar outra vez.'))
+      else if (m === 'prf-unsupported') setWhy(tr('O gestor de passkeys deste aparelho não dá a chave de que precisamos. No Android, confirma que o Chrome está atualizado e que as passkeys ficam no Gestor de palavras-passe da Google (Definições do Android › Palavras-passe e contas). No iPhone, precisa do iOS 18 ou mais recente. Entretanto, o código continua a funcionar.'))
+      else setWhy(tr('Não foi possível ativar. Se aparecer uma lista de dispositivos, escolhe "Este dispositivo".'))
     } finally { setBusy(false); setPinV('') }
   }
   return (
@@ -170,6 +178,7 @@ function PasskeyRow() {
       ) : (
         <button className="btn sm secondary" style={{ justifySelf: 'start' }} onClick={() => setAsking(true)}>{tr('Ativar')}</button>
       )}
+      {why && <p className="xs" style={{ color: 'var(--amber)' }} role="alert">{why}</p>}
       <p className="xs muted">{tr('Entra sem escrever o código. O código continua a funcionar e o desbloqueio nunca sai deste aparelho. Se mudares o código, tens de voltar a ativar.')}</p>
     </div>
   )

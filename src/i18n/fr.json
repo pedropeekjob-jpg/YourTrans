@@ -2551,5 +2551,8 @@
 "Código não encontrado": "Code introuvable",
 "Este código já foi usado": "Ce code a déjà été utilisé",
 "Este código já expirou": "Ce code a expiré",
-"Neste momento não há sessões solidárias disponíveis.": "Aucune séance solidaire n'est disponible pour le moment."
+"Neste momento não há sessões solidárias disponíveis.": "Aucune séance solidaire n'est disponible pour le moment.",
+"Cancelado. Podes tentar outra vez.": "Annulé. Tu peux réessayer.",
+"O gestor de passkeys deste aparelho não dá a chave de que precisamos. No Android, confirma que o Chrome está atualizado e que as passkeys ficam no Gestor de palavras-passe da Google (Definições do Android › Palavras-passe e contas). No iPhone, precisa do iOS 18 ou mais recente. Entretanto, o código continua a funcionar.": "Le gestionnaire de clés d'accès de cet appareil ne fournit pas la clé dont nous avons besoin. Sur Android, vérifie que Chrome est à jour et que les clés d'accès sont enregistrées dans le Gestionnaire de mots de passe de Google (Paramètres Android › Mots de passe et comptes). Sur iPhone, il faut iOS 18 ou plus récent. En attendant, le code fonctionne toujours.",
+"Não foi possível ativar. Se aparecer uma lista de dispositivos, escolhe \"Este dispositivo\".": "Impossible d'activer. Si une liste d'appareils apparaît, choisis « Cet appareil »."
 }
