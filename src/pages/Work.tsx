@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import { TopBar } from '../components/Layout'
 import { Icon } from '../components/Icon'
 import { Progress, useToast } from '../components/ui'
-import { api, apiEnabled } from '../lib/api'
+import { api, apiEnabled, type Job } from '../lib/api'
+import { SealBadge } from '../components/SealBadges'
 import { tr } from '../i18n'
 import { Link } from 'react-router-dom'
 import { PortugalOnly } from '../components/CountryInfoViews'
@@ -35,9 +36,12 @@ export function Work() {
   const [answers, setAnswers] = useState<Record<string, boolean>>({})
   const [comment, setComment] = useState('')
   const [ranking, setRanking] = useState<{ company: string; score: number; reviews: number }[]>([])
+  const [jobs, setJobs] = useState<Job[]>([])
+  const [jobDistrict, setJobDistrict] = useState('')
   const score = employerCriteria.filter(c => answers[c.id]).length / employerCriteria.length
 
-  useEffect(() => { if (apiEnabled && pt) api.employers().then(setRanking).catch(() => {}) }, [pt])
+  useEffect(() => { if (apiEnabled && pt) { api.employers().then(setRanking).catch(() => {}); api.jobs().then(setJobs).catch(() => {}) } }, [pt])
+  const shownJobs = jobs.filter(j => !jobDistrict || j.district === jobDistrict || j.remote)
 
   const submit = async () => {
     if (!apiEnabled) { toast(tr('A partilha fica disponível quando o servidor estiver ligado')); return }
@@ -54,6 +58,7 @@ export function Work() {
           <h3>{tr('Empresas com inclusão trans real')}</h3>
           <p className="small">{tr('Avaliações feitas por pessoas trans, com critérios concretos e não só declarações. As melhores recebem o selo')}{' '}<b>{tr('Inclusão Trans')}</b> {tr('no ranking de empregadores.')}</p>
           <Link to="/selo" className="small">{tr('A tua empresa quer o Selo Casulo? Regista-a aqui.')}</Link>
+          <Link to="/entidades" className="small">{tr('Para empresas: pacotes, formação e ofertas de emprego')}</Link>
         </section>
 
         {ranking.length > 0 && (
@@ -67,6 +72,26 @@ export function Work() {
                   {r.score >= 0.75 && <span className="badge mint">{tr('Selo Inclusão Trans')}</span>}
                   <b>{Math.round(r.score * 100)}%</b>
                 </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {jobs.length > 0 && (
+          <section className="stack">
+            <div className="row between"><h2>{tr('Ofertas de emprego')}</h2>
+              <select className="input" style={{ maxWidth: 160 }} value={jobDistrict} onChange={e => setJobDistrict(e.target.value)} aria-label={tr('Distrito')}>
+                <option value="">{tr('Todo o país')}</option>{[...new Set(jobs.map(j => j.district))].sort().map(d => <option key={d}>{d}</option>)}
+              </select>
+            </div>
+            <p className="xs muted" style={{ margin: 0 }}>{tr('De empresas com pacote Aliada ou Parceira, que se comprometeram com as regras do Selo. Pagar não dá o selo: vê as avaliações.')}</p>
+            <div className="list">
+              {shownJobs.map(j => (
+                <a key={j.id} className="item" href={j.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', color: 'inherit' }}>
+                  <div className="grow"><h3>{j.title}</h3><p className="xs muted">{j.entityName} · {j.district}{j.remote ? ' · ' + tr('remoto possível') : ''}</p></div>
+                  {j.seal && <SealBadge status={j.seal} />}
+                  <Icon name="external" size={16} />
+                </a>
               ))}
             </div>
           </section>

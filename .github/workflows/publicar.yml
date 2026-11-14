@@ -33,6 +33,8 @@ jobs:
       - run: npm run build
         env:
           VITE_API_URL: ${{ vars.VITE_API_URL }}
+          # Ligações de pagamento da Stripe para os pacotes (opcional; ver docs/pacotes-e-pagamentos.md).
+          VITE_PAYMENT_LINKS: ${{ vars.VITE_PAYMENT_LINKS }}
       - name: Confirmar que os segredos da Cloudflare existem
         env:
           TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
