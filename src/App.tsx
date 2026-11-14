@@ -57,6 +57,18 @@ const Search = page(() => import('./pages/Search'), 'Search')
 const NameCard = page(() => import('./pages/NameCard'), 'NameCard')
 const Voice = page(() => import('./pages/Voice'), 'Voice')
 const Travel = page(() => import('./pages/Travel'), 'Travel')
+const Business = page(() => import('./pages/Business'), 'Business')
+const EntityPanel = page(() => import('./pages/Business'), 'EntityPanel')
+const Transparency = page(() => import('./pages/Business'), 'Transparency')
+const Services = page(() => import('./pages/Services'), 'Services')
+
+/** Páginas para entidades: abrem logo, sem passar pela apresentação da app (quem as visita é uma empresa). */
+const isBusinessLink = () => /^#\/(entidades|transparencia)(\/|\?|$)/.test(window.location.hash)
+const businessRoutes = [
+  <Route key="e" path="/entidades" element={<Business />} />,
+  <Route key="p" path="/entidades/painel" element={<EntityPanel />} />,
+  <Route key="t" path="/transparencia" element={<Transparency />} />,
+]
 
 function Shell() {
   return <><Screen /><RecoveryCodeSheet /><NewPinSheet /></>
@@ -81,7 +93,23 @@ function Screen() {
 
   if (status === 'loading') return null
   if (status === 'locked') return <Lock />
-  if (!vault.settings.onboarded) return <Onboarding />
+  if (!vault.settings.onboarded) {
+    if (isBusinessLink()) return (
+      <HashRouter>
+        <div className="app">
+          <Suspense fallback={null}>
+            <Routes>
+              {businessRoutes}
+              <Route path="/selo" element={<Seal />} />
+              <Route path="/selo/:id" element={<SealEntityPage />} />
+              <Route path="*" element={<Business />} />
+            </Routes>
+          </Suspense>
+        </div>
+      </HashRouter>
+    )
+    return <Onboarding />
+  }
 
   const ally = vault.settings.profile === 'ally'
   return (
@@ -101,6 +129,8 @@ function Screen() {
           <Route path="/comunidade" element={<Community />} />
           <Route path="/selo" element={<Seal />} />
           <Route path="/selo/:id" element={<SealEntityPage />} />
+          {businessRoutes}
+          <Route path="/servicos" element={<Services />} />
           <Route path="/definicoes" element={<Settings />} />
           <Route path="/privacidade" element={<Privacy />} />
           <Route path="/sugerir" element={<Suggest />} />
@@ -132,6 +162,8 @@ function Screen() {
           <Route path="/selo/:id" element={<SealEntityPage />} />
           <Route path="/comunidade" element={<Community />} />
           <Route path="/emprego" element={<Work />} />
+          {businessRoutes}
+          <Route path="/servicos" element={<Services />} />
           <Route path="/definicoes" element={<Settings />} />
           <Route path="/privacidade" element={<Privacy />} />
           <Route path="/sugerir" element={<Suggest />} />

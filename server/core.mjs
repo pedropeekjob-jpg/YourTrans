@@ -9,7 +9,12 @@
 import { ALWAYS_HUMAN, fingerprint, screen } from './moderation.mjs'
 import { authorTag, b64u, fieldCipher, randomId, sameSecret, sha256 } from './webcrypto.mjs'
 import { PUSH_SCHEMA, initPush, validSubscription } from './push.mjs'
-import { K_EXPERIENCE, SEAL_MIN_REVIEWS, SEAL_MONTHS, SEAL_QUESTIONS, SEAL_THRESHOLD, STAGE_QUESTIONS, pick, validAuthor, validators } from './validation.mjs'
+import { PLANS_SCHEMA, initPlans, pickPlanRequest, planRequestOk } from './plans.mjs'
+import { K_EXPERIENCE, SEAL_MIN_REVIEWS, SEAL_MONTHS, SEAL_QUESTIONS, SEAL_THRESHOLD, STAGE_QUESTIONS, pick as basePick, validAuthor, validators as baseValidators } from './validation.mjs'
+
+// Pedidos de adesão a pacotes (plans.mjs) entram pelo mesmo caminho que os outros envios.
+const validators = { ...baseValidators, planRequest: planRequestOk }
+const pick = { ...basePick, planRequest: pickPlanRequest }
 
 const K_ANON = 5 // mínimo de relatos para mostrar uma estatística
 /**
@@ -21,7 +26,7 @@ const REPORTS_TO_HIDE_AUTO = 2
 const REPORTS_TO_HIDE = 3
 const MAX_BODY = 16_384
 /** Tipos que só a equipa lê: nunca são publicados. */
-const RECEIVED_ONLY = new Set(['incident', 'wish'])
+const RECEIVED_ONLY = new Set(['incident', 'wish', 'planRequest'])
 
 export const SCHEMA = [
   `CREATE TABLE IF NOT EXISTS submissions (
@@ -52,6 +57,7 @@ export async function migrate(db) {
   for (const [c, sql] of Object.entries(LATER_COLUMNS)) if (!cols.has(c)) await db.exec(sql)
   await db.exec('CREATE INDEX IF NOT EXISTS idx_type_fp ON submissions(type, fp)')
   for (const s of PUSH_SCHEMA) await db.exec(s)
+  for (const s of PLANS_SCHEMA) await db.exec(s)
 }
 
 /** Lê as pessoas moderadoras: MOD_TOKENS="Ana:código1,Rui:código2" (16+ caracteres) e MOD_TOKEN ("equipa"). */
@@ -189,7 +195,7 @@ export async function createApp({ db, env = {}, modHtml = () => '' }) {
     const from = since.toISOString().slice(0, 7)
     const reviews = (await db.all("SELECT id, payload, month, author FROM submissions WHERE type = 'sealReview' AND status = 'approved' ORDER BY rowid DESC"))
       .map(r => ({ id: r.id, month: r.month, author: r.author ?? undefined, ...JSON.parse(r.payload) }))
-    return (await db.all("SELECT id, payload, month FROM submissions WHERE type = 'entity' AND status = 'approved' ORDER BY rowid DESC")).map(r => {
+    return plans.decorate((await db.all("SELECT id, payload, month FROM submissions WHERE type = 'entity' AND status = 'approved' ORDER BY rowid DESC")).map(r => {
       const { contact, commitments, ...e } = JSON.parse(r.payload)
       const all = reviews.filter(x => x.entityId === r.id)
       const rs = all.filter(x => x.month >= from)
@@ -205,7 +211,7 @@ export async function createApp({ db, env = {}, modHtml = () => '' }) {
         scores: enough ? scores : undefined,
         comments: all.filter(x => x.comment).slice(0, 20).map(x => ({ id: x.id, month: x.month, comment: x.comment, author: x.author })),
       }
-    })
+    }))
   }
 
   /** Intervalos por parte do percurso, só com K_EXPERIENCE ou mais relatos (nunca valores individuais). */
@@ -271,6 +277,7 @@ export async function createApp({ db, env = {}, modHtml = () => '' }) {
     await db.run('DELETE FROM reports WHERE submission_id NOT IN (SELECT id FROM submissions)')
     // Sugestões "procurei e não encontrei": apagadas ao fim de 12 meses.
     await db.run("DELETE FROM submissions WHERE type = 'wish' AND month < ?", y1.toISOString().slice(0, 7))
+    await plans.purge()
     publicCache.clear()
   }
 
@@ -317,7 +324,7 @@ export async function createApp({ db, env = {}, modHtml = () => '' }) {
   }
 
   /** Campos de contacto: cifrados na base de dados, decifrados só para a moderação. */
-  const CONTACT_FIELD = { mentorship: 'contact', entity: 'contact' }
+  const CONTACT_FIELD = { mentorship: 'contact', entity: 'contact', planRequest: 'contact' }
   async function sealContacts(type, payload) {
     const f = CONTACT_FIELD[type]
     return f && payload[f] ? { ...payload, [f]: await cipher.seal(payload[f]) } : payload
@@ -326,6 +333,9 @@ export async function createApp({ db, env = {}, modHtml = () => '' }) {
     const f = CONTACT_FIELD[type]
     return f && payload[f] ? { ...payload, [f]: await cipher.open(payload[f]) } : payload
   }
+
+  /** Pacotes pagos de entidades (plans.mjs): rotas próprias, mesma base de dados e moderação. */
+  const plans = initPlans({ db, json, readBody, moderator, logAction, limited, visitorKey, flagsFor, decide, entities: () => entities() })
 
   /* ---------- leituras públicas em cache ---------- */
 
@@ -354,9 +364,10 @@ export async function createApp({ db, env = {}, modHtml = () => '' }) {
     '/api/stage-reviews': stageReviews,
     '/api/entities': entities,
     '/api/incidents/stats': incidentStats,
+    ...plans.publicRoutes,
   }
 
-  const postRoutes = { '/api/stories': 'story', '/api/replies': 'reply', '/api/providers': 'provider', '/api/reviews': 'review', '/api/places': 'place', '/api/events': 'event', '/api/incidents': 'incident', '/api/mentorship': 'mentorship', '/api/employers': 'employer', '/api/experiences': 'experience', '/api/stage-reviews': 'stageReview', '/api/entities': 'entity', '/api/seal-reviews': 'sealReview', '/api/wishes': 'wish' }
+  const postRoutes = { '/api/stories': 'story', '/api/replies': 'reply', '/api/providers': 'provider', '/api/reviews': 'review', '/api/places': 'place', '/api/events': 'event', '/api/incidents': 'incident', '/api/mentorship': 'mentorship', '/api/employers': 'employer', '/api/experiences': 'experience', '/api/stage-reviews': 'stageReview', '/api/entities': 'entity', '/api/seal-reviews': 'sealReview', '/api/wishes': 'wish', '/api/plan-requests': 'planRequest' }
 
   const tooMany = req => json(req, 429, { error: 'Demasiados pedidos. Tenta mais tarde.' })
 
@@ -373,6 +384,10 @@ export async function createApp({ db, env = {}, modHtml = () => '' }) {
       if (path === '/api/mod/log') {
         if (!moderator(req)) return json(req, 401, { error: 'Sem autorização' })
         return json(req, 200, await db.all('SELECT at, moderator, action, submission_id AS id, type FROM mod_log ORDER BY at DESC LIMIT 300'))
+      }
+      if (path === '/api/mod/plans') {
+        if (!moderator(req)) return json(req, 401, { error: 'Sem autorização' })
+        return json(req, 200, await plans.modPlans())
       }
       if (path === '/api/mod/queue') {
         if (!moderator(req)) return json(req, 401, { error: 'Sem autorização' })
@@ -410,8 +425,11 @@ export async function createApp({ db, env = {}, modHtml = () => '' }) {
         // Relatos de incidentes contam logo para estatísticas (agregadas, k-anonimato);
         // as descrições só são vistas pela moderação.
         const status = decide(type, flags)
+        const id = randomId(9)
         await db.run('INSERT INTO submissions (id, type, payload, status, flags, month, auto, fp, author) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-          randomId(9), type, JSON.stringify(await sealContacts(type, payload)), status, JSON.stringify(flags), new Date().toISOString().slice(0, 7), status === 'approved' ? 1 : 0, fp, author)
+          id, type, JSON.stringify(await sealContacts(type, payload)), status, JSON.stringify(flags), new Date().toISOString().slice(0, 7), status === 'approved' ? 1 : 0, fp, author)
+        // Pedido de selo: devolve o código e a chave do painel da entidade (só o hash fica guardado).
+        if (type === 'entity') return json(req, 201, { ok: true, published: status === 'approved', id, key: await plans.issueKey(id) })
         return json(req, 201, { ok: true, published: status === 'approved' })
       }
       if (path === '/api/push/sync') {
@@ -453,6 +471,8 @@ export async function createApp({ db, env = {}, modHtml = () => '' }) {
         await logAction(who, 'retriage')
         return json(req, 200, await retriage())
       }
+      const fromPlans = await plans.route(req, ip, path)
+      if (fromPlans) return fromPlans
       const m = path.match(/^\/api\/mod\/([\w-]+)$/)
       if (m) {
         const who = moderator(req)
@@ -473,6 +493,8 @@ export async function createApp({ db, env = {}, modHtml = () => '' }) {
         else if (action === 'approve') {
           await db.run("UPDATE submissions SET status = 'approved', auto = 0, reports = 0 WHERE id = ?", m[1])
           await db.run('DELETE FROM reports WHERE submission_id = ?', m[1])
+          const row = await db.get("SELECT payload FROM submissions WHERE id = ? AND type = 'profile'", m[1])
+          if (row) await plans.dropOldProfiles(JSON.parse(row.payload).entityId, m[1])
         }
         else if (action === 'hide') await db.run("UPDATE submissions SET status = 'pending', auto = 0 WHERE id = ?", m[1])
         else return json(req, 400, { error: 'Ação inválida' })

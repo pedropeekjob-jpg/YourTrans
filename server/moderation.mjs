@@ -84,10 +84,12 @@ const FREE_TEXT = {
   story: ['title', 'body', 'nickname', 'warning'], reply: ['body', 'nickname'], review: ['comment'], provider: ['name', 'notes'],
   place: ['name', 'kind', 'notes'], event: ['title', 'place'], employer: ['company', 'comment'], incident: ['description'], mentorship: ['nickname', 'stage'],
   stageReview: ['comment'], experience: [], entity: ['name', 'address', 'notes'], sealReview: ['comment'], wish: ['text'],
+  // Pacotes para entidades: ficha completa e ofertas de emprego (o pedido de adesão só a equipa lê).
+  profile: ['about', 'benefits', 'prices', 'languages'], job: ['title', 'description'], planRequest: [],
 }
 
 /** Em locais, profissionais e eventos uma morada é normal; num testemunho expõe alguém. */
-const ADDRESS_OK = new Set(['place', 'provider', 'event', 'entity'])
+const ADDRESS_OK = new Set(['place', 'provider', 'event', 'entity', 'profile', 'job'])
 
 /** Tipos que nunca são publicados sem uma pessoa (precisam de verificação, não só de filtro). */
 // Entidades que pedem o selo também: alguém confirma que existem (e, se o declaram, o selo TransParente).

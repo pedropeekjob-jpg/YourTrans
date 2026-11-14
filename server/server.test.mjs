@@ -278,3 +278,126 @@ test('lembretes: guarda só horas futuras, envia vazio e apaga depois de enviar'
   Date.now = () => soon + 120_000
   try { assert.equal(await push.sendDue(fake), 0, 'cada hora só é enviada uma vez') } finally { Date.now = realNow }
 })
+
+const MOD = 'segredo-de-teste'
+const commitments = { nome: true, wc: true, formacao: true, regras: true, contacto: true, formularios: true }
+async function newEntity(name, kind = 'Empresa', district = 'Porto') {
+  const r = await (await post('/api/entities', { name, kind, district, contact: 'rh@exemplo.pt', commitments })).json()
+  await post('/api/mod/' + r.id, { action: 'approve' }, MOD)
+  return r
+}
+const until = new Date(Date.now() + 365 * 86_400_000).toISOString().slice(0, 10)
+
+test('uma entidade recebe uma chave ao registar-se e sem pacote não edita a ficha', async () => {
+  const { id, key } = await newEntity('Empresa Chave Lda')
+  assert.ok(key.length >= 20)
+  assert.equal((await post('/api/entity/me', { id, key: 'errada' })).status, 401)
+  const me = await (await post('/api/entity/me', { id, key })).json()
+  assert.equal(me.entity.name, 'Empresa Chave Lda')
+  assert.equal(me.entity.contact, undefined)
+  assert.equal(me.plan, null)
+  assert.equal((await post('/api/entity/profile', { id, key, profile: { about: 'Olá' } })).status, 402)
+  // A moderação pode dar uma chave nova: a antiga deixa de servir.
+  const { key: k2 } = await (await post('/api/mod/entity-key', { entityId: id }, MOD)).json()
+  assert.equal((await post('/api/entity/me', { id, key })).status, 401)
+  assert.equal((await post('/api/entity/me', { id, key: k2 })).status, 200)
+})
+
+test('pacote Aliada: ficha completa, rótulo pago e 5 ofertas de emprego por ano', async () => {
+  const { id, key } = await newEntity('Aliada Exemplo SA')
+  assert.equal((await post('/api/mod/plan', { entityId: id, plan: 'aliada', until })).status, 401)
+  assert.equal((await post('/api/mod/plan', { entityId: id, plan: 'inventado', until }, MOD)).status, 400)
+  assert.equal((await post('/api/mod/plan', { entityId: id, plan: 'aliada', until }, MOD)).status, 200)
+  assert.equal((await post('/api/entity/profile', { id, key, profile: { contactUrl: 'http://inseguro.pt' } })).status, 400)
+  const r = await (await post('/api/entity/profile', { id, key, profile: { about: 'Somos uma empresa de software no Porto.', policies: ['nome', 'wc'], services: [{ kind: 'voz', price: 40, online: true }] } })).json()
+  assert.equal(r.published, true)
+  const e = (await (await fetch(base + '/api/entities')).json()).find(x => x.id === id)
+  assert.equal(e.partner, 'aliada')
+  assert.deepEqual(e.profile.policies, ['nome', 'wc'])
+  assert.equal(e.profile.services, undefined) // serviços só para profissionais
+  const job = { title: 'Pessoa programadora', district: 'Porto', remote: true, url: 'https://exemplo.pt/vaga' }
+  for (let i = 0; i < 5; i++) assert.equal((await post('/api/entity/jobs', { id, key, job: { ...job, title: job.title + ' ' + i } })).status, 201)
+  assert.equal((await post('/api/entity/jobs', { id, key, job })).status, 402)
+  const jobs = await (await fetch(base + '/api/jobs')).json()
+  assert.equal(jobs.filter(j => j.entityId === id).length, 5)
+  assert.equal(jobs[0].entityName, 'Aliada Exemplo SA')
+  // Pacote expirado: as ofertas e a ficha deixam de aparecer; o selo e as avaliações ficam.
+  await post('/api/mod/plan', { entityId: id, plan: 'aliada', until: '2020-01-01' }, MOD)
+  assert.equal((await (await fetch(base + '/api/jobs')).json()).filter(j => j.entityId === id).length, 0)
+  const e2 = (await (await fetch(base + '/api/entities')).json()).find(x => x.id === id)
+  assert.equal(e2.partner, undefined)
+  assert.equal(e2.profile, undefined)
+})
+
+test('pagar não muda a ordem das entidades nem o selo', async () => {
+  const before = (await (await fetch(base + '/api/entities')).json()).map(e => [e.id, e.seal])
+  const { id } = await newEntity('Ordem Exemplo')
+  await post('/api/mod/plan', { entityId: id, plan: 'parceira', until }, MOD)
+  const after = (await (await fetch(base + '/api/entities')).json())
+  assert.equal(after[0].id, id) // a mais recente primeiro, como sempre
+  assert.equal(after[0].seal, 'em-avaliacao')
+  assert.deepEqual(after.slice(1).map(e => [e.id, e.seal]), before)
+})
+
+test('relatório da entidade só com 5 ou mais avaliações, sem comentários', async () => {
+  const { id, key } = await newEntity('Relatório Exemplo', 'Ginásio')
+  await post('/api/mod/plan', { entityId: id, plan: 'aliada', until }, MOD)
+  const good = { nomeCerto: true, seguro: true, wc: null, recomendaria: true }
+  for (let i = 0; i < 4; i++) await post('/api/seal-reviews', { entityId: id, answers: good, comment: 'Correu bem.' })
+  let rep = await (await post('/api/entity/report', { id, key })).json()
+  assert.equal(rep.enough, false)
+  assert.equal(rep.reviews, undefined)
+  assert.equal(rep.scores, undefined)
+  await post('/api/seal-reviews', { entityId: id, answers: { ...good, seguro: false } })
+  rep = await (await post('/api/entity/report', { id, key })).json()
+  assert.equal(rep.reviews, 5)
+  assert.equal(rep.scores.seguro, 0.8)
+  assert.equal(rep.scores.wc, undefined) // ninguém respondeu: não aparece
+  assert.equal(JSON.stringify(rep).includes('Correu bem'), false)
+})
+
+test('autarquia vê incidentes do distrito só em grupos de 5 ou mais', async () => {
+  const { id, key } = await newEntity('Câmara Exemplo', 'Serviço público', 'Beja')
+  await post('/api/mod/plan', { entityId: id, plan: 'municipio', until, district: 'Beja' }, MOD)
+  for (let i = 0; i < 5; i++) await post('/api/incidents', { kind: 'Insulto', setting: 'Rua', district: 'Beja', reported: false })
+  await post('/api/incidents', { kind: 'Agressão', setting: 'Rua', district: 'Beja', reported: false })
+  const rep = await (await post('/api/entity/report', { id, key })).json()
+  assert.equal(rep.incidents.district, 'Beja')
+  assert.equal(rep.incidents.total, 6)
+  assert.deepEqual(rep.incidents.byKind, { Insulto: 5 })
+  assert.deepEqual(rep.incidents.bySetting, { Rua: 6 })
+})
+
+test('serviços especializados e sessões solidárias', async () => {
+  const { id, key } = await newEntity('Terapia da Fala Exemplo', 'Saúde', 'Lisboa')
+  await post('/api/mod/plan', { entityId: id, plan: 'profissional', until }, MOD)
+  await post('/api/entity/profile', { id, key, profile: { bookingUrl: 'https://agenda.exemplo.pt', vouchers: true, services: [{ kind: 'voz', price: 45, online: true }, { kind: 'voz', price: 10, online: false }] } })
+  const svc = (await (await fetch(base + '/api/services')).json()).find(s => s.entityId === id)
+  assert.deepEqual(svc.services, [{ kind: 'voz', price: 45, online: true }])
+  assert.equal(svc.vouchers, true)
+  // Sem reserva, não há códigos.
+  assert.equal((await post('/api/vouchers', { kind: 'voz' })).status, 409)
+  assert.equal((await post('/api/mod/vouchers', { add: 2 }, MOD)).status, 200)
+  assert.equal((await (await fetch(base + '/api/vouchers/available')).json()).available, 2)
+  assert.equal((await post('/api/vouchers', { kind: 'inventado' })).status, 400)
+  const { code } = await (await post('/api/vouchers', { kind: 'voz' })).json()
+  assert.match(code, /^CSL-[A-Z2-9]{4}-[A-Z2-9]{4}$/)
+  assert.equal((await post('/api/entity/redeem', { id, key, code: 'CSL-XXXX-XXXX' })).status, 400)
+  assert.equal((await post('/api/entity/redeem', { id, key, code: code.toLowerCase() })).status, 200)
+  assert.equal((await post('/api/entity/redeem', { id, key, code })).status, 400)
+  const plans = await (await fetch(base + '/api/mod/plans', { headers: H })).json()
+  assert.deepEqual(plans.vouchers.redeemed.map(r => [r.name, r.kind, r.n]), [['Terapia da Fala Exemplo', 'voz', 1]])
+  assert.equal(plans.vouchers.balance, 1)
+  // Cada ligação só pede 2 códigos por dia.
+  await post('/api/mod/vouchers', { add: 5 }, MOD)
+  assert.equal((await post('/api/vouchers', { kind: 'juridico' })).status, 201)
+  assert.equal((await post('/api/vouchers', { kind: 'juridico' })).status, 429)
+})
+
+test('pedidos de adesão só a equipa os lê', async () => {
+  assert.equal((await post('/api/plan-requests', { org: 'Empresa X', plan: 'gold', size: 'pequena', contact: 'a@b.pt' })).status, 400)
+  const r = await (await post('/api/plan-requests', { org: 'Empresa X', plan: 'parceira', size: 'media', contact: 'rh@x.pt', nif: '500000000' })).json()
+  assert.equal(r.published, false)
+  const q = await queue('status=received&type=planRequest')
+  assert.equal(q[0].payload.org, 'Empresa X')
+})

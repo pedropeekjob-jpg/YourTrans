@@ -3,6 +3,7 @@
 // As regras do cálculo estão no servidor (server/index.mjs, entities()).
 import { tr } from '../i18n'
 import type { Facilities } from '../lib/types'
+import type { PlanId, ServiceKind } from './plans'
 
 export type SealCommitment = 'nome' | 'wc' | 'formacao' | 'regras' | 'contacto' | 'formularios'
 export const sealCommitments: { id: SealCommitment; label: string }[] = [
@@ -53,6 +54,24 @@ export interface SealEntity {
   reviewCount: number
   scores?: Partial<Record<SealQuestion, number>>
   comments: { id: string; month: string; comment: string; author?: string }[]
+  /** Pacote pago ativo (mostrado sempre como pago; não mexe no selo nem na ordem). */
+  partner?: PlanId
+  profile?: EntityProfile
+}
+
+/** Ficha completa de uma entidade com pacote pago. */
+export interface EntityProfile {
+  about?: string
+  benefits?: string
+  prices?: string
+  languages?: string
+  bookingUrl?: string
+  contactUrl?: string
+  contactEmail?: string
+  sns?: boolean
+  vouchers?: boolean
+  policies?: string[]
+  services?: { kind: ServiceKind; price: number; online: boolean }[]
 }
 
 /** Lista de Entidades Queer Inclusivas (EQI) da plataforma TransParente. */
