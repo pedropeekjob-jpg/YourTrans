@@ -2555,5 +2555,8 @@
 "Código não encontrado": "Código no encontrado",
 "Este código já foi usado": "Este código ya se ha usado",
 "Este código já expirou": "Este código ya ha caducado",
-"Neste momento não há sessões solidárias disponíveis.": "Ahora mismo no hay sesiones solidarias disponibles."
+"Neste momento não há sessões solidárias disponíveis.": "Ahora mismo no hay sesiones solidarias disponibles.",
+"Cancelado. Podes tentar outra vez.": "Cancelado. Puedes intentarlo otra vez.",
+"O gestor de passkeys deste aparelho não dá a chave de que precisamos. No Android, confirma que o Chrome está atualizado e que as passkeys ficam no Gestor de palavras-passe da Google (Definições do Android › Palavras-passe e contas). No iPhone, precisa do iOS 18 ou mais recente. Entretanto, o código continua a funcionar.": "El gestor de llaves de acceso de este dispositivo no da la clave que necesitamos. En Android, comprueba que Chrome está actualizado y que las llaves de acceso se guardan en el Gestor de contraseñas de Google (Ajustes de Android › Contraseñas y cuentas). En iPhone, necesita iOS 18 o posterior. Mientras tanto, el código sigue funcionando.",
+"Não foi possível ativar. Se aparecer uma lista de dispositivos, escolhe \"Este dispositivo\".": "No se pudo activar. Si aparece una lista de dispositivos, elige \"Este dispositivo\"."
 }

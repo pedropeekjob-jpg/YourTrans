@@ -2823,5 +2823,8 @@
 "Código não encontrado": "Code not found",
 "Este código já foi usado": "This code has already been used",
 "Este código já expirou": "This code has expired",
-"Neste momento não há sessões solidárias disponíveis.": "No solidarity sessions are available right now."
+"Neste momento não há sessões solidárias disponíveis.": "No solidarity sessions are available right now.",
+"Cancelado. Podes tentar outra vez.": "Cancelled. You can try again.",
+"O gestor de passkeys deste aparelho não dá a chave de que precisamos. No Android, confirma que o Chrome está atualizado e que as passkeys ficam no Gestor de palavras-passe da Google (Definições do Android › Palavras-passe e contas). No iPhone, precisa do iOS 18 ou mais recente. Entretanto, o código continua a funcionar.": "This device's passkey manager doesn't provide the key we need. On Android, make sure Chrome is up to date and that passkeys are saved in Google Password Manager (Android Settings › Passwords & accounts). On iPhone, it needs iOS 18 or later. Meanwhile, your code keeps working.",
+"Não foi possível ativar. Se aparecer uma lista de dispositivos, escolhe \"Este dispositivo\".": "Couldn't turn it on. If a list of devices appears, choose \"This device\"."
 }

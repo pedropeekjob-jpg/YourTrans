@@ -2823,5 +2823,8 @@
 "Código não encontrado": "Code nicht gefunden",
 "Este código já foi usado": "Dieser Code wurde bereits verwendet",
 "Este código já expirou": "Dieser Code ist abgelaufen",
-"Neste momento não há sessões solidárias disponíveis.": "Gerade sind keine Solidaritätssitzungen verfügbar."
+"Neste momento não há sessões solidárias disponíveis.": "Gerade sind keine Solidaritätssitzungen verfügbar.",
+"Cancelado. Podes tentar outra vez.": "Abgebrochen. Du kannst es noch einmal versuchen.",
+"O gestor de passkeys deste aparelho não dá a chave de que precisamos. No Android, confirma que o Chrome está atualizado e que as passkeys ficam no Gestor de palavras-passe da Google (Definições do Android › Palavras-passe e contas). No iPhone, precisa do iOS 18 ou mais recente. Entretanto, o código continua a funcionar.": "Der Passkey-Manager dieses Geräts liefert den Schlüssel nicht, den wir brauchen. Prüfe unter Android, ob Chrome aktuell ist und Passkeys im Google Passwortmanager gespeichert werden (Android-Einstellungen › Passwörter und Konten). Auf dem iPhone ist iOS 18 oder neuer nötig. Bis dahin funktioniert dein Code weiter.",
+"Não foi possível ativar. Se aparecer uma lista de dispositivos, escolhe \"Este dispositivo\".": "Konnte nicht aktiviert werden. Wenn eine Geräteliste erscheint, wähle „Dieses Gerät“."
 }
