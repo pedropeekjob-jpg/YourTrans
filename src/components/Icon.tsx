@@ -25,6 +25,7 @@ const paths: Record<string, string> = {
   chat: 'M4 5h16v11H8l-4 4z',
   briefcase: 'M3 8h18v12H3zM9 8V5h6v3M3 13h18',
   sparkle: 'M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z',
+  search: 'M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM21 21l-5-5',
   lock: 'M6 11h12v10H6zM8 11V7a4 4 0 0 1 8 0v4',
   x: 'M6 6l12 12M18 6 6 18',
   star: 'M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z',

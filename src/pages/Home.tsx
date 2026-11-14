@@ -99,7 +99,7 @@ export function Home() {
 
   return (
     <>
-      <TopBar title={tr('Hoje')} />
+      <TopBar title={tr('Hoje')} right={<Link to="/procurar" className="icon-btn" aria-label={tr('Procurar na app')}><Icon name="search" /></Link>} />
       <div className="page">
         <section className="hero">
           <div className="row between" style={{ alignItems: 'flex-start', position: 'relative', zIndex: 1 }}>

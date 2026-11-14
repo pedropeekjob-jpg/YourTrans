@@ -53,6 +53,14 @@ export function Me() {
           </Link>
         </div>
 
+        <div className="list">
+          <Link to="/cartao-nome" className="item">
+            <div className="lead" style={{ background: 'var(--accent-soft)', color: 'var(--accent)' }}><Icon name="people" /></div>
+            <div className="grow"><h3>{tr('Cartão para balcões')}</h3><p className="small muted">{tr('Mostra o teu nome e pronomes em grande, quando os documentos ainda não mudaram')}</p></div>
+            <Icon name="chevron" />
+          </Link>
+        </div>
+
         <section className="card">
           <h3>{tr('Aparência')}</h3>
           <ThemePicker />

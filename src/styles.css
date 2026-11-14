@@ -385,3 +385,10 @@ textarea.input { min-height: 110px; resize: vertical; }
 :where(a, button, [role="button"], [tabindex], summary, select, input[type="checkbox"], input[type="radio"]):focus-visible {
   outline: 2px solid var(--accent); outline-offset: 2px; border-radius: inherit;
 }
+
+/* Cartão para balcões: ecrã inteiro, alto contraste, legível a um metro */
+.name-card { position: fixed; inset: 0; z-index: 50; background: #fff; color: #111; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px 16px 96px; text-align: center; gap: 12px; }
+.name-card .input { background: #fff; color: #111; border-color: #111; }
+.name-card-lead { font-size: 1.4rem; margin: 0; }
+.name-card-name { font-size: clamp(2.6rem, 12vw, 5rem); font-weight: 800; line-height: 1.05; margin: 0; overflow-wrap: anywhere; }
+.name-card-note { font-size: 1.05rem; max-width: 28ch; margin: 8px 0 0; color: #333; }
