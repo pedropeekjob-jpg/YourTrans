@@ -33,8 +33,9 @@ const TIMEOUT_MS = 25_000
 async function send<T>(path: string, init?: RequestInit): Promise<T> {
   if (!BASE) throw new Error('offline')
   // Publicar pede, uma vez, que se aceitem as regras da comunidade (exigência das lojas).
-  // Denunciar, dar apoio e as sugestões privadas não publicam nada, por isso não pedem.
-  if (init?.method === 'POST' && !/^\/api\/(report|wishes)|\/support$/.test(path)) await ensureCommunityTerms()
+  // Não pedem: denunciar, dar apoio, sugestões privadas, pedidos de adesão e códigos solidários
+  // (só a equipa os lê) e o painel das entidades (/api/entity/*), que não é a comunidade a publicar.
+  if (init?.method === 'POST' && !/^\/api\/(report|wishes|plan-requests|vouchers|entity\/)|\/support$/.test(path)) await ensureCommunityTerms()
   const res = await fetch(BASE + path, {
     ...init,
     headers: { 'content-type': 'application/json' },
