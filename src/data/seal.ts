@@ -52,7 +52,7 @@ export interface SealEntity {
   seal: SealStatus
   reviewCount: number
   scores?: Partial<Record<SealQuestion, number>>
-  comments: { id: string; month: string; comment: string }[]
+  comments: { id: string; month: string; comment: string; author?: string }[]
 }
 
 /** Lista de Entidades Queer Inclusivas (EQI) da plataforma TransParente. */

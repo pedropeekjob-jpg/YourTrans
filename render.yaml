@@ -18,6 +18,9 @@ services:
     envVars:
       - key: MOD_TOKEN
         generateValue: true
+      # Cifra os contactos guardados e as cópias de segurança. Não mudar depois de criado.
+      - key: DATA_KEY
+        generateValue: true
       - key: ALLOWED_ORIGIN
         # As apps das lojas (Capacitor) usam https://localhost (Android) e capacitor://localhost (iOS).
         value: https://casulo.space,https://www.casulo.space,https://localhost,capacitor://localhost

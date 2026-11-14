@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Navigate, useSearchParams } from 'react-router-dom'
+import { Link, Navigate, useSearchParams } from 'react-router-dom'
 import { useVault } from '../lib/vault-context'
 import { TopBar } from '../components/Layout'
 import { Icon } from '../components/Icon'
@@ -11,6 +11,7 @@ import { downloadIcs, icsEvent } from '../lib/ics'
 import { uid, type Appointment, type JournalEntry, type Reminder, type Vault } from '../lib/types'
 import { moods } from './Home'
 import { locale, tr } from '../i18n'
+import { disablePush, enablePush, notificationsSupported } from '../lib/notify'
 
 /** Diário pessoal (texto, fotos e euforias). Lembretes, efeitos e consultas vivem em Saúde › Tratamento. */
 export function Journal() {
@@ -28,6 +29,26 @@ export function Journal() {
 }
 
 /* ---------- Diário ---------- */
+
+/**
+ * Convite para proteger com código, no momento em que faz sentido: depois do primeiro registo
+ * no diário (texto ou fotos), e não logo no primeiro minuto da app. Aparece uma vez.
+ */
+function ProtectNudge({ show }: { show: boolean }) {
+  const { vault, update, mode } = useVault()
+  if (!show || mode === 'pin' || vault.settings.pinNudgeSeen) return null
+  const seen = () => update(v => ({ ...v, settings: { ...v.settings, pinNudgeSeen: true } }))
+  return (
+    <section className="card tint-accent" role="note">
+      <h3>{tr('Proteger o teu diário?')}</h3>
+      <p className="small">{tr('Neste momento, quem pegar no telemóvel desbloqueado consegue abrir o diário e as fotos. Com um código, ficam cifrados com uma chave que só tu sabes.')}</p>
+      <div className="row">
+        <Link className="btn sm" to="/definicoes" onClick={seen}>{tr('Escolher um código')}</Link>
+        <button className="btn sm ghost" onClick={seen}>{tr('Agora não')}</button>
+      </div>
+    </section>
+  )
+}
 
 function Diary() {
   const { vault, update, key } = useVault()
@@ -74,6 +95,7 @@ function Diary() {
 
   return (
     <>
+      <ProtectNudge show={vault.journal.length > 0} />
       <div className="grid2">
         <button className="tile card tint-accent" onClick={() => { setEuphoria(false); setOpen(true) }}>
           <div className="ico"><Icon name="book" /></div>
@@ -166,7 +188,8 @@ function useReminderNotifications(vault: Vault) {
   const fired = useRef(new Set<string>())
   useEffect(() => {
     const tick = () => {
-      if (!(tr('Notification') in window) || Notification.permission !== 'granted') return
+      // Com os avisos com a app fechada ligados, o service worker já trata disto.
+      if (!('Notification' in window) || Notification.permission !== 'granted' || vault.settings.pushReminders) return
       const now = Date.now()
       for (const r of vault.reminders) {
         const t = new Date(r.next).getTime()
@@ -180,7 +203,7 @@ function useReminderNotifications(vault: Vault) {
     tick()
     const t = window.setInterval(tick, 30_000)
     return () => window.clearInterval(t)
-  }, [vault.reminders, vault.settings.discreetNotifications])
+  }, [vault.reminders, vault.settings.discreetNotifications, vault.settings.pushReminders])
 }
 
 export function Reminders() {
@@ -213,9 +236,21 @@ export function Reminders() {
     toast(tr('Registado ✓'))
   }
   const askNotif = async () => {
-    if (!(tr('Notification') in window)) { toast(tr('Este navegador não suporta notificações')); return }
+    if (!('Notification' in window)) { toast(tr('Este navegador não suporta notificações')); return }
     const p = await Notification.requestPermission()
     toast(p === 'granted' ? tr('Notificações ativas enquanto a app estiver aberta') : tr('Notificações não autorizadas'))
+  }
+  const togglePush = async (on: boolean) => {
+    if (!on) {
+      update(v => ({ ...v, settings: { ...v.settings, pushReminders: false } }))
+      await disablePush(); toast(tr('Avisos desligados. O servidor esqueceu este aparelho.')); return
+    }
+    try {
+      const ok = await enablePush(vault.reminders, vault.settings.discreetNotifications)
+      if (!ok) { toast(tr('Notificações não autorizadas')); return }
+      update(v => ({ ...v, settings: { ...v.settings, pushReminders: true } }))
+      toast(tr('Avisos ligados'))
+    } catch (e) { toast((e as Error).message) }
   }
   const exportIcs = (r: Reminder) => {
     const neutral = vault.settings.discreetNotifications
@@ -226,8 +261,17 @@ export function Reminders() {
     <>
       <div className="row">
         <button className="btn grow" onClick={() => setOpen(true)}><Icon name="plus" size={18} />{tr('Novo lembrete')}</button>
-        {tr('Notification') in window && Notification.permission !== 'granted' && <button className="btn secondary" onClick={askNotif} aria-label={tr('Ativar notificações')}><Icon name="bell" size={18} /></button>}
+        {!notificationsSupported() && 'Notification' in window && Notification.permission !== 'granted' && <button className="btn secondary" onClick={askNotif} aria-label={tr('Ativar notificações')}><Icon name="bell" size={18} /></button>}
       </div>
+      {notificationsSupported() && (
+        <details className="card flat">
+          <summary className="row" style={{ gap: 8, cursor: 'pointer' }}>
+            <input type="checkbox" checked={!!vault.settings.pushReminders} onChange={e => void togglePush(e.target.checked)} onClick={e => e.stopPropagation()} aria-label={tr('Avisar-me mesmo com a app fechada')} />
+            <span className="small"><b>{tr('Avisar-me mesmo com a app fechada')}</b></span>
+          </summary>
+          <p className="xs muted" style={{ marginTop: 6 }}>{tr('Para isto funcionar, o servidor do Casulo guarda o endereço de notificações deste aparelho e as horas dos avisos dos próximos 35 dias. Não guarda o texto, o tipo de lembrete nem quem és, e cada hora é apagada depois do aviso. A notificação diz só "Tens um lembrete" (ou "Tens uma nota" com o texto neutro). Ao desligar, o servidor esquece este aparelho.')}</p>
+        </details>
+      )}
       {list.length === 0 ? (
         <Empty icon="bell" title={tr('Sem lembretes')} text={tr('Cria lembretes para a toma de hormonas, análises ou consultas.')} />
       ) : (

@@ -101,7 +101,7 @@ function AllyOnboarding({ fromLink, onBack }: { fromLink: boolean; onBack: () =>
         <div className="stack-lg" style={{ alignContent: 'start' }}>
           <h1>{tr('Proteger com um código')}</h1>
           <p className="muted">{tr('O que a pessoa partilhou contigo é privado. Um código garante que só tu o vês.')}</p>
-          <label className="field">{tr('Código (4 a 8 algarismos)')}<input className="input" inputMode="numeric" type="password" value={pin} onChange={e => setPinValue(e.target.value.replace(/\D/g, ''))} maxLength={8} />
+          <label className="field">{tr('Código (6 a 8 algarismos)')}<input className="input" inputMode="numeric" type="password" value={pin} onChange={e => setPinValue(e.target.value.replace(/\D/g, ''))} maxLength={8} />
           </label>
           <p className="xs muted">{tr('Os teus registos ficam só neste aparelho, sem conta nem servidor. Em Eu › Os teus dados vês como fazer cópias e passá-los para outro aparelho.')}</p>
         </div>
@@ -111,7 +111,7 @@ function AllyOnboarding({ fromLink, onBack }: { fromLink: boolean; onBack: () =>
           <button className="btn block" disabled={step === 1 && !role} onClick={() => setStep(step + 1)}>{tr('Seguinte')}</button>
         ) : (
           <>
-            <button className="btn block" onClick={() => finish(true)} disabled={pin.length < 4}>{tr('Ativar código e começar')}</button>
+            <button className="btn block" onClick={() => finish(true)} disabled={pin.length < 6}>{tr('Ativar código e começar')}</button>
             <button className="btn secondary block" onClick={() => finish(false)}>{tr('Agora não')}</button>
           </>
         )}
@@ -204,7 +204,7 @@ function TransOnboarding({ onBack }: { onBack: () => void }) {
         <div className="stack-lg" style={{ alignContent: 'start' }}>
           <h1>{tr('Proteger com um código')}</h1>
           <p className="muted">{tr('Recomendado se outras pessoas usam o teu telemóvel.')}</p>
-          <label className="field">{tr('Código (4 a 8 algarismos)')}<input className="input" inputMode="numeric" type="password" value={pin} onChange={e => setPinValue(e.target.value.replace(/\D/g, ''))} maxLength={8} />
+          <label className="field">{tr('Código (6 a 8 algarismos)')}<input className="input" inputMode="numeric" type="password" value={pin} onChange={e => setPinValue(e.target.value.replace(/\D/g, ''))} maxLength={8} />
           </label>
           <label className="field">{tr('Repetir código')}<input className="input" inputMode="numeric" type="password" value={pin2} onChange={e => setPin2(e.target.value.replace(/\D/g, ''))} maxLength={8} />
           </label>
@@ -226,7 +226,7 @@ function TransOnboarding({ onBack }: { onBack: () => void }) {
           <button className="btn block" onClick={() => setStep(step + 1)}>{step === 2 ? tr('Continuar') : tr('Seguinte')}</button>
         ) : (
           <>
-            <button className="btn block" onClick={() => finish(true)} disabled={pin.length < 4}>{tr('Ativar código e começar')}</button>
+            <button className="btn block" onClick={() => finish(true)} disabled={pin.length < 6}>{tr('Ativar código e começar')}</button>
             <button className="btn secondary block" onClick={() => finish(false)}>{tr('Agora não')}</button>
           </>
         )}

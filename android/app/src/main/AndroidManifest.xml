@@ -76,7 +76,7 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <!-- Lembretes de hormonas, análises e consultas -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <!-- Treino de voz (gravação só no aparelho) -->
+    <!-- Treino de voz: o som é analisado no aparelho e nunca gravado -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <!-- Lembretes à hora aproximada chegam: sem alarmes exatos (política do Google Play). -->

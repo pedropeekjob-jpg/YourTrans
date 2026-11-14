@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useVault } from '../lib/vault-context'
 import { TopBar } from '../components/Layout'
-import { Icon } from '../components/Icon'
+import { Icon, type IconName } from '../components/Icon'
 import { Progress, Ring, fmtDate, useToast } from '../components/ui'
 import { annualEvents, nextOccurrence } from '../data/events'
 import { useMilestones } from './Journey'
@@ -48,6 +48,19 @@ export function streak(days: string[]): number {
   return n
 }
 
+/**
+ * Atalho "para ti", a partir do que a pessoa escolheu no início ("O que te traz aqui?").
+ * Assim o primeiro ecrã aponta logo para o que lhe interessa, e não só para cartões gerais.
+ */
+const forYou: Record<string, { to: string; icon: IconName; title: string; text: string }> = {
+  docs: { to: '/documentos', icon: 'doc', title: tr('Mudar nome e documentos'), text: tr('Passo a passo, o que levar e as cartas prontas') },
+  hormonas: { to: '/percurso/saude', icon: 'heart', title: tr('O teu percurso de saúde'), text: tr('Consultas, hormonas e o que esperar em cada fase') },
+  mental: { to: '/saude?tab=mente', icon: 'heart', title: tr('Cuidar da cabeça'), text: tr('Apoio informado, primeiras consultas e sinais de alerta') },
+  comunidade: { to: '/comunidade?tab=testemunhos', icon: 'people', title: tr('Conhecer outras pessoas'), text: tr('Testemunhos, perguntas e mentoria') },
+  seguranca: { to: '/seguranca', icon: 'shield', title: tr('Sentir-te em segurança'), text: tr('Pessoas de confiança, alerta e locais seguros') },
+  emprego: { to: '/emprego', icon: 'briefcase', title: tr('Trabalho'), text: tr('Empresas inclusivas e plano para contares no trabalho') },
+}
+
 export function Home() {
   const { vault, update } = useVault()
   const toast = useToast()
@@ -60,6 +73,8 @@ export function Home() {
   const showNudge = !nudgeHidden && hasRecords(vault) && (backupDays === null || backupDays > 30)
   const installState = useInstall()
   const [installHidden, setInstallHidden] = useState(installNudgeSnoozed)
+  const [installOpen, setInstallOpen] = useState(false)
+  const picks = s.interests.map(i => forYou[i]).filter(Boolean).slice(0, 2)
   const country = useCountry()
   const facts = factsFor(country.code, country.region)
   const fact = facts[Math.floor(Date.now() / 86_400_000) % facts.length]
@@ -84,7 +99,7 @@ export function Home() {
 
   return (
     <>
-      <TopBar title={tr('Hoje')} />
+      <TopBar title={tr('Hoje')} right={<Link to="/procurar" className="icon-btn" aria-label={tr('Procurar na app')}><Icon name="search" /></Link>} />
       <div className="page">
         <section className="hero">
           <div className="row between" style={{ alignItems: 'flex-start', position: 'relative', zIndex: 1 }}>
@@ -93,7 +108,10 @@ export function Home() {
               <h1>{s.displayName || tr('Olá')} 👋</h1>
               {heardDays > 0 && <span className="badge" style={{ background: 'var(--hero-glass)', color: 'var(--hero-ink)', width: 'fit-content' }}>✨ {tr('{0} dias em que te ouviste este mês', heardDays)}</span>}
             </div>
-            <Ring value={doneCount / milestones.length} color="var(--accent)" track="var(--hero-glass)" />
+            <Link to="/percurso" className="stack" style={{ justifyItems: 'center', gap: 2, textDecoration: 'none', color: 'inherit' }} aria-label={tr('{0} de {1} etapas do teu percurso', doneCount, milestones.length)}>
+              <Ring value={doneCount / milestones.length} color="var(--accent)" track="var(--hero-glass)" />
+              <span className="xs" style={{ opacity: .8 }}>{tr('do teu percurso')}</span>
+            </Link>
           </div>
           <div className="stack" style={{ position: 'relative', zIndex: 1 }}>
             <span className="small" style={{ fontWeight: 650 }}>{checkedIn ? tr('Hoje sentes-te…') : tr('Como te sentes hoje?')}</span>
@@ -105,7 +123,15 @@ export function Home() {
           </div>
         </section>
 
-        {installState !== 'installed' && !installHidden && <InstallCard onClose={() => { snoozeInstallNudge(); setInstallHidden(true) }} />}
+        {installState !== 'installed' && !installHidden && (installOpen
+          ? <InstallCard onClose={() => { snoozeInstallNudge(); setInstallHidden(true) }} />
+          : (
+            <div className="card flat row" style={{ padding: '10px 14px' }}>
+              <Icon name="plus" size={18} />
+              <button className="grow" style={{ textAlign: 'left', background: 'none', border: 0, padding: 0, color: 'inherit', cursor: 'pointer', font: 'inherit' }} onClick={() => setInstallOpen(true)}><b className="small">{tr('Instala a app no telemóvel')}</b> <span className="xs muted">· {tr('Ver como')}</span></button>
+              <button className="icon-btn" aria-label={tr('Fechar')} onClick={() => { snoozeInstallNudge(); setInstallHidden(true) }}><Icon name="x" size={16} /></button>
+            </div>
+          ))}
 
         {next && (
           <Link to="/percurso" className="card neon-pink" style={{ textDecoration: 'none', color: 'inherit' }}>
@@ -124,6 +150,13 @@ export function Home() {
         <section className="stack">
           <h2>{tr('Para hoje')}</h2>
           <div className="list">
+            {picks.map(p => (
+              <Link key={p.to} to={p.to} className="item">
+                <div className="lead" style={{ background: 'var(--accent-soft)', color: 'var(--accent)' }}><Icon name={p.icon} /></div>
+                <div className="grow"><h3>{p.title}</h3><p className="small muted">{p.text}</p></div>
+                <Icon name="chevron" />
+              </Link>
+            ))}
             {todays.map(r => (
               <Link key={r.id} to="/saude?tab=tratamento" className="item">
                 <div className="lead" style={{ background: 'var(--amber-soft)', color: 'var(--amber)' }}><Icon name="bell" /></div>

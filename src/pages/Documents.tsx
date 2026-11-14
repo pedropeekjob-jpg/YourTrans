@@ -153,7 +153,7 @@ function Checklist({ onLetter }: { onLetter: (i: ChecklistItem) => void }) {
   const { vault, update } = useVault()
   const pt = useCountry().code === 'PT'
   const info = useCountryInfo()
-  const list = pt ? checklistPT : info?.entities ?? []
+  const list = useMemo(() => pt ? checklistPT : info?.entities ?? [], [pt, info])
   const groups = useMemo(() => {
     const m = new Map<string, ChecklistItem[]>()
     for (const c of list) m.set(c.group, [...(m.get(c.group) ?? []), c])

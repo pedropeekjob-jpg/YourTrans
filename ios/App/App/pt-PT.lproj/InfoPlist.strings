@@ -2,7 +2,7 @@
 "CFBundleDisplayName" = "Casulo";
 "NSCameraUsageDescription" = "Para ler o código QR quando passas os teus dados de outro aparelho. A imagem não sai do telemóvel.";
 "NSLocationWhenInUseUsageDescription" = "Para enviar a tua localização às pessoas de confiança quando usas o SOS e para mostrar locais seguros perto de ti. Nunca é guardada nem enviada para nós.";
-"NSMicrophoneUsageDescription" = "Para o treino de voz. A gravação fica só neste aparelho.";
+"NSMicrophoneUsageDescription" = "Para o treino de voz. O som é analisado só neste aparelho e nunca é gravado.";
 "NSPhotoLibraryUsageDescription" = "Para juntares fotos ao teu diário. As fotos ficam cifradas neste aparelho.";
 "NSPhotoLibraryAddUsageDescription" = "Para guardares no telemóvel as imagens que exportas da app.";
 "NSFaceIDUsageDescription" = "Para desbloquear o Casulo com o Face ID em vez do código.";

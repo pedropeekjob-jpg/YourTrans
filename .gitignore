@@ -18,3 +18,4 @@ public/suporte/
 
 # Capturas para as lojas: geradas por npm run capturas (cópia na pasta partilhada do projeto)
 store/capturas/
+*.whl

@@ -7,7 +7,7 @@ import { appName } from '../lib/install'
 
 // Ecrã de bloqueio neutro: não revela o propósito da app.
 export function Lock() {
-  const { unlock, unlockRecovery, hasRecovery, wipe } = useVault()
+  const { unlock, unlockRecovery, hasRecovery, wipe, hasPasskey, unlockPasskey } = useVault()
   const [view, setView] = useState<'pin' | 'forgot' | 'wipe'>('pin')
   const [code, setCode] = useState('')
   const [confirmWipe, setConfirmWipe] = useState('')
@@ -44,6 +44,11 @@ export function Lock() {
   }
 
   const wipeWord = tr('APAGAR')
+
+  const tryPasskey = async () => {
+    setBusy(true); setError('')
+    try { await unlockPasskey() } catch { setError(tr('Não foi possível usar a passkey. Usa o código.')) } finally { setBusy(false) }
+  }
 
   useEffect(() => {
     if (view !== 'pin') return
@@ -110,6 +115,7 @@ export function Lock() {
             <Icon name="check" />
           </button>
         </div>
+        {hasPasskey && <button className="btn secondary small" disabled={busy} onClick={() => void tryPasskey()}><Icon name="lock" size={16} />{tr('Usar impressão digital ou rosto')}</button>}
         <button className="btn ghost small" onClick={() => { setView('forgot'); setError(''); setPin('') }}>{tr('Esqueci-me do código')}</button>
       </div>
     </div>

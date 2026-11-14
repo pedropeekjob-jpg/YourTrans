@@ -19,6 +19,7 @@ import {
   type SealCommitment, type SealQuestion,
 } from '../data/seal'
 import { tr } from '../i18n'
+import { BlockButton, useBlocking } from '../components/Block'
 
 type Tab = 'sobre' | 'entidades' | 'registar'
 
@@ -225,6 +226,11 @@ export function SealEntityPage() {
   const [answers, setAnswers] = useState<Partial<Record<SealQuestion, boolean | null>>>({})
   const [comment, setComment] = useState('')
   const [sent, setSent] = useState<'' | 'published' | 'pending'>('')
+  const { isBlocked } = useBlocking()
+  const report = async (cid: string) => {
+    if (!confirm(tr('Denunciar este conteúdo? Sai do ar até a moderação o rever.'))) return
+    try { await api.report(cid); toast(tr('Obrigado. A moderação vai rever.')) } catch (err) { toast((err as Error).message) }
+  }
 
   if (!e) return (<><TopBar back title={tr('Selo Casulo')} /><div className="page"><Empty icon="star" title={loaded ? tr('Não encontrado') : tr('A carregar…')} /></div></>)
 
@@ -272,7 +278,15 @@ export function SealEntityPage() {
           {e.seal === 'sem-selo' && <p className="small">{tr('As avaliações recentes ficaram abaixo de {0}% numa ou mais perguntas, por isso o selo não está ativo.', Math.round(SEAL_THRESHOLD * 100))}</p>}
           {e.comments.length > 0 && (
             <div className="stack" style={{ gap: 6 }}>
-              {e.comments.map(c => <p key={c.id} className="small" style={{ margin: 0 }}>“{c.comment}” <span className="xs muted">{c.month}</span></p>)}
+              {e.comments.filter(c => !isBlocked(c.author)).map(c => (
+                <div key={c.id} className="row between" style={{ gap: 8, alignItems: 'baseline' }}>
+                  <p className="small" style={{ margin: 0 }}>“{c.comment}” <span className="xs muted">{c.month}</span></p>
+                  <div className="row" style={{ gap: 10 }}>
+                    <button className="btn ghost sm" style={{ padding: 0, minHeight: 0 }} onClick={() => report(c.id)}>{tr('Denunciar')}</button>
+                    <BlockButton author={c.author} compact />
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </section>
