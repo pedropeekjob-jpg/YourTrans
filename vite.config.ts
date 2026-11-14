@@ -86,7 +86,9 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,svg,woff2}'],
         // Avisos dos lembretes com a app fechada (public/push-sw.js).
         importScripts: ['push-sw.js'],
-        globIgnores: ['**/maplibre-gl-*'],
+        globIgnores: ['**/maplibre-gl-*', 'privacidade/**', 'termos/**', 'suporte/**'],
+        // Páginas públicas para as lojas (scripts/paginas-legais.mjs): abrem sempre do servidor.
+        navigateFallbackDenylist: [/^\/(privacidade|termos|suporte)(\/|$)/],
         runtimeCaching: [
           { urlPattern: ({ url }) => url.origin === self.location.origin && /\/assets\/maplibre-gl-.*\.(js|css)$/.test(url.pathname),
             handler: 'CacheFirst', options: { cacheName: 'casulo-mapa', expiration: { maxEntries: 4 } } },

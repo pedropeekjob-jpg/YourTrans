@@ -69,7 +69,8 @@ export function Privacy() {
           tr('Há uma cópia de segurança diária da base de dados da comunidade, cifrada antes de sair do servidor, guardada na Cloudflare R2. Guardamos as cópias dos últimos 31 dias.'),
           tr('O registo das ações de moderação (quem aprovou ou retirou o quê) é guardado durante 12 meses.'),
           tr('A nossa aplicação não guarda endereços IP. Para travar abusos, usamos durante 24 horas uma impressão irreversível do IP, só em memória. O Render pode registar ligações técnicas nos seus próprios registos.'),
-          tr('A app é servida pela Cloudflare e o mapa usa o OpenFreeMap (dados OpenStreetMap). Ao abrir a app ou o mapa, o teu browser liga-se a estes serviços, que recebem o teu IP como em qualquer site.'),
+          tr('A app é servida pela Cloudflare e o mapa usa o OpenFreeMap (dados OpenStreetMap). Ao abrir a app ou o mapa, o teu aparelho liga-se a estes serviços, que recebem o teu IP como em qualquer site.'),
+          tr('Na versão da App Store e do Google Play, a Apple e a Google tratam os dados da transferência da app segundo as suas próprias políticas. A app não tem estatísticas, publicidade nem rastreio, e os lembretes são agendados no próprio aparelho, sem passar por servidores.'),
           tr('Não usamos cookies de publicidade, estatísticas de visitas, pixels nem rastreadores. Não vendemos nem partilhamos dados.'),
         ]} />
 

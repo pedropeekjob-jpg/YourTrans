@@ -7,13 +7,15 @@ import { useEffect } from 'react'
 import { api, apiEnabled } from './api'
 import { tr } from '../i18n'
 import type { Reminder } from './types'
+import { isNative } from './native'
 
 /** Janela de avisos enviada ao servidor; a app volta a enviá-la sempre que é aberta. */
 const DAYS_AHEAD = 35
 const MAX = 120
 
 export function notificationsSupported(): boolean {
-  return apiEnabled && 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window
+  // Na app das lojas os lembretes são notificações locais (src/components/Native.tsx).
+  return !isNative() && apiEnabled && 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window
 }
 
 /** Próximas horas de todos os lembretes (só números: nada diz o que é cada um). */

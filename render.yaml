@@ -22,6 +22,7 @@ services:
       - key: DATA_KEY
         generateValue: true
       - key: ALLOWED_ORIGIN
-        value: https://casulo.space,https://www.casulo.space
+        # As apps das lojas (Capacitor) usam https://localhost (Android) e capacitor://localhost (iOS).
+        value: https://casulo.space,https://www.casulo.space,https://localhost,capacitor://localhost
       - key: DB_PATH
         value: /data/community.db

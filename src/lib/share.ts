@@ -2,6 +2,7 @@
 // O conteúdo vai no fragmento do URL (#/receber/...), que os browsers nunca enviam
 // ao servidor. Formato: "p.<dados>" (simples) ou "e.<dados>" (cifrado com palavra-passe).
 import { deriveKey, randomBytes } from './crypto'
+import { publicAppUrl } from './native'
 import type { SharedPayload } from './types'
 
 const SHARE_ITERATIONS = 200_000
@@ -57,7 +58,7 @@ export async function decodeShare(code: string, passphrase?: string): Promise<Sh
 }
 
 export function shareUrl(code: string): string {
-  return `${location.origin}${location.pathname}#/receber/${code}`
+  return `${publicAppUrl()}#/receber/${code}`
 }
 
 /** Extrai o código de uma ligação colada (ou do próprio código). */

@@ -6,6 +6,8 @@ import { Layout } from './components/Layout'
 import { allowSplash, hideSplash } from './lib/splash'
 import { NewPinSheet, RecoveryCodeSheet } from './components/Recovery'
 import { Lock } from './components/Lock'
+import { NativeBridge } from './components/Native'
+import { TermsSheet } from './components/TermsSheet'
 import { useReminderPushSync } from './lib/notify'
 import { Onboarding } from './pages/Onboarding'
 import { Home } from './pages/Home'
@@ -71,7 +73,7 @@ const businessRoutes = [
 ]
 
 function Shell() {
-  return <><Screen /><RecoveryCodeSheet /><NewPinSheet /></>
+  return <><Screen /><RecoveryCodeSheet /><NewPinSheet /><TermsSheet /><NativeBridge /></>
 }
 
 function Screen() {

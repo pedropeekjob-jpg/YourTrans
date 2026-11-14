@@ -9,6 +9,7 @@ import { Empty, Progress, Ring, Seg, Sheet, copyText, fmtDate, useToast } from '
 import { allyRoles, feelingPrompts, lessonsFor, makeQuestion, practiceTemplates, pronounLabels, pronounSetOf, scenarios, type Lesson, type PracticeQ, type PronounSet } from '../data/allies'
 import { useCountry } from '../lib/useCountry'
 import { codeFromText, decodeShare, isEncrypted } from '../lib/share'
+import { publicAppUrl } from '../lib/native'
 import { todayKey, uid, type ReceivedCard, type SharedPayload } from '../lib/types'
 import { streak } from './Home'
 import { locale, tr } from '../i18n'
@@ -33,7 +34,7 @@ export function AllyHome() {
   const next = lessons.find(l => !vault.lessonsDone.includes(l.id))
   const days = streak(vault.practiceDays)
   const practicedToday = vault.practiceDays.includes(todayKey())
-  const appUrl = `${location.origin}${location.pathname}`
+  const appUrl = publicAppUrl()
   const plans = vault.received.filter(r => r.payload.plan)
 
   return (

@@ -1,0 +1,8 @@
+/* Textos dos pedidos de permissão do iOS. Manter iguais ao Info.plist (pt-PT). */
+"CFBundleDisplayName" = "Casulo";
+"NSCameraUsageDescription" = "Pour lire le code QR lorsque tu transfères tes données depuis un autre appareil. L’image ne quitte pas ton téléphone.";
+"NSLocationWhenInUseUsageDescription" = "Pour envoyer ta position à tes contacts de confiance quand tu utilises le SOS et pour afficher les lieux sûrs près de toi. Elle n’est jamais conservée ni envoyée chez nous.";
+"NSMicrophoneUsageDescription" = "Pour l’entraînement de la voix. Le son est analysé uniquement sur cet appareil et n’est jamais enregistré.";
+"NSPhotoLibraryUsageDescription" = "Pour ajouter des photos à ton journal. Les photos sont chiffrées sur cet appareil.";
+"NSPhotoLibraryAddUsageDescription" = "Pour enregistrer sur ton téléphone les images que tu exportes de l’app.";
+"NSFaceIDUsageDescription" = "Pour déverrouiller Casulo avec Face ID au lieu du code.";

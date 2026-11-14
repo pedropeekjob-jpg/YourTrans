@@ -5,6 +5,7 @@ import type { Place } from './types'
 import type { Story } from '../data/stories'
 import type { EntityProfile, SealCommitment, SealEntity, SealQuestion, SealStatus } from '../data/seal'
 import type { OrgSize, PlanId, ServiceKind } from '../data/plans'
+import { ensureCommunityTerms } from './terms'
 import { tr } from '../i18n'
 
 /** Servidor da comunidade (Render, Frankfurt). VITE_API_URL sobrepõe-se; "off" desliga. */
@@ -32,6 +33,10 @@ const TIMEOUT_MS = 25_000
 
 async function send<T>(path: string, init?: RequestInit): Promise<T> {
   if (!BASE) throw new Error('offline')
+  // Publicar pede, uma vez, que se aceitem as regras da comunidade (exigência das lojas).
+  // Não pedem: denunciar, dar apoio, sugestões privadas, pedidos de adesão e códigos solidários
+  // (só a equipa os lê) e o painel das entidades (/api/entity/*), que não é a comunidade a publicar.
+  if (init?.method === 'POST' && !/^\/api\/(report|wishes|plan-requests|vouchers|entity\/)|\/support$/.test(path)) await ensureCommunityTerms()
   const res = await fetch(BASE + path, {
     ...init,
     headers: { 'content-type': 'application/json' },

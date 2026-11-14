@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Casulo</string>
+    <string name="title_activity_main">Casulo</string>
+    <!-- Nome discreto, escolhido em Definições. Traduzido em values-en, values-es, etc. -->
+    <string name="discreet_name">Notas</string>
+    <string name="package_name">space.casulo.app</string>
+    <string name="custom_url_scheme">space.casulo.app</string>
+</resources>

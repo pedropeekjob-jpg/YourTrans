@@ -51,20 +51,15 @@ Cada push para `main` corre os testes, compila a app e publica-a em https://casu
 O workflow precisa dos segredos `CLOUDFLARE_API_TOKEN` (token com o modelo "Edit Cloudflare Workers") e `CLOUDFLARE_ACCOUNT_ID` em Settings → Secrets and variables → Actions → Secrets.
 Para ligar o servidor comunitário, define a variável de repositório `VITE_API_URL` em Settings → Secrets and variables → Actions → Variables.
 
-## Converter em app móvel (Capacitor)
+## Apps para a App Store e o Google Play
+
+As apps nativas (Capacitor 8) estão em `android/` e `ios/`, com o identificador `space.casulo.app`.
+Como compilar, enviar para as lojas, textos das fichas, questionários de privacidade e o que falta fazer à mão: ver [store/README.md](store/README.md).
 
 ```bash
-npm i @capacitor/android @capacitor/ios
-npx cap add android
-npx cap add ios        # precisa de macOS com Xcode
-npm run cap:sync
-npx cap open android
+npm run cap:android    # abre no Android Studio
+npm run cap:ios        # abre no Xcode (macOS)
 ```
-
-Passos seguintes recomendados na versão nativa:
-- `@capacitor/local-notifications` para lembretes com a app fechada (hoje funcionam com a app aberta e via calendário).
-- `@capacitor/privacy-screen` para esconder o conteúdo no seletor de apps.
-- Biometria para desbloquear (`@capgo/capacitor-native-biometric` ou equivalente).
 
 ## Estrutura
 
