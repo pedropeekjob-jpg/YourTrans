@@ -13,6 +13,7 @@ import { pronounOptions } from './Onboarding'
 import { allyRoles } from '../data/allies'
 import { tr } from '../i18n'
 import { DiscreetNameToggle } from '../components/InstallCard'
+import { newAuthorId } from '../lib/types'
 
 export function Settings() {
   const { vault, update, mode, setPin, removePin, lock, wipe, hasRecovery } = useVault()
@@ -101,6 +102,8 @@ export function Settings() {
           <ThemePicker />
         </section>
 
+        <CommunityIdentity />
+
         <BackupCard />
         <Link to="/dados" className="item card flat" style={{ textDecoration: 'none', color: 'inherit' }}>
           <div className="grow"><h3>{tr('Como não perder os teus registos')}</h3><p className="small muted">{tr('Onde ficam, quando se podem perder e como passá-los para outro aparelho')}</p></div>
@@ -133,5 +136,26 @@ export function Settings() {
         </div>
       </div>
     </>
+  )
+}
+
+/** Comunidade: pessoas bloqueadas e assinatura deste aparelho. */
+function CommunityIdentity() {
+  const { vault, update } = useVault()
+  const toast = useToast()
+  const blocked = vault.blockedAuthors?.length ?? 0
+  return (
+    <section className="card">
+      <h3>{tr('Comunidade')}</h3>
+      <div className="row between">
+        <span className="small">{blocked === 0 ? tr('Não bloqueaste ninguém.') : tr('Pessoas bloqueadas: {0}', blocked)}</span>
+        {blocked > 0 && <button className="btn sm secondary" onClick={() => { if (confirm(tr('Desbloquear todas as pessoas?'))) { update(v => ({ ...v, blockedAuthors: [] })); toast(tr('Desbloqueadas')) } }}>{tr('Desbloquear todas')}</button>}
+      </div>
+      <p className="xs muted">{tr('O que publicas na comunidade leva uma assinatura aleatória deste aparelho, sem nome nem contacto. Serve para outras pessoas te poderem bloquear e para a moderação travar abusos. As tuas publicações ficam ligadas entre si, como com uma alcunha.')}</p>
+      <button className="btn sm ghost" style={{ justifySelf: 'start' }} onClick={() => {
+        if (!confirm(tr('Trocar de assinatura? O que publicares a seguir deixa de estar ligado ao que já publicaste.'))) return
+        update(v => ({ ...v, authorId: newAuthorId() })); toast(tr('Assinatura trocada'))
+      }}>{tr('Trocar assinatura')}</button>
+    </section>
   )
 }

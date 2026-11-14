@@ -5,6 +5,7 @@ import { Empty, Sheet, useToast } from '../components/ui'
 import { api, apiEnabled } from '../lib/api'
 import { phaseLabel, storyPhases, storyTopics, topicLabel, type Story, type StoryPhase, type StoryTopic } from '../data/stories'
 import { ShareNote } from './Privacy'
+import { BlockButton, useBlocking } from '../components/Block'
 import { locale, tr } from '../i18n'
 
 function monthLabel(m: string) {
@@ -31,7 +32,10 @@ export function Stories({ initialTopic }: { initialTopic?: string }) {
   }, [toast])
   useEffect(reload, [reload])
 
-  const shown = useMemo(() => list.filter(s => (!topic || s.topic === topic) && (!phase || s.phase === phase)), [list, topic, phase])
+  const { isBlocked } = useBlocking()
+  // O que vem de pessoas bloqueadas nunca aparece (testemunhos e respostas).
+  const shown = useMemo(() => list.filter(s => !isBlocked(s.author) && (!topic || s.topic === topic) && (!phase || s.phase === phase))
+    .map(s => ({ ...s, replies: s.replies.filter(r => !isBlocked(r.author)) })), [list, topic, phase, isBlocked])
 
   const support = async (s: Story) => {
     if (vault.supported.includes(s.id)) return
@@ -124,6 +128,7 @@ function StorySheet({ story, onClose, onReplied, onReported }: { story: Story | 
   const [body, setBody] = useState('')
   const [nickname, setNickname] = useState('')
   const toast = useToast()
+  const { isBlocked } = useBlocking()
   if (!story) return null
   const send = async () => {
     try { const r = await api.reply(story.id, body, nickname || undefined); setBody(''); onReplied(!!r.published) } catch (e) { toast((e as Error).message) }
@@ -139,16 +144,22 @@ function StorySheet({ story, onClose, onReplied, onReported }: { story: Story | 
       <p style={{ whiteSpace: 'pre-wrap' }}>{story.body}</p>
       <div className="row between">
         <span className="xs muted">{story.nickname || tr('Anónimo')} · {monthLabel(story.month)}</span>
-        <button className="btn sm ghost" onClick={() => report(story.id)}>{tr('Denunciar')}</button>
+        <div className="row" style={{ gap: 0 }}>
+          <button className="btn sm ghost" onClick={() => report(story.id)}>{tr('Denunciar')}</button>
+          <BlockButton author={story.author} onBlocked={onClose} />
+        </div>
       </div>
       <h3>{tr('Respostas (')}{story.replies.length})</h3>
       {story.replies.length === 0 && <p className="small muted">{tr('Ainda sem respostas. Uma palavra de apoio faz diferença.')}</p>}
-      {story.replies.map(r => (
+      {story.replies.filter(r => !isBlocked(r.author)).map(r => (
         <div key={r.id} className="stack" style={{ gap: 2 }}>
           <div className="bubble">{r.body}</div>
           <div className="row between">
             <span className="xs muted">{r.nickname || tr('Anónimo')} · {monthLabel(r.month)}</span>
-            <button className="btn sm ghost" onClick={() => report(r.id)}>{tr('Denunciar')}</button>
+            <div className="row" style={{ gap: 0 }}>
+              <button className="btn sm ghost" onClick={() => report(r.id)}>{tr('Denunciar')}</button>
+              <BlockButton author={r.author} />
+            </div>
           </div>
         </div>
       ))}

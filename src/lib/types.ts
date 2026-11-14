@@ -175,6 +175,13 @@ export interface Vault {
   feelings: FeelingEntry[]
   incidents: Incident[]
   summaries: SharedSummary[]
+  /**
+   * Assinatura aleatória deste aparelho, enviada com o que se publica na comunidade para que
+   * outras pessoas possam bloquear e a moderação possa agir. Não diz quem és; pode ser trocada.
+   */
+  authorId?: string
+  /** Assinaturas que bloqueaste: deixas de ver o que publicam (fica só neste aparelho). */
+  blockedAuthors: string[]
 }
 
 export function emptyVault(): Vault {
@@ -216,7 +223,14 @@ export function emptyVault(): Vault {
     feelings: [],
     incidents: [],
     summaries: [],
+    blockedAuthors: [],
   }
+}
+
+/** Nova assinatura aleatória (24 bytes) para publicar na comunidade. */
+export function newAuthorId(): string {
+  const b = crypto.getRandomValues(new Uint8Array(24))
+  return btoa(String.fromCharCode(...b)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
 }
 
 export function uid(): string {

@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
 import * as storage from './storage'
-import type { Vault } from './types'
+import { newAuthorId, type Vault } from './types'
+import { setAuthor } from './api'
 
 type Status = 'loading' | 'locked' | 'open'
 
@@ -176,6 +177,13 @@ export function VaultProvider({ children }: { children: ReactNode }) {
     document.addEventListener('visibilitychange', onVis)
     return () => document.removeEventListener('visibilitychange', onVis)
   }, [mode, status, vault?.settings.autoLockMinutes, flush, lock])
+
+  // Assinatura para a comunidade: criada na primeira vez e entregue ao cliente da API.
+  useEffect(() => {
+    if (status !== 'open' || !vault) return
+    if (!vault.authorId) update(v => ({ ...v, authorId: newAuthorId() }))
+    setAuthor(vault.authorId)
+  }, [status, vault?.authorId, update]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Pede ao browser para não apagar os dados sozinho (é concedido sobretudo a apps instaladas).
   useEffect(() => {

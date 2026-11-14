@@ -37,8 +37,10 @@ export interface Story {
   /** Aviso de conteúdo (ex.: descrição de dor, fotos médicas descritas) */
   warning?: string
   month: string
+  /** Assinatura pública de quem publicou (para bloquear) */
+  author?: string
   support: number
-  replies: { id: string; body: string; nickname?: string; month: string }[]
+  replies: { id: string; body: string; nickname?: string; month: string; author?: string }[]
 }
 
 export const topicLabel = (id: string) => storyTopics.find(t => t.id === id)?.label ?? id
