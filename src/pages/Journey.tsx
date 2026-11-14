@@ -4,7 +4,8 @@ import { TopBar } from '../components/Layout'
 import { Icon } from '../components/Icon'
 import { Ring } from '../components/ui'
 import { checklistPT } from '../data/guides'
-import { infoFor } from '../data/countryInfo'
+import { useEffect, useState } from 'react'
+import type { CountryInfo } from '../data/countryInfo'
 import { useCountry } from '../lib/useCountry'
 import { chosenSteps } from '../data/healthPath'
 import { tr } from '../i18n'
@@ -15,13 +16,22 @@ export interface Milestone { id: string; title: string; to: string; done: boolea
 export function useMilestones(): Milestone[] {
   const { vault } = useVault()
   const pack = useCountry()
-  const entities = pack.code === 'PT' ? checklistPT : infoFor(pack.code)?.entities ?? []
+  // O texto dos países vem num ficheiro à parte (fora do arranque), já guardado pelo service worker.
+  const [info, setInfo] = useState<CountryInfo | undefined>()
+  useEffect(() => {
+    if (pack.code === 'PT') return
+    let alive = true
+    void import('../data/countryInfo').then(m => { if (alive) setInfo(m.infoFor(pack.code)) })
+    return () => { alive = false }
+  }, [pack.code])
+  const entities = pack.code === 'PT' ? checklistPT : info?.country === pack.code ? info.entities : []
   const checks = entities.filter(c => vault.checklist[c.id]).length
   const health = chosenSteps(vault.healthPath)
   const healthDone = health.filter(h => vault.healthPath.steps[h.step.id]?.done).length
   return [
     { id: 'apoio', title: tr('Contar a quem me apoia'), to: '/partilhar', done: !!vault.supportCard },
-    ...(pack.guide?.steps ?? []).map(st => ({ id: st.id, title: st.title, to: '/documentos', done: !!vault.guideSteps[st.id] })),
+    // Só ações contam como etapas; passos de informação (como o custo) ficam no guia.
+    ...(pack.guide?.steps ?? []).filter(st => !st.info).map(st => ({ id: st.id, title: st.title, to: '/documentos', done: !!vault.guideSteps[st.id] })),
     ...(entities.length ? [{ id: 'entidades', title: tr('Atualizar banco, escola, trabalho e contratos'), to: '/documentos?tab=checklist', done: checks === entities.length, sub: tr('{0}/{1} passos', checks, entities.length) }] : []),
     // Só entra no caminho se a pessoa escolheu partes do percurso de saúde.
     ...(health.length ? [{ id: 'saude', title: tr('O meu percurso de saúde'), to: '/percurso/saude', done: healthDone === health.length, sub: tr('{0}/{1} passos', healthDone, health.length) }] : []),

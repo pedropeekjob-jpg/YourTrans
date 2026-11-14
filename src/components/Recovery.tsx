@@ -59,14 +59,14 @@ export function NewPinSheet() {
   const [pin2, setPin2] = useState('')
   const [busy, setBusy] = useState(false)
   if (!needsNewPin || recoveryCode) return null
-  const mismatch = pin2.length >= 4 && pin !== pin2
+  const mismatch = pin2.length >= 6 && pin !== pin2
   return (
     <Modal title={tr('Escolhe um código novo')}>
       <p className="small">{tr('Entraste com o código de recuperação. Escolhe um código novo para abrir a app; a seguir recebes também um código de recuperação novo e o antigo deixa de funcionar.')}</p>
-      <label className="field">{tr('Código (4 a 8 algarismos)')}<input className="input" inputMode="numeric" type="password" autoFocus value={pin} onChange={e => setPinV(e.target.value.replace(/\D/g, '').slice(0, 8))} /></label>
+      <label className="field">{tr('Código (6 a 8 algarismos)')}<input className="input" inputMode="numeric" type="password" autoFocus value={pin} onChange={e => setPinV(e.target.value.replace(/\D/g, '').slice(0, 8))} /></label>
       <label className="field">{tr('Repetir código')}<input className="input" inputMode="numeric" type="password" value={pin2} onChange={e => setPin2(e.target.value.replace(/\D/g, '').slice(0, 8))} /></label>
       {mismatch && <p className="small" style={{ color: 'var(--danger)' }} role="alert">{tr('Os códigos não coincidem.')}</p>}
-      <button className="btn block" disabled={busy || pin.length < 4 || pin !== pin2} onClick={async () => { setBusy(true); try { await setPin(pin) } finally { setBusy(false) } }}>{tr('Guardar código novo')}</button>
+      <button className="btn block" disabled={busy || pin.length < 6 || pin !== pin2} onClick={async () => { setBusy(true); try { await setPin(pin) } finally { setBusy(false) } }}>{tr('Guardar código novo')}</button>
     </Modal>
   )
 }

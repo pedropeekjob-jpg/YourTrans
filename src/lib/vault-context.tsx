@@ -1,6 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
 import * as storage from './storage'
-import type { Vault } from './types'
+import { newAuthorId, type Vault } from './types'
+import { setAuthor } from './api'
+import { appName } from './install'
 
 type Status = 'loading' | 'locked' | 'open'
 
@@ -11,6 +13,11 @@ interface Ctx {
   key: CryptoKey | null
   update: (fn: (v: Vault) => Vault) => void
   unlock: (pin: string) => Promise<void>
+  /** Entra com a passkey (impressão digital/rosto), se estiver ligada. */
+  unlockPasskey: () => Promise<void>
+  hasPasskey: boolean
+  enablePasskey: (pin: string) => Promise<void>
+  disablePasskey: () => Promise<void>
   /** Entra com o código de recuperação; depois é preciso escolher um código novo. */
   unlockRecovery: (code: string) => Promise<void>
   /** Sai imediatamente para outro site; se houver código, bloqueia a app. */
@@ -43,6 +50,7 @@ export function VaultProvider({ children }: { children: ReactNode }) {
   const [recoveryCode, setRecoveryCode] = useState<string | null>(null)
   const [hasRecovery, setHasRecovery] = useState(false)
   const [needsNewPin, setNeedsNewPin] = useState(false)
+  const [hasPasskey, setHasPasskey] = useState(false)
   const keyRef = useRef<CryptoKey | null>(null)
   const saveTimer = useRef<number | undefined>(undefined)
   const pending = useRef<Vault | null>(null)
@@ -60,6 +68,7 @@ export function VaultProvider({ children }: { children: ReactNode }) {
     ;(async () => {
       const meta = await storage.getMeta()
       setHasRecovery(!!meta?.wrapRec)
+      setHasPasskey(!!meta?.passkey)
       if (!meta) {
         const { key, vault } = await storage.initDevice()
         keyRef.current = key
@@ -115,6 +124,24 @@ export function VaultProvider({ children }: { children: ReactNode }) {
     setStatus('open')
   }, [])
 
+  const unlockPasskey = useCallback(async () => {
+    const { key, vault } = await storage.unlockPasskey()
+    keyRef.current = key
+    setVault(vault)
+    setStatus('open')
+  }, [])
+
+  const enablePasskey = useCallback(async (pin: string) => {
+    // O nome que aparece no gestor de passkeys segue o nome da app (discreto, se for o caso).
+    await storage.enablePasskey(pin, appName())
+    setHasPasskey(true)
+  }, [])
+
+  const disablePasskey = useCallback(async () => {
+    await storage.disablePasskey()
+    setHasPasskey(false)
+  }, [])
+
   const unlockRecovery = useCallback(async (code: string) => {
     const { key, vault } = await storage.unlockRecovery(code)
     keyRef.current = key
@@ -129,6 +156,7 @@ export function VaultProvider({ children }: { children: ReactNode }) {
     const res = await storage.setPin(keyRef.current, vault, pin)
     keyRef.current = res.key
     setMode('pin')
+    setHasPasskey(false)
     setHasRecovery(true)
     setNeedsNewPin(false)
     setRecoveryCode(res.recoveryCode)
@@ -141,12 +169,16 @@ export function VaultProvider({ children }: { children: ReactNode }) {
     await flush()
     keyRef.current = await storage.removePin(keyRef.current, vault)
     setMode('device')
+    setHasPasskey(false)
     setHasRecovery(false)
     setNeedsNewPin(false)
   }, [flush, vault])
 
   const replaceVault = useCallback(async (v: Vault) => {
     if (!keyRef.current) return
+    // Uma gravação pendente (dos últimos 300 ms) não pode escrever por cima do cofre importado.
+    window.clearTimeout(saveTimer.current)
+    pending.current = null
     await storage.saveVault(keyRef.current, v)
     setVault(v)
   }, [])
@@ -174,6 +206,13 @@ export function VaultProvider({ children }: { children: ReactNode }) {
     return () => document.removeEventListener('visibilitychange', onVis)
   }, [mode, status, vault?.settings.autoLockMinutes, flush, lock])
 
+  // Assinatura para a comunidade: criada na primeira vez e entregue ao cliente da API.
+  useEffect(() => {
+    if (status !== 'open' || !vault) return
+    if (!vault.authorId) update(v => ({ ...v, authorId: newAuthorId() }))
+    setAuthor(vault.authorId)
+  }, [status, vault?.authorId, update]) // eslint-disable-line react-hooks/exhaustive-deps
+
   // Pede ao browser para não apagar os dados sozinho (é concedido sobretudo a apps instaladas).
   useEffect(() => {
     if (status !== 'open' || !vault?.settings.onboarded) return
@@ -192,7 +231,7 @@ export function VaultProvider({ children }: { children: ReactNode }) {
     vault: vault ?? (null as unknown as Vault),
     mode,
     key: keyRef.current,
-    update, unlock, unlockRecovery, panic, lock, setPin, removePin, replaceVault, wipe,
+    update, unlock, unlockPasskey, hasPasskey, enablePasskey, disablePasskey, unlockRecovery, panic, lock, setPin, removePin, replaceVault, wipe,
     recoveryCode, clearRecoveryCode, hasRecovery, needsNewPin,
   }
   return <VaultCtx.Provider value={value}>{children}</VaultCtx.Provider>

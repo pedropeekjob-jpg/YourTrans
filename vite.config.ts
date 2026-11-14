@@ -4,8 +4,8 @@ import { VitePWA } from 'vite-plugin-pwa'
 import { createHash } from 'node:crypto'
 import type { Plugin } from 'vite'
 
-// Política de segurança de conteúdo (CSP). O GitHub Pages não deixa definir cabeçalhos,
-// por isso vai numa <meta> no index.html. Só corre código da própria app (os scripts
+// Política de segurança de conteúdo (CSP), numa <meta> no index.html (os restantes cabeçalhos
+// de segurança estão em public/_headers, servidos pelo Worker da Cloudflare). Só corre código da própria app (os scripts
 // inline do index.html entram pelo hash) e só fala com o servidor da comunidade e com
 // os mosaicos do mapa. Mesmo que um texto da comunidade tentasse injetar código,
 // o browser recusava-o.
@@ -84,11 +84,13 @@ export default defineConfig({
       // só volta a descarregar o que mudou.
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,woff2}'],
+        // Avisos dos lembretes com a app fechada (public/push-sw.js).
+        importScripts: ['push-sw.js'],
         globIgnores: ['**/maplibre-gl-*'],
         runtimeCaching: [
           { urlPattern: ({ url }) => url.origin === self.location.origin && /\/assets\/maplibre-gl-.*\.(js|css)$/.test(url.pathname),
             handler: 'CacheFirst', options: { cacheName: 'casulo-mapa', expiration: { maxEntries: 4 } } },
-          { urlPattern: ({ url }) => url.origin === self.location.origin && /\/assets\/(en|es|fr|br)-.*\.json$/.test(url.pathname),
+          { urlPattern: ({ url }) => url.origin === self.location.origin && /\/assets\/(en|es|fr|br|de)-.*\.json$/.test(url.pathname),
             handler: 'CacheFirst', options: { cacheName: 'casulo-idioma', expiration: { maxEntries: 4 } } },
           // Mosaicos do mapa: guardados até 30 dias, para não voltar a gastar dados nas mesmas zonas.
           { urlPattern: ({ url }) => url.hostname === 'tiles.openfreemap.org',

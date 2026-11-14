@@ -4,6 +4,7 @@ import type { Provider, ReviewQuestion } from '../data/health'
 import type { Place } from './types'
 import type { Story } from '../data/stories'
 import type { SealCommitment, SealEntity, SealQuestion } from '../data/seal'
+import { tr } from '../i18n'
 
 /** Servidor da comunidade (Render, Frankfurt). VITE_API_URL sobrepõe-se; "off" desliga. */
 const RAW = (import.meta.env.VITE_API_URL as string | undefined) || 'https://casulo-comunidade.onrender.com'
@@ -14,24 +15,62 @@ export const apiEnabled = Boolean(BASE)
 /** Resposta a um envio: published diz se passou o filtro e já está visível. */
 export type Sent = { ok: true; published?: boolean }
 
-async function req<T>(path: string, init?: RequestInit): Promise<T> {
+/**
+ * Assinatura do aparelho (ver Vault.authorId). Só vai junto com o que fica publicado com texto;
+ * relatos anónimos de custos, incidentes e sugestões nunca a levam, para não se poderem ligar.
+ */
+let author: string | undefined
+export function setAuthor(id: string | undefined) { author = id }
+const SIGNED = new Set(['/api/stories', '/api/replies', '/api/reviews', '/api/stage-reviews', '/api/seal-reviews', '/api/places', '/api/events', '/api/employers'])
+
+/** Leituras recentes (1 minuto): mudar de separador não volta a gastar dados nem a esperar pelo servidor. */
+const CACHE_MS = 60_000
+const cache = new Map<string, { at: number; data: Promise<unknown> }>()
+/** O servidor gratuito pode demorar a acordar; mais do que isto e desistimos com uma mensagem. */
+const TIMEOUT_MS = 25_000
+
+async function send<T>(path: string, init?: RequestInit): Promise<T> {
   if (!BASE) throw new Error('offline')
   const res = await fetch(BASE + path, {
     ...init,
     headers: { 'content-type': 'application/json' },
     credentials: 'omit',
     referrerPolicy: 'no-referrer',
+    signal: AbortSignal.timeout?.(TIMEOUT_MS),
+  }).catch(e => {
+    throw new Error(tr(e instanceof DOMException && e.name === 'TimeoutError' ? 'O servidor está a demorar. Tenta daqui a pouco.' : 'Sem ligação ao servidor. Tenta daqui a pouco.'))
   })
-  if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error ?? `Erro ${res.status}`)
+  // As mensagens de erro do servidor vêm em português: traduzidas aqui quando há tradução.
+  if (!res.ok) throw new Error(tr((await res.json().catch(() => ({}))).error ?? `Erro ${res.status}`))
   return res.json() as Promise<T>
+}
+
+async function req<T>(path: string, init?: RequestInit): Promise<T> {
+  if (init?.method && init.method !== 'GET') {
+    // Um envio pode mudar o que se lê (publicado logo, apoio, denúncia): esquecer as leituras guardadas.
+    cache.clear()
+    if (author && SIGNED.has(path) && typeof init.body === 'string') init = { ...init, body: JSON.stringify({ ...JSON.parse(init.body), author }) }
+    return send<T>(path, init)
+  }
+  const hit = cache.get(path)
+  if (hit && Date.now() - hit.at < CACHE_MS) return hit.data as Promise<T>
+  const data = send<T>(path, init)
+  cache.set(path, { at: Date.now(), data })
+  data.catch(() => cache.delete(path))
+  return data
 }
 
 /** Intervalo agregado de relatos anónimos (só existe com 3 ou mais). */
 export interface ExperienceStat { track: string; kind: 'custo' | 'espera' | 'material'; sector: 'SNS' | 'Privado'; item?: string; n: number; min: number; max: number; median: number; fromYear: number; toYear: number }
 export type StageQuestion = 'respeito' | 'informacao' | 'tempoRazoavel' | 'recomendaria'
-export interface StageReviewStat { track: string; n: number; scores?: Record<StageQuestion, number>; comments: { id: string; month: string; comment: string }[] }
+export interface StageReviewStat { track: string; n: number; scores?: Record<StageQuestion, number>; comments: { id: string; month: string; comment: string; author?: string }[] }
 
 export const api = {
+  /** Avisos de lembretes: chave pública do servidor, horas a avisar e esquecer o aparelho. */
+  pushKey: () => req<{ key: string }>('/api/push/key'),
+  pushSync: (subscription: PushSubscriptionJSON, times: number[]) =>
+    req<{ ok: true; scheduled: number }>('/api/push/sync', { method: 'POST', body: JSON.stringify({ subscription, times }) }),
+  pushForget: (endpoint: string) => req<{ ok: true }>('/api/push/forget', { method: 'POST', body: JSON.stringify({ endpoint }) }),
   experiences: () => req<ExperienceStat[]>('/api/experiences'),
   sendExperience: (e: { track: string; kind: ExperienceStat['kind']; sector: ExperienceStat['sector']; year: number; value: number; item?: string }) =>
     req<Sent>('/api/experiences', { method: 'POST', body: JSON.stringify(e) }),

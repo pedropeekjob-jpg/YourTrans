@@ -5,3 +5,4 @@ ios
 server/data
 *.log
 .wrangler/
+*.whl

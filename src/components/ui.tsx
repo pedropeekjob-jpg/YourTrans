@@ -49,7 +49,9 @@ export function Seg<T extends string>({ value, options, onChange }: { value: T; 
   return (
     <div className={options.length > 4 ? 'seg scroll' : 'seg'} role="tablist">
       {options.map(o => (
-        <button key={o.id} role="tab" aria-selected={value === o.id} className={value === o.id ? 'on' : ''} onClick={() => onChange(o.id)}>{o.label}</button>
+        <button key={o.id} role="tab" aria-selected={value === o.id} className={value === o.id ? 'on' : ''}
+          ref={value === o.id && options.length > 4 ? el => el?.scrollIntoView({ block: 'nearest', inline: 'nearest' }) : undefined}
+          onClick={() => onChange(o.id)}>{o.label}</button>
       ))}
     </div>
   )

@@ -13,6 +13,8 @@ import { pronounOptions } from './Onboarding'
 import { allyRoles } from '../data/allies'
 import { tr } from '../i18n'
 import { DiscreetNameToggle } from '../components/InstallCard'
+import { newAuthorId } from '../lib/types'
+import { passkeySupported } from '../lib/passkey'
 
 export function Settings() {
   const { vault, update, mode, setPin, removePin, lock, wipe, hasRecovery } = useVault()
@@ -60,16 +62,17 @@ export function Settings() {
             {mode === 'pin' && changing && (
               <div className="row">
                 <input className="input grow" type="password" inputMode="numeric" autoFocus placeholder={tr('Código novo')} value={pin} onChange={e => setPinV(e.target.value.replace(/\D/g, '').slice(0, 8))} />
-                <button className="btn" disabled={pin.length < 4} onClick={async () => { await setPin(pin); setPinV(''); setChanging(false) }}>{tr('Guardar')}</button>
+                <button className="btn" disabled={pin.length < 6} onClick={async () => { await setPin(pin); setPinV(''); setChanging(false) }}>{tr('Guardar')}</button>
               </div>
             )}
             {mode === 'pin' ? null : (
               <div className="row">
-                <input className="input grow" type="password" inputMode="numeric" placeholder={tr('4 a 8 algarismos')} value={pin} onChange={e => setPinV(e.target.value.replace(/\D/g, '').slice(0, 8))} />
-                <button className="btn" disabled={pin.length < 4} onClick={async () => { await setPin(pin); setPinV(''); toast(tr('Código ativo')) }}>{tr('Ativar')}</button>
+                <input className="input grow" type="password" inputMode="numeric" placeholder={tr('6 a 8 algarismos')} value={pin} onChange={e => setPinV(e.target.value.replace(/\D/g, '').slice(0, 8))} />
+                <button className="btn" disabled={pin.length < 6} onClick={async () => { await setPin(pin); setPinV(''); toast(tr('Código ativo')) }}>{tr('Ativar')}</button>
               </div>
             )}
           </div>
+          {mode === 'pin' && <PasskeyRow />}
           <label className="field">{tr('Bloquear ao sair da app')}<select className="input" value={s.autoLockMinutes} onChange={e => set('autoLockMinutes', Number(e.target.value))} disabled={mode !== 'pin'}>
               <option value={0}>{tr('Imediatamente')}</option><option value={1}>{tr('Após 1 minuto')}</option><option value={5}>{tr('Após 5 minutos')}</option><option value={30}>{tr('Após 30 minutos')}</option>
             </select>
@@ -100,6 +103,8 @@ export function Settings() {
           <h3>{tr('Aparência')}</h3>
           <ThemePicker />
         </section>
+
+        <CommunityIdentity />
 
         <BackupCard />
         <Link to="/dados" className="item card flat" style={{ textDecoration: 'none', color: 'inherit' }}>
@@ -133,5 +138,60 @@ export function Settings() {
         </div>
       </div>
     </>
+  )
+}
+
+/** Desbloquear com impressão digital ou rosto (passkey com PRF). Só aparece onde funciona. */
+function PasskeyRow() {
+  const { hasPasskey, enablePasskey, disablePasskey, hasRecovery } = useVault()
+  const toast = useToast()
+  const [asking, setAsking] = useState(false)
+  const [pin, setPinV] = useState('')
+  const [busy, setBusy] = useState(false)
+  if (!passkeySupported() || !hasRecovery) return null
+  const enable = async () => {
+    setBusy(true)
+    try { await enablePasskey(pin); setAsking(false); toast(tr('Impressão digital ou rosto ativos')) } catch (e) {
+      const m = e instanceof Error ? e.message : ''
+      toast(m === 'PIN incorreto' ? tr('Código incorreto') : m === 'prf-unsupported' ? tr('Este aparelho ou browser ainda não suporta isto. Continua a usar o código.') : tr('Não foi possível ativar.'))
+    } finally { setBusy(false); setPinV('') }
+  }
+  return (
+    <div className="stack" style={{ gap: 6 }}>
+      <b className="small">{tr('Impressão digital ou rosto')}</b>
+      {hasPasskey ? (
+        <div className="row wrap"><span className="badge mint">{tr('Ativo')}</span>
+          <button className="btn sm ghost" onClick={async () => { await disablePasskey(); toast(tr('Desligado')) }}>{tr('Desligar')}</button></div>
+      ) : asking ? (
+        <div className="row">
+          <input className="input grow" type="password" inputMode="numeric" autoFocus placeholder={tr('Código atual')} value={pin} onChange={e => setPinV(e.target.value.replace(/\D/g, '').slice(0, 8))} />
+          <button className="btn" disabled={busy || pin.length < 4} onClick={() => void enable()}>{tr('Ativar')}</button>
+        </div>
+      ) : (
+        <button className="btn sm secondary" style={{ justifySelf: 'start' }} onClick={() => setAsking(true)}>{tr('Ativar')}</button>
+      )}
+      <p className="xs muted">{tr('Entra sem escrever o código. O código continua a funcionar e o desbloqueio nunca sai deste aparelho. Se mudares o código, tens de voltar a ativar.')}</p>
+    </div>
+  )
+}
+
+/** Comunidade: pessoas bloqueadas e assinatura deste aparelho. */
+function CommunityIdentity() {
+  const { vault, update } = useVault()
+  const toast = useToast()
+  const blocked = vault.blockedAuthors?.length ?? 0
+  return (
+    <section className="card">
+      <h3>{tr('Comunidade')}</h3>
+      <div className="row between">
+        <span className="small">{blocked === 0 ? tr('Não bloqueaste ninguém.') : tr('Pessoas bloqueadas: {0}', blocked)}</span>
+        {blocked > 0 && <button className="btn sm secondary" onClick={() => { if (confirm(tr('Desbloquear todas as pessoas?'))) { update(v => ({ ...v, blockedAuthors: [] })); toast(tr('Desbloqueadas')) } }}>{tr('Desbloquear todas')}</button>}
+      </div>
+      <p className="xs muted">{tr('O que publicas na comunidade leva uma assinatura aleatória deste aparelho, sem nome nem contacto. Serve para outras pessoas te poderem bloquear e para a moderação travar abusos. As tuas publicações ficam ligadas entre si, como com uma alcunha.')}</p>
+      <button className="btn sm ghost" style={{ justifySelf: 'start' }} onClick={() => {
+        if (!confirm(tr('Trocar de assinatura? O que publicares a seguir deixa de estar ligado ao que já publicaste.'))) return
+        update(v => ({ ...v, authorId: newAuthorId() })); toast(tr('Assinatura trocada'))
+      }}>{tr('Trocar assinatura')}</button>
+    </section>
   )
 }
