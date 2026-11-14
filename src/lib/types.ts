@@ -105,7 +105,7 @@ export interface Place {
   lng?: number
 }
 
-export interface SavedPlace extends Place {}
+export type SavedPlace = Place
 
 export interface SavedEvent { id: string; title: string; date: string; place?: string; url?: string }
 
