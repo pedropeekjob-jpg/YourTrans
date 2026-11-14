@@ -48,6 +48,14 @@ if (!cols.has('reports')) db.exec('ALTER TABLE submissions ADD COLUMN reports IN
 if (!cols.has('fp')) db.exec('ALTER TABLE submissions ADD COLUMN fp TEXT')
 // Procura de textos repetidos (corre a cada envio).
 db.exec('CREATE INDEX IF NOT EXISTS idx_type_fp ON submissions(type, fp)')
+// Pacotes para entidades: chave de acesso (só o hash), plano pago e sessões solidárias.
+db.exec(`
+  CREATE TABLE IF NOT EXISTS entity_keys (entity_id TEXT PRIMARY KEY, hash TEXT NOT NULL);
+  CREATE TABLE IF NOT EXISTS entity_plans (entity_id TEXT PRIMARY KEY, plan TEXT NOT NULL, until TEXT NOT NULL, district TEXT);
+  CREATE TABLE IF NOT EXISTS voucher_credits (id INTEGER PRIMARY KEY CHECK (id = 1), balance INTEGER NOT NULL DEFAULT 0);
+  CREATE TABLE IF NOT EXISTS vouchers (code TEXT PRIMARY KEY, kind TEXT NOT NULL, month TEXT NOT NULL, redeemed_by TEXT, redeemed_month TEXT);
+  INSERT OR IGNORE INTO voucher_credits (id, balance) VALUES (1, 0);
+`)
 
 /* ---------- validação ---------- */
 
@@ -80,6 +88,28 @@ const email = v => typeof v === 'string' && v.length <= 120 && /^[^\s@]+@[^\s@]+
 const httpsUrl = v => v === undefined || v === null || v === '' || (typeof v === 'string' && v.length <= 300 && /^https:\/\/[^\s]+$/.test(v))
 /** Zonas da app para as sugestões (iguais a src/pages/Suggest.tsx). */
 export const WISH_AREAS = ['percurso', 'documentos', 'saude', 'direitos', 'comunidade', 'seguranca', 'trabalho', 'outro']
+/**
+ * Pacotes pagos (iguais a src/data/plans.ts). Pagar dá ferramentas e visibilidade identificada
+ * como paga; nunca muda o selo, as avaliações nem a ordem no mapa.
+ * jobs: ofertas de emprego por ano; services: pode listar serviços especializados;
+ * incidents: relatório anónimo de incidentes do distrito (autarquias).
+ */
+export const PLANS = {
+  aliada: { jobs: 5 },
+  parceira: { jobs: Infinity },
+  profissional: { services: true },
+  clinica: { services: true },
+  escola: {},
+  municipio: { incidents: true },
+}
+/** Políticas que uma empresa pode declarar na ficha (iguais aos critérios de src/pages/Work.tsx). */
+export const POLICIES = ['politica', 'nome', 'wc', 'saude', 'licenca', 'formacao', 'denuncia']
+/** Serviços especializados que um profissional pode oferecer (iguais a src/data/plans.ts). */
+export const SERVICE_KINDS = ['juridico', 'voz', 'psicologia', 'imagem']
+/** Mínimo de avaliações ou relatos para aparecer num relatório de entidade (nunca menos de 5). */
+export const K_REPORT = 5
+/** Sessões solidárias: o código vale 3 meses. */
+const VOUCHER_MONTHS = 3
 const int = (v, min, max) => Number.isInteger(v) && v >= min && v <= max
 const thisYear = () => new Date().getUTCFullYear()
 
@@ -110,7 +140,28 @@ const validators = {
     (b.facilities === undefined || (typeof b.facilities === 'object' && (b.facilities.duches === undefined || SHOWERS.includes(b.facilities.duches)))) && coord(b.lat, b.lng),
   // Avaliação de quem lá foi: "wc" pode ser null (não se aplica).
   sealReview: b => str(b.entityId, 1, 40) && b.answers && SEAL_QUESTIONS.every(k => bool(b.answers[k]) || (k === 'wc' && b.answers[k] === null)) && opt(b.comment, 600),
+  // Pedido de adesão a um pacote: só a equipa lê (para enviar a fatura); apagado ao fim de 12 meses.
+  planRequest: b => str(b.org, 2, 160) && Object.hasOwn(PLANS, b.plan) && ['pequena', 'media', 'grande'].includes(b.size) && email(b.contact) &&
+    opt(b.nif, 20) && opt(b.message, 1000) && opt(b.entityId, 40),
 }
+
+/** Ficha completa de uma entidade com pacote pago. Tudo opcional; nada sobre quem a visita. */
+const profileOk = b => opt(b.about, 1200) && opt(b.benefits, 600) && opt(b.prices, 300) && opt(b.languages, 120) &&
+  httpsUrl(b.bookingUrl) && httpsUrl(b.contactUrl) && (b.contactEmail === undefined || b.contactEmail === '' || email(b.contactEmail)) &&
+  (b.sns === undefined || bool(b.sns)) && (b.vouchers === undefined || bool(b.vouchers)) &&
+  (b.policies === undefined || (Array.isArray(b.policies) && b.policies.every(x => POLICIES.includes(x)))) &&
+  (b.services === undefined || (Array.isArray(b.services) && b.services.length <= SERVICE_KINDS.length &&
+    b.services.every(x => x && SERVICE_KINDS.includes(x.kind) && int(x.price, 0, 500) && bool(x.online))))
+const pickProfile = b => ({
+  about: b.about?.trim() || undefined, benefits: b.benefits?.trim() || undefined, prices: b.prices?.trim() || undefined, languages: b.languages?.trim() || undefined,
+  bookingUrl: b.bookingUrl?.trim() || undefined, contactUrl: b.contactUrl?.trim() || undefined, contactEmail: b.contactEmail?.trim() || undefined,
+  sns: b.sns || undefined, vouchers: b.vouchers || undefined,
+  policies: b.policies?.length ? [...new Set(b.policies)] : undefined,
+  services: b.services?.length ? b.services.filter((x, i, a) => a.findIndex(y => y.kind === x.kind) === i).map(x => ({ kind: x.kind, price: x.price, online: x.online })) : undefined,
+})
+/** Oferta de emprego de uma empresa Aliada ou Parceira. */
+const jobOk = b => str(b.title, 3, 120) && str(b.district, 2, 40) && bool(b.remote) && httpsUrl(b.url) && b.url && opt(b.description, 1500)
+const pickJob = b => ({ title: b.title.trim(), district: b.district, remote: b.remote, url: b.url.trim(), description: b.description?.trim() || undefined })
 
 /** Campos guardados por tipo: tudo o resto é descartado. */
 const pick = {
@@ -135,6 +186,7 @@ const pick = {
     facilities: b.facilities ? { wcNeutro: !!b.facilities.wcNeutro, vestiarioNeutro: !!b.facilities.vestiarioNeutro, cabinesIndividuais: !!b.facilities.cabinesIndividuais, duches: b.facilities.duches } : {},
     lat: r4(b.lat), lng: r4(b.lng) }),
   sealReview: b => ({ entityId: b.entityId, answers: Object.fromEntries(SEAL_QUESTIONS.map(k => [k, b.answers[k]])), comment: b.comment?.trim() || undefined }),
+  planRequest: b => ({ org: b.org.trim(), plan: b.plan, size: b.size, contact: b.contact.trim(), nif: b.nif?.trim() || undefined, message: b.message?.trim() || undefined, entityId: b.entityId || undefined }),
 }
 
 /* ---------- pré-moderação automática ---------- */
@@ -148,7 +200,7 @@ function flagsFor(type, payload, id = '') {
 }
 
 /** Tipos que só a equipa lê: nunca são publicados. */
-const RECEIVED_ONLY = new Set(['incident', 'wish'])
+const RECEIVED_ONLY = new Set(['incident', 'wish', 'planRequest'])
 
 /** Decide o estado: publicado se estiver limpo e o tipo o permitir, senão fica à espera. */
 const decide = (type, flags) => RECEIVED_ONLY.has(type) ? 'received' : AUTO && !ALWAYS_HUMAN.has(type) && flags.length === 0 ? 'approved' : 'pending'
@@ -183,6 +235,18 @@ function limited(req) {
   list.push(now)
   hits.set(key, list)
   return list.length > RATE_LIMIT
+}
+
+/** Sessões solidárias: no máximo 2 códigos por dia e por ligação, para ninguém esgotar a reserva. */
+const voucherHits = new Map()
+const voucherKey = req => createHash('sha256').update(salt).update('v' + (req.headers['x-forwarded-for']?.split(',')[0] ?? req.socket.remoteAddress ?? '').trim()).digest('base64')
+const voucherLimited = req => (voucherHits.get(voucherKey(req)) ?? 0) >= 2
+const voucherCounted = req => voucherHits.set(voucherKey(req), (voucherHits.get(voucherKey(req)) ?? 0) + 1)
+setInterval(() => voucherHits.clear(), 86_400_000).unref()
+
+/** Uma ficha nova aprovada substitui as anteriores (não guardamos versões antigas). */
+function dropOldProfiles(entityId, keepId) {
+  db.prepare("DELETE FROM submissions WHERE type = 'profile' AND id != ? AND status = 'approved' AND json_extract(payload, '$.entityId') = ?").run(keepId, entityId)
 }
 
 /* ---------- leitura pública (só aprovado) ---------- */
@@ -253,12 +317,137 @@ export function entities() {
     }
     const enough = rs.length >= SEAL_MIN_REVIEWS
     const seal = !enough ? 'em-avaliacao' : Object.values(scores).every(v => v >= SEAL_THRESHOLD) ? 'selo' : 'sem-selo'
+    const plan = activePlan(r.id)
     return {
       id: r.id, since: r.month, ...e, commitments: Object.keys(commitments ?? {}), seal, reviewCount: rs.length,
+      // Pacote pago: só o nome do pacote e a ficha, sempre identificados como pagos na app.
+      partner: plan?.plan, profile: plan ? profileOf(r.id) : undefined,
       scores: enough ? scores : undefined,
       comments: all.filter(x => x.comment).slice(0, 20).map(x => ({ id: x.id, month: x.month, comment: x.comment })),
     }
   })
+}
+
+/* ---------- pacotes para entidades ---------- */
+
+const today = () => new Date().toISOString().slice(0, 10)
+/** Pacote ativo de uma entidade (com a data de fim ainda por passar), ou undefined. */
+export function activePlan(id) {
+  const p = db.prepare('SELECT plan, until, district FROM entity_plans WHERE entity_id = ?').get(id)
+  return p && p.until >= today() && PLANS[p.plan] ? p : undefined
+}
+/** Última ficha aprovada de uma entidade. */
+function profileOf(id, status = 'approved') {
+  const r = db.prepare("SELECT payload FROM submissions WHERE type = 'profile' AND status = ? AND json_extract(payload, '$.entityId') = ? ORDER BY rowid DESC LIMIT 1").get(status, id)
+  if (!r) return undefined
+  const { entityId, ...p } = JSON.parse(r.payload)
+  return p
+}
+const hashKey = k => createHash('sha256').update(String(k)).digest('hex')
+/** Gera uma chave nova para a entidade (substitui a anterior) e devolve-a. Só o hash fica guardado. */
+export function issueKey(entityId) {
+  const key = randomBytes(18).toString('base64url')
+  db.prepare('INSERT INTO entity_keys (entity_id, hash) VALUES (?, ?) ON CONFLICT(entity_id) DO UPDATE SET hash = excluded.hash').run(entityId, hashKey(key))
+  return key
+}
+/** Confirma a chave de uma entidade (comparação em tempo constante). */
+function entityAuth(b) {
+  if (!b || typeof b.id !== 'string' || typeof b.key !== 'string' || b.key.length > 64) return false
+  const row = db.prepare('SELECT hash FROM entity_keys WHERE entity_id = ?').get(b.id)
+  return !!row && timingSafeEqual(Buffer.from(row.hash), Buffer.from(hashKey(b.key)))
+}
+const entityRow = id => db.prepare("SELECT id, payload, status, month FROM submissions WHERE id = ? AND type = 'entity'").get(id)
+
+/** Ofertas de emprego publicadas, só de entidades com pacote Aliada ou Parceira ativo. */
+export function jobs() {
+  const names = new Map(entities().map(e => [e.id, e]))
+  return db.prepare("SELECT id, payload, month FROM submissions WHERE type = 'job' AND status = 'approved' ORDER BY rowid DESC").all()
+    .map(r => ({ id: r.id, month: r.month, ...JSON.parse(r.payload) }))
+    .filter(j => names.has(j.entityId) && ['aliada', 'parceira'].includes(names.get(j.entityId).partner))
+    .map(j => ({ ...j, entityName: names.get(j.entityId).name, seal: names.get(j.entityId).seal }))
+}
+const jobsThisYear = id => {
+  const y = new Date(); y.setMonth(y.getMonth() - 12)
+  return db.prepare("SELECT COUNT(*) AS n FROM submissions WHERE type = 'job' AND json_extract(payload, '$.entityId') = ? AND month >= ?").get(id, y.toISOString().slice(0, 7)).n
+}
+
+/** Serviços especializados, de profissionais com pacote ativo. Ordem alfabética: pagar não dá destaque. */
+export function services() {
+  return entities().filter(e => PLANS[e.partner]?.services && e.profile?.services?.length)
+    .map(e => ({ entityId: e.id, name: e.name, kind: e.kind, district: e.district, seal: e.seal, services: e.profile.services, bookingUrl: e.profile.bookingUrl, vouchers: !!e.profile.vouchers, languages: e.profile.languages }))
+    .sort((a, b) => a.name.localeCompare(b.name, 'pt'))
+}
+
+const quarter = m => `${m.slice(0, 4)}-T${Math.ceil(Number(m.slice(5, 7)) / 3)}`
+/** Contagens com menos de K_REPORT ficam de fora: nenhuma pessoa pode ser reconhecida pelo relatório. */
+const kCount = (rows, key) => {
+  const m = {}
+  for (const r of rows) m[key(r)] = (m[key(r)] ?? 0) + 1
+  return Object.fromEntries(Object.entries(m).filter(([, n]) => n >= K_REPORT))
+}
+
+/**
+ * Relatório anónimo de uma entidade: só totais e percentagens dos últimos 24 meses, e só com
+ * K_REPORT ou mais avaliações. Nunca há comentários, datas exatas nem nada sobre quem avaliou.
+ * Autarquias: incidentes do distrito por tipo, contexto e trimestre, com o mesmo mínimo.
+ */
+export function entityReport(id) {
+  const since = new Date(); since.setUTCMonth(since.getUTCMonth() - SEAL_MONTHS)
+  const from = since.toISOString().slice(0, 7)
+  const rs = db.prepare("SELECT payload, month FROM submissions WHERE type = 'sealReview' AND status = 'approved' AND json_extract(payload, '$.entityId') = ? AND month >= ?").all(id, from)
+    .map(r => ({ ...JSON.parse(r.payload), month: r.month }))
+  const out = { reviews: rs.length >= K_REPORT ? rs.length : undefined, enough: rs.length >= K_REPORT, min: K_REPORT }
+  if (out.enough) {
+    out.scores = {}
+    for (const k of SEAL_QUESTIONS) {
+      const a = rs.filter(x => typeof x.answers[k] === 'boolean')
+      if (a.length >= K_REPORT) out.scores[k] = Math.round(a.filter(x => x.answers[k]).length / a.length * 100) / 100
+    }
+    out.byQuarter = kCount(rs, r => quarter(r.month))
+  }
+  const plan = activePlan(id)
+  if (plan && PLANS[plan.plan].incidents && plan.district) {
+    const inc = db.prepare("SELECT payload, month FROM submissions WHERE type = 'incident'").all()
+      .map(r => ({ ...JSON.parse(r.payload), month: r.month })).filter(r => r.district === plan.district)
+    out.incidents = { district: plan.district, total: inc.length >= K_REPORT ? inc.length : undefined,
+      byKind: kCount(inc, r => r.kind), bySetting: kCount(inc, r => r.setting), byQuarter: kCount(inc, r => quarter(r.month)) }
+  }
+  return out
+}
+
+/* ---------- sessões solidárias ---------- */
+
+const voucherBalance = () => db.prepare('SELECT balance FROM voucher_credits WHERE id = 1').get().balance
+const VOUCHER_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+const newCode = () => 'CSL-' + [...randomBytes(8)].map(b => VOUCHER_ALPHABET[b % VOUCHER_ALPHABET.length]).join('').replace(/(.{4})(.{4})/, '$1-$2')
+/** Pedir um código: gasta uma sessão das pagas pelas entidades. Não guarda nada sobre quem pede. */
+export function issueVoucher(kind) {
+  const left = voucherBalance()
+  if (left <= 0) return undefined
+  const code = newCode()
+  db.prepare('UPDATE voucher_credits SET balance = balance - 1 WHERE id = 1').run()
+  db.prepare('INSERT INTO vouchers (code, kind, month) VALUES (?, ?, ?)').run(code, kind, new Date().toISOString().slice(0, 7))
+  return code
+}
+/** O profissional usa o código numa sessão; a equipa paga-lhe as sessões usadas. */
+function redeemVoucher(entityId, code) {
+  const v = db.prepare('SELECT kind, month, redeemed_by FROM vouchers WHERE code = ?').get(String(code).trim().toUpperCase())
+  if (!v) return 'Código não encontrado'
+  if (v.redeemed_by) return 'Este código já foi usado'
+  const limit = new Date(); limit.setMonth(limit.getMonth() - VOUCHER_MONTHS)
+  if (v.month < limit.toISOString().slice(0, 7)) return 'Este código já expirou'
+  db.prepare('UPDATE vouchers SET redeemed_by = ?, redeemed_month = ? WHERE code = ?').run(entityId, new Date().toISOString().slice(0, 7), String(code).trim().toUpperCase())
+  return ''
+}
+/** Para a equipa pagar aos profissionais: sessões usadas por entidade e mês. */
+function voucherSummary() {
+  const names = new Map(db.prepare("SELECT id, payload FROM submissions WHERE type = 'entity'").all().map(r => [r.id, JSON.parse(r.payload).name]))
+  return {
+    balance: voucherBalance(),
+    issued: db.prepare('SELECT COUNT(*) AS n FROM vouchers WHERE redeemed_by IS NULL').get().n,
+    redeemed: db.prepare('SELECT redeemed_by, redeemed_month AS month, kind, COUNT(*) AS n FROM vouchers WHERE redeemed_by IS NOT NULL GROUP BY redeemed_by, redeemed_month, kind ORDER BY redeemed_month DESC')
+      .all().map(r => ({ entityId: r.redeemed_by, name: names.get(r.redeemed_by) ?? '?', month: r.month, kind: r.kind, n: r.n })),
+  }
 }
 
 /** Intervalos por parte do percurso, só com K_EXPERIENCE ou mais relatos (nunca valores individuais). */
@@ -312,7 +501,11 @@ function purgeOld() {
   db.prepare("DELETE FROM submissions WHERE type = 'mentorship' AND month < ?").run(d.toISOString().slice(0, 7))
   // Sugestões "procurei e não encontrei": apagadas ao fim de 12 meses.
   const y = new Date(); y.setMonth(y.getMonth() - 12)
-  db.prepare("DELETE FROM submissions WHERE type = 'wish' AND month < ?").run(y.toISOString().slice(0, 7))
+  db.prepare("DELETE FROM submissions WHERE type IN ('wish', 'planRequest') AND month < ?").run(y.toISOString().slice(0, 7))
+  // Ofertas de emprego: saem ao fim de 3 meses. Códigos de sessões solidárias: apagados 12 meses depois.
+  const j = new Date(); j.setMonth(j.getMonth() - 3)
+  db.prepare("DELETE FROM submissions WHERE type = 'job' AND month < ?").run(j.toISOString().slice(0, 7))
+  db.prepare('DELETE FROM vouchers WHERE month < ?').run(y.toISOString().slice(0, 7))
 }
 purgeOld()
 setInterval(() => { purgeOld(); publicCache.clear() }, 86_400_000).unref()
@@ -385,9 +578,12 @@ const publicRoutes = {
   '/api/stage-reviews': () => stageReviews(),
   '/api/entities': () => entities(),
   '/api/incidents/stats': () => incidentStats(),
+  '/api/jobs': () => jobs(),
+  '/api/services': () => services(),
+  '/api/vouchers/available': () => ({ available: voucherBalance() }),
 }
 
-const postRoutes = { '/api/stories': 'story', '/api/replies': 'reply', '/api/providers': 'provider', '/api/reviews': 'review', '/api/places': 'place', '/api/events': 'event', '/api/incidents': 'incident', '/api/mentorship': 'mentorship', '/api/employers': 'employer', '/api/experiences': 'experience', '/api/stage-reviews': 'stageReview', '/api/entities': 'entity', '/api/seal-reviews': 'sealReview', '/api/wishes': 'wish' }
+const postRoutes = { '/api/stories': 'story', '/api/replies': 'reply', '/api/providers': 'provider', '/api/reviews': 'review', '/api/places': 'place', '/api/events': 'event', '/api/incidents': 'incident', '/api/mentorship': 'mentorship', '/api/employers': 'employer', '/api/experiences': 'experience', '/api/stage-reviews': 'stageReview', '/api/entities': 'entity', '/api/seal-reviews': 'sealReview', '/api/wishes': 'wish', '/api/plan-requests': 'planRequest' }
 
 export const server = createServer(async (req, res) => {
   const url = new URL(req.url ?? '/', 'http://x')
@@ -401,6 +597,15 @@ export const server = createServer(async (req, res) => {
       if (path === '/mod') {
         res.writeHead(200, { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store', 'x-frame-options': 'DENY' })
         return res.end(readFileSync(join(here, 'mod.html')))
+      }
+      if (path === '/api/mod/plans') {
+        if (!isMod(req)) return send(res, 401, { error: 'Sem autorização' })
+        const names = new Map(db.prepare("SELECT id, payload FROM submissions WHERE type = 'entity'").all().map(r => [r.id, JSON.parse(r.payload).name]))
+        return send(res, 200, {
+          plans: db.prepare('SELECT entity_id AS entityId, plan, until, district FROM entity_plans ORDER BY until').all().map(p => ({ ...p, name: names.get(p.entityId) ?? '?', active: p.until >= today() })),
+          entities: [...names.entries()].map(([id, name]) => ({ id, name })).sort((a, b) => a.name.localeCompare(b.name, 'pt')),
+          vouchers: voucherSummary(),
+        })
       }
       if (path === '/api/mod/queue') {
         if (!isMod(req)) return send(res, 401, { error: 'Sem autorização' })
@@ -434,9 +639,103 @@ export const server = createServer(async (req, res) => {
         // Relatos de incidentes contam logo para estatísticas (agregadas, k-anonimato);
         // as descrições só são vistas pela moderação.
         const status = decide(type, flags)
+        const id = randomBytes(9).toString('base64url')
         db.prepare('INSERT INTO submissions (id, type, payload, status, flags, month, auto, fp) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
-          .run(randomBytes(9).toString('base64url'), type, JSON.stringify(payload), status, JSON.stringify(flags), new Date().toISOString().slice(0, 7), status === 'approved' ? 1 : 0, fp)
+          .run(id, type, JSON.stringify(payload), status, JSON.stringify(flags), new Date().toISOString().slice(0, 7), status === 'approved' ? 1 : 0, fp)
+        // Uma entidade recebe logo a sua chave (mostrada uma única vez): é com ela que edita a ficha.
+        if (type === 'entity') return send(res, 201, { ok: true, published: false, id, key: issueKey(id) })
         return send(res, 201, { ok: true, published: status === 'approved' })
+      }
+      if (path === '/api/vouchers') {
+        if (limited(req) || voucherLimited(req)) return send(res, 429, { error: 'Demasiados pedidos. Tenta mais tarde.' })
+        const { kind } = await readBody(req)
+        if (!SERVICE_KINDS.includes(kind)) return send(res, 400, { error: 'Dados inválidos' })
+        const code = issueVoucher(kind)
+        if (!code) return send(res, 409, { error: 'Neste momento não há sessões solidárias disponíveis.' })
+        voucherCounted(req)
+        return send(res, 201, { ok: true, code, months: VOUCHER_MONTHS })
+      }
+      // Painel da entidade: tudo com o id e a chave no corpo (nunca no endereço, que fica em registos).
+      const ent = path.match(/^\/api\/entity\/(me|profile|jobs|delete-job|report|redeem)$/)
+      if (ent) {
+        if (limited(req)) return send(res, 429, { error: 'Demasiados pedidos. Tenta mais tarde.' })
+        const body = await readBody(req)
+        if (!entityAuth(body)) return send(res, 401, { error: 'Chave inválida' })
+        const row = entityRow(body.id)
+        if (!row) return send(res, 404, { error: 'Entidade não encontrada' })
+        const plan = activePlan(body.id)
+        const month = new Date().toISOString().slice(0, 7)
+        if (ent[1] === 'me') {
+          const { contact, commitments, ...e } = JSON.parse(row.payload)
+          const own = db.prepare("SELECT id, payload, status, month FROM submissions WHERE type = 'job' AND json_extract(payload, '$.entityId') = ? ORDER BY rowid DESC").all(body.id)
+            .map(r => ({ id: r.id, status: r.status, month: r.month, ...JSON.parse(r.payload) }))
+          const pub = row.status === 'approved' ? entities().find(x => x.id === body.id) : undefined
+          return send(res, 200, {
+            entity: { id: row.id, ...e, status: row.status, seal: pub?.seal, reviewCount: pub?.reviewCount },
+            plan: plan ?? null, profile: profileOf(body.id, 'pending') ?? profileOf(body.id) ?? null, profileWaiting: !!profileOf(body.id, 'pending'),
+            jobs: own, jobsLeft: plan ? Math.max(0, (PLANS[plan.plan].jobs ?? 0) - jobsThisYear(body.id)) : 0,
+          })
+        }
+        if (!plan) return send(res, 402, { error: 'Esta funcionalidade faz parte dos pacotes pagos.' })
+        if (ent[1] === 'report') return send(res, 200, entityReport(body.id))
+        if (ent[1] === 'profile') {
+          const p = body.profile ?? {}
+          if (!profileOk(p)) return send(res, 400, { error: 'Dados inválidos' })
+          const payload = { entityId: body.id, ...pickProfile(p) }
+          if (!PLANS[plan.plan].services) delete payload.services, delete payload.vouchers
+          const { flags, fp } = flagsFor('profile', payload)
+          const status = decide('profile', flags)
+          db.prepare("DELETE FROM submissions WHERE type = 'profile' AND status = 'pending' AND json_extract(payload, '$.entityId') = ?").run(body.id)
+          const id = randomBytes(9).toString('base64url')
+          db.prepare('INSERT INTO submissions (id, type, payload, status, flags, month, auto, fp) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
+            .run(id, 'profile', JSON.stringify(payload), status, JSON.stringify(flags), month, status === 'approved' ? 1 : 0, fp)
+          if (status === 'approved') dropOldProfiles(body.id, id)
+          return send(res, 201, { ok: true, published: status === 'approved' })
+        }
+        if (ent[1] === 'jobs') {
+          if (!PLANS[plan.plan].jobs) return send(res, 402, { error: 'As ofertas de emprego fazem parte dos pacotes Aliada e Parceira.' })
+          if (jobsThisYear(body.id) >= PLANS[plan.plan].jobs) return send(res, 402, { error: 'Já usaram as ofertas de emprego incluídas este ano.' })
+          if (!jobOk(body.job ?? {})) return send(res, 400, { error: 'Dados inválidos' })
+          const payload = { entityId: body.id, ...pickJob(body.job) }
+          const { flags, fp } = flagsFor('job', payload)
+          const status = decide('job', flags)
+          db.prepare('INSERT INTO submissions (id, type, payload, status, flags, month, auto, fp) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
+            .run(randomBytes(9).toString('base64url'), 'job', JSON.stringify(payload), status, JSON.stringify(flags), month, status === 'approved' ? 1 : 0, fp)
+          return send(res, 201, { ok: true, published: status === 'approved' })
+        }
+        if (ent[1] === 'delete-job') {
+          db.prepare("DELETE FROM submissions WHERE id = ? AND type = 'job' AND json_extract(payload, '$.entityId') = ?").run(String(body.jobId), body.id)
+          return send(res, 200, { ok: true })
+        }
+        if (ent[1] === 'redeem') {
+          if (!PLANS[plan.plan].services) return send(res, 402, { error: 'Só profissionais com perfil pago aceitam sessões solidárias.' })
+          const err = redeemVoucher(body.id, body.code ?? '')
+          return err ? send(res, 400, { error: err }) : send(res, 200, { ok: true })
+        }
+      }
+      // Moderação dos pacotes: atribuir plano, nova chave, sessões solidárias.
+      if (path === '/api/mod/plan') {
+        if (!isMod(req)) return send(res, 401, { error: 'Sem autorização' })
+        const { entityId, plan, until, district } = await readBody(req)
+        if (!entityRow(entityId)) return send(res, 404, { error: 'Entidade não encontrada' })
+        if (!plan) { db.prepare('DELETE FROM entity_plans WHERE entity_id = ?').run(entityId); return send(res, 200, { ok: true }) }
+        if (!Object.hasOwn(PLANS, plan) || !/^\d{4}-\d{2}-\d{2}$/.test(until ?? '') || (district !== undefined && !opt(district, 40))) return send(res, 400, { error: 'Dados inválidos' })
+        db.prepare('INSERT INTO entity_plans (entity_id, plan, until, district) VALUES (?, ?, ?, ?) ON CONFLICT(entity_id) DO UPDATE SET plan = excluded.plan, until = excluded.until, district = excluded.district')
+          .run(entityId, plan, until, district || null)
+        return send(res, 200, { ok: true })
+      }
+      if (path === '/api/mod/entity-key') {
+        if (!isMod(req)) return send(res, 401, { error: 'Sem autorização' })
+        const { entityId } = await readBody(req)
+        if (!entityRow(entityId)) return send(res, 404, { error: 'Entidade não encontrada' })
+        return send(res, 200, { ok: true, key: issueKey(entityId) })
+      }
+      if (path === '/api/mod/vouchers') {
+        if (!isMod(req)) return send(res, 401, { error: 'Sem autorização' })
+        const { add } = await readBody(req)
+        if (!int(add, -1000, 1000)) return send(res, 400, { error: 'Dados inválidos' })
+        db.prepare('UPDATE voucher_credits SET balance = MAX(0, balance + ?) WHERE id = 1').run(add)
+        return send(res, 200, voucherSummary())
       }
       const sup = path.match(/^\/api\/stories\/([\w-]+)\/support$/)
       if (sup) {
@@ -467,7 +766,11 @@ export const server = createServer(async (req, res) => {
         const { action } = await readBody(req)
         // Rejeitar apaga logo o conteúdo: não guardamos o que não vai ser publicado.
         if (action === 'delete' || action === 'reject') db.prepare('DELETE FROM submissions WHERE id = ?').run(m[1])
-        else if (action === 'approve') db.prepare("UPDATE submissions SET status = 'approved', auto = 0, reports = 0 WHERE id = ?").run(m[1])
+        else if (action === 'approve') {
+          db.prepare("UPDATE submissions SET status = 'approved', auto = 0, reports = 0 WHERE id = ?").run(m[1])
+          const p = db.prepare("SELECT payload FROM submissions WHERE id = ? AND type = 'profile'").get(m[1])
+          if (p) dropOldProfiles(JSON.parse(p.payload).entityId, m[1])
+        }
         else if (action === 'hide') db.prepare("UPDATE submissions SET status = 'pending', auto = 0 WHERE id = ?").run(m[1])
         else return send(res, 400, { error: 'Ação inválida' })
         return send(res, 200, { ok: true })

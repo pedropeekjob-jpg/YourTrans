@@ -51,6 +51,11 @@ export function Me() {
             <div className="grow"><h3>{tr('Momentos de euforia')}</h3><p className="small muted">{tr('Guarda-os para os dias difíceis')}</p></div>
             <Icon name="chevron" />
           </Link>
+          <Link to="/servicos" className="item">
+            <div className="lead" style={{ background: 'var(--sky-soft)', color: 'var(--sky)' }}><Icon name="star" /></div>
+            <div className="grow"><h3>{tr('Serviços especializados')}</h3><p className="small muted">{tr('Jurídico, voz, psicologia e imagem. Opcional, com sessões solidárias')}</p></div>
+            <Icon name="chevron" />
+          </Link>
         </div>
 
         <section className="card">
@@ -85,6 +90,7 @@ export function Me() {
             <Icon name="chevron" />
           </Link>
         </div>
+        <p className="xs muted" style={{ textAlign: 'center' }}>{tr('O Casulo é gratuito e sem anúncios.')}{' '}<Link to="/transparencia">{tr('Como se sustenta')}</Link>{' · '}<Link to="/entidades">{tr('Para entidades')}</Link></p>
       </div>
     </>
   )

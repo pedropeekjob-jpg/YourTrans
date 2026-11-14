@@ -3,7 +3,8 @@
 import type { Provider, ReviewQuestion } from '../data/health'
 import type { Place } from './types'
 import type { Story } from '../data/stories'
-import type { SealCommitment, SealEntity, SealQuestion } from '../data/seal'
+import type { EntityProfile, SealCommitment, SealEntity, SealQuestion, SealStatus } from '../data/seal'
+import type { OrgSize, PlanId, ServiceKind } from '../data/plans'
 import { tr } from '../i18n'
 
 /** Servidor da comunidade (Render, Frankfurt). VITE_API_URL sobrepõe-se; "off" desliga. */
@@ -56,7 +57,42 @@ export interface ExperienceStat { track: string; kind: 'custo' | 'espera' | 'mat
 export type StageQuestion = 'respeito' | 'informacao' | 'tempoRazoavel' | 'recomendaria'
 export interface StageReviewStat { track: string; n: number; scores?: Record<StageQuestion, number>; comments: { id: string; month: string; comment: string }[] }
 
+/** Acesso de uma entidade ao seu painel: o código e a chave dados no registo. */
+export interface EntityLogin { id: string; key: string }
+export interface Job { id: string; entityId: string; entityName?: string; seal?: SealStatus; title: string; district: string; remote: boolean; url: string; description?: string; month: string; status?: string }
+export interface EntityMe {
+  entity: { id: string; name: string; kind: string; district: string; status: string; seal?: SealStatus; reviewCount?: number }
+  plan: { plan: PlanId; until: string; district?: string } | null
+  profile: EntityProfile | null
+  profileWaiting: boolean
+  jobs: Job[]
+  jobsLeft: number
+}
+export interface EntityReport {
+  enough: boolean; min: number; reviews?: number
+  scores?: Partial<Record<SealQuestion, number>>
+  byQuarter?: Record<string, number>
+  incidents?: { district: string; total?: number; byKind: Record<string, number>; bySetting: Record<string, number>; byQuarter: Record<string, number> }
+}
+export interface ServiceOffer { entityId: string; name: string; kind: string; district: string; seal: SealStatus; services: NonNullable<EntityProfile['services']>; bookingUrl?: string; vouchers: boolean; languages?: string }
+const asEntity = (login: EntityLogin, extra: object = {}) => ({ method: 'POST', body: JSON.stringify({ ...login, ...extra }) })
+
 export const api = {
+  // Pacotes para entidades.
+  jobs: () => req<Job[]>('/api/jobs'),
+  services: () => req<ServiceOffer[]>('/api/services'),
+  vouchersAvailable: () => req<{ available: number }>('/api/vouchers/available'),
+  /** Pede um código de sessão solidária: não envia nada sobre quem pede. */
+  voucher: (kind: ServiceKind) => req<{ ok: true; code: string; months: number }>('/api/vouchers', { method: 'POST', body: JSON.stringify({ kind }) }),
+  planRequest: (r: { org: string; plan: PlanId; size: OrgSize; contact: string; nif?: string; message?: string; entityId?: string }) =>
+    req<Sent>('/api/plan-requests', { method: 'POST', body: JSON.stringify(r) }),
+  entityMe: (l: EntityLogin) => req<EntityMe>('/api/entity/me', asEntity(l)),
+  entityProfile: (l: EntityLogin, profile: EntityProfile) => req<Sent>('/api/entity/profile', asEntity(l, { profile })),
+  entityJob: (l: EntityLogin, job: Pick<Job, 'title' | 'district' | 'remote' | 'url' | 'description'>) => req<Sent>('/api/entity/jobs', asEntity(l, { job })),
+  entityDeleteJob: (l: EntityLogin, jobId: string) => req<{ ok: true }>('/api/entity/delete-job', asEntity(l, { jobId })),
+  entityReport: (l: EntityLogin) => req<EntityReport>('/api/entity/report', asEntity(l)),
+  redeemVoucher: (l: EntityLogin, code: string) => req<{ ok: true }>('/api/entity/redeem', asEntity(l, { code })),
+
   experiences: () => req<ExperienceStat[]>('/api/experiences'),
   sendExperience: (e: { track: string; kind: ExperienceStat['kind']; sector: ExperienceStat['sector']; year: number; value: number; item?: string }) =>
     req<Sent>('/api/experiences', { method: 'POST', body: JSON.stringify(e) }),
@@ -93,7 +129,7 @@ export const api = {
   entities: () => req<SealEntity[]>('/api/entities'),
   /** Pedido de selo: fica sempre à espera da moderação; o e-mail nunca é publicado. */
   registerEntity: (e: Pick<SealEntity, 'name' | 'kind' | 'district' | 'address' | 'url' | 'notes' | 'transparente' | 'facilities' | 'lat' | 'lng'> & { contact: string; commitments: Record<SealCommitment, boolean> }) =>
-    req<Sent>('/api/entities', { method: 'POST', body: JSON.stringify(e) }),
+    req<Sent & { id: string; key: string }>('/api/entities', { method: 'POST', body: JSON.stringify(e) }),
   sealReview: (entityId: string, answers: Record<SealQuestion, boolean | null>, comment: string) =>
     req<Sent>('/api/seal-reviews', { method: 'POST', body: JSON.stringify({ entityId, answers, comment }) }),
   suggestPlace: (p: Omit<Place, 'id' | 'source'>) =>

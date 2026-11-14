@@ -1,5 +1,5 @@
 // Selo Casulo: o que é, entidades registadas, registo e avaliação de cada entidade.
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { TopBar } from '../components/Layout'
 import { Icon } from '../components/Icon'
@@ -8,7 +8,7 @@ import { SafeMap } from '../components/SafeMap'
 import { PortugalOnly } from '../components/CountryInfoViews'
 import { FacilityBadges } from './Safety'
 import { districts } from '../data/health'
-import { api, apiEnabled } from '../lib/api'
+import { api, apiEnabled, type Job } from '../lib/api'
 import { useEntities } from '../lib/useEntities'
 import { transparenteEntities } from '../data/transparente'
 import { SealBadge, TransparenteBadge } from '../components/SealBadges'
@@ -16,8 +16,9 @@ import { inPortugal, round4, type LatLng } from '../lib/geo'
 import type { Facilities } from '../lib/types'
 import {
   SEAL_MIN_REVIEWS, SEAL_THRESHOLD, TRANSPARENTE_EQI_URL, entityKinds, sealCommitments, sealQuestions,
-  type SealCommitment, type SealQuestion,
+  type SealCommitment, type SealEntity as SealEntityT, type SealQuestion,
 } from '../data/seal'
+import { paidLabel, policyLabel, serviceLabel, euros } from '../data/plans'
 import { tr } from '../i18n'
 
 type Tab = 'sobre' | 'entidades' | 'registar'
@@ -105,7 +106,7 @@ function Entities() {
                 </div>
                 <Icon name="chevron" size={18} />
               </div>
-              <div className="row wrap" style={{ gap: 6 }}><SealBadge status={e.seal} />{e.transparente && <TransparenteBadge link={false} />}</div>
+              <div className="row wrap" style={{ gap: 6 }}><SealBadge status={e.seal} />{e.transparente && <TransparenteBadge link={false} />}{e.partner && <span className="badge">{paidLabel(e.partner)}</span>}</div>
             </Link>
           ))}
         </div>
@@ -146,7 +147,7 @@ function Register() {
   const empty = { name: '', kind: 'Café/Restaurante', district: 'Lisboa', address: '', url: '', notes: '', contact: '', transparente: false, facilities: {} as Facilities, pos: null as LatLng | null }
   const [form, setForm] = useState(empty)
   const [commit, setCommit] = useState<Partial<Record<SealCommitment, boolean>>>({})
-  const [sent, setSent] = useState(false)
+  const [sent, setSent] = useState<{ id: string; key: string } | null>(null)
   const urlOk = !form.url.trim() || /^https:\/\/\S+$/.test(form.url.trim())
   const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.contact.trim())
   const ok = form.name.trim().length >= 2 && emailOk && urlOk && allCommitments(commit)
@@ -156,12 +157,12 @@ function Register() {
     if (!apiEnabled) { toast(tr('O registo fica disponível quando o servidor estiver ligado')); return }
     const { pos, ...rest } = form
     try {
-      await api.registerEntity({
+      const r = await api.registerEntity({
         ...rest, name: rest.name.trim(), contact: rest.contact.trim(), url: rest.url.trim() || undefined, address: rest.address.trim() || undefined, notes: rest.notes.trim() || undefined,
         transparente: rest.transparente || undefined, commitments: commit as Record<SealCommitment, boolean>,
         ...(pos ? { lat: round4(pos.lat), lng: round4(pos.lng) } : {}),
       })
-      setSent(true)
+      setSent({ id: r.id, key: r.key })
     } catch (e) { toast((e as Error).message) }
   }
 
@@ -169,7 +170,14 @@ function Register() {
     <section className="card tint-mint">
       <h3>{tr('Registo enviado')}</h3>
       <p className="small">{tr('Uma pessoa da moderação vai confirmar os dados e pode responder para o e-mail indicado. Depois disso, a entidade aparece no mapa como "Em avaliação".')}</p>
-      <button className="btn secondary" onClick={() => { setSent(false); setForm(empty); setCommit({}) }}>{tr('Registar outra')}</button>
+      <div className="card" style={{ gap: 4 }}>
+        <b className="small">{tr('Guardem agora estes dados de acesso ao painel da entidade:')}</b>
+        <span className="small">{tr('Código')}: <code style={{ userSelect: 'all' }}>{sent.id}</code></span>
+        <span className="small">{tr('Chave')}: <code style={{ userSelect: 'all', wordBreak: 'break-all' }}>{sent.key}</code></span>
+        <span className="xs muted">{tr('A chave só aparece esta vez e não a guardamos. Serve para editar a ficha se aderirem a um pacote.')}</span>
+      </div>
+      <Link className="btn sm secondary" style={{ justifySelf: 'start' }} to="/entidades">{tr('Ver pacotes para entidades')}</Link>
+      <button className="btn secondary" onClick={() => { setSent(null); setForm(empty); setCommit({}) }}>{tr('Registar outra')}</button>
     </section>
   )
 
@@ -246,6 +254,7 @@ export function SealEntityPage() {
           <div className="row wrap" style={{ gap: 6 }}>
             <SealBadge status={e.seal} /><span className="badge">{tr(e.kind)}</span><span className="badge">{e.district}</span>
             {e.transparente && <TransparenteBadge />}
+            {e.partner && <span className="badge">{paidLabel(e.partner)}</span>}
           </div>
           <h1 style={{ fontSize: '1.4rem' }}>{e.name}</h1>
           {e.address && <span className="small muted">{e.address}</span>}
@@ -276,6 +285,9 @@ export function SealEntityPage() {
             </div>
           )}
         </section>
+
+        {/* A ficha paga vem depois do que a comunidade diz: as avaliações têm sempre o primeiro lugar. */}
+        {e.partner && e.profile && <ProfileView e={e} />}
 
         <section className="card">
           <h3>{tr('Compromissos assumidos')}</h3>
@@ -309,5 +321,44 @@ export function SealEntityPage() {
         </section>
       </div>
     </>
+  )
+}
+
+/** Ficha completa de uma entidade com pacote pago: sempre identificada como tal. */
+function ProfileView({ e }: { e: SealEntityT }) {
+  const p = e.profile!
+  const [jobs, setJobs] = useState<Job[]>([])
+  useEffect(() => { if (e.partner === 'aliada' || e.partner === 'parceira') api.jobs().then(j => setJobs(j.filter(x => x.entityId === e.id))).catch(() => {}) }, [e.id, e.partner])
+  return (
+    <section className="card">
+      <div className="row between"><h3>{tr('Sobre')}</h3><span className="xs muted">{tr('Informação da entidade · pacote pago')}</span></div>
+      {p.about && <p className="small" style={{ margin: 0, whiteSpace: 'pre-line' }}>{p.about}</p>}
+      {p.policies?.length ? (
+        <>
+          <b className="small">{tr('Políticas declaradas pela entidade')}</b>
+          <ul className="small" style={{ margin: 0, paddingLeft: 18, display: 'grid', gap: 4 }}>{p.policies.map(x => <li key={x}>{policyLabel[x] ?? x}</li>)}</ul>
+          <span className="xs muted">{tr('Declarado pela entidade. As avaliações acima dizem se se cumpre.')}</span>
+        </>
+      ) : null}
+      {p.benefits && <p className="small" style={{ margin: 0 }}><b>{tr('Benefícios')}:</b> {p.benefits}</p>}
+      {p.services?.length ? (
+        <div className="stack" style={{ gap: 4 }}>{p.services.map(s => <div key={s.kind} className="row between small"><span>{serviceLabel[s.kind]}{s.online ? ' · ' + tr('online') : ''}</span><b>{s.price ? tr('{0} por sessão', euros(s.price)) : tr('Gratuito')}</b></div>)}</div>
+      ) : null}
+      {p.sns && <span className="badge">{tr('Também no SNS')}</span>}
+      {p.prices && <p className="small" style={{ margin: 0 }}><b>{tr('Preços e acordos')}:</b> {p.prices}</p>}
+      {p.languages && <p className="small" style={{ margin: 0 }}><b>{tr('Línguas')}:</b> {p.languages}</p>}
+      {p.vouchers && <span className="badge mint">{tr('Aceita sessões solidárias')}</span>}
+      <div className="row wrap" style={{ gap: 8 }}>
+        {p.bookingUrl && <a className="btn sm" href={p.bookingUrl} target="_blank" rel="noopener noreferrer"><Icon name="external" size={16} />{tr('Marcar')}</a>}
+        {p.contactUrl && <a className="btn sm secondary" href={p.contactUrl} target="_blank" rel="noopener noreferrer"><Icon name="external" size={16} />{tr('Contacto')}</a>}
+        {p.contactEmail && <a className="btn sm secondary" href={`mailto:${p.contactEmail}`}>{p.contactEmail}</a>}
+      </div>
+      {jobs.length > 0 && (
+        <>
+          <b className="small">{tr('Ofertas de emprego')}</b>
+          {jobs.map(j => <a key={j.id} className="small" href={j.url} target="_blank" rel="noopener noreferrer">{j.title} · {j.district}{j.remote ? ' · ' + tr('remoto possível') : ''} ↗</a>)}
+        </>
+      )}
+    </section>
   )
 }
