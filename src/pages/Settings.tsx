@@ -61,13 +61,13 @@ export function Settings() {
             {mode === 'pin' && changing && (
               <div className="row">
                 <input className="input grow" type="password" inputMode="numeric" autoFocus placeholder={tr('Código novo')} value={pin} onChange={e => setPinV(e.target.value.replace(/\D/g, '').slice(0, 8))} />
-                <button className="btn" disabled={pin.length < 4} onClick={async () => { await setPin(pin); setPinV(''); setChanging(false) }}>{tr('Guardar')}</button>
+                <button className="btn" disabled={pin.length < 6} onClick={async () => { await setPin(pin); setPinV(''); setChanging(false) }}>{tr('Guardar')}</button>
               </div>
             )}
             {mode === 'pin' ? null : (
               <div className="row">
-                <input className="input grow" type="password" inputMode="numeric" placeholder={tr('4 a 8 algarismos')} value={pin} onChange={e => setPinV(e.target.value.replace(/\D/g, '').slice(0, 8))} />
-                <button className="btn" disabled={pin.length < 4} onClick={async () => { await setPin(pin); setPinV(''); toast(tr('Código ativo')) }}>{tr('Ativar')}</button>
+                <input className="input grow" type="password" inputMode="numeric" placeholder={tr('6 a 8 algarismos')} value={pin} onChange={e => setPinV(e.target.value.replace(/\D/g, '').slice(0, 8))} />
+                <button className="btn" disabled={pin.length < 6} onClick={async () => { await setPin(pin); setPinV(''); toast(tr('Código ativo')) }}>{tr('Ativar')}</button>
               </div>
             )}
           </div>

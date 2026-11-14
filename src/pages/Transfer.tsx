@@ -121,7 +121,7 @@ function Receive() {
     <div className="stack">
       <p className="small"><Icon name="check" size={16} /> {tr('Tudo recebido. Escreve o código que aparece no outro aparelho.')}</p>
       <input className="input" style={{ textAlign: 'center', letterSpacing: '.08em', fontFamily: 'ui-monospace, monospace' }} autoCapitalize="characters" autoComplete="off" spellCheck={false}
-        placeholder="XXXX-XXXX" value={code} onChange={e => { setCode(e.target.value.toUpperCase()); setError('') }} />
+        placeholder="XXXX-XXXX-XXXX" value={code} onChange={e => { setCode(e.target.value.toUpperCase()); setError('') }} />
       {error && <p className="small" style={{ color: 'var(--danger)' }} role="alert">{error}</p>}
       <button className="btn block" disabled={busy || code.replace(/[^0-9A-Z]/gi, '').length < 8} onClick={finish}>{busy ? tr('A verificar…') : tr('Receber os dados')}</button>
     </div>

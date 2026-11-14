@@ -14,7 +14,8 @@ async function pipe(data: Uint8Array<ArrayBuffer>, stream: CompressionStream | D
 }
 
 export function newTransferCode(): string {
-  return generateRecoveryCode(8)
+  // 12 caracteres (60 bits): mesmo quem filme o ecrã não consegue adivinhar o código.
+  return generateRecoveryCode(12)
 }
 
 /** Cifra o cofre e devolve as frases a mostrar como QR, por ordem. */

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Navigate, useSearchParams } from 'react-router-dom'
+import { Link, Navigate, useSearchParams } from 'react-router-dom'
 import { useVault } from '../lib/vault-context'
 import { TopBar } from '../components/Layout'
 import { Icon } from '../components/Icon'
@@ -29,6 +29,26 @@ export function Journal() {
 }
 
 /* ---------- Diário ---------- */
+
+/**
+ * Convite para proteger com código, no momento em que faz sentido: depois do primeiro registo
+ * no diário (texto ou fotos), e não logo no primeiro minuto da app. Aparece uma vez.
+ */
+function ProtectNudge({ show }: { show: boolean }) {
+  const { vault, update, mode } = useVault()
+  if (!show || mode === 'pin' || vault.settings.pinNudgeSeen) return null
+  const seen = () => update(v => ({ ...v, settings: { ...v.settings, pinNudgeSeen: true } }))
+  return (
+    <section className="card tint-accent" role="note">
+      <h3>{tr('Proteger o teu diário?')}</h3>
+      <p className="small">{tr('Neste momento, quem pegar no telemóvel desbloqueado consegue abrir o diário e as fotos. Com um código, ficam cifrados com uma chave que só tu sabes.')}</p>
+      <div className="row">
+        <Link className="btn sm" to="/definicoes" onClick={seen}>{tr('Escolher um código')}</Link>
+        <button className="btn sm ghost" onClick={seen}>{tr('Agora não')}</button>
+      </div>
+    </section>
+  )
+}
 
 function Diary() {
   const { vault, update, key } = useVault()
@@ -75,6 +95,7 @@ function Diary() {
 
   return (
     <>
+      <ProtectNudge show={vault.journal.length > 0} />
       <div className="grid2">
         <button className="tile card tint-accent" onClick={() => { setEuphoria(false); setOpen(true) }}>
           <div className="ico"><Icon name="book" /></div>
