@@ -88,3 +88,6 @@ export const pick = {
   sealReview: b => ({ entityId: b.entityId, answers: Object.fromEntries(SEAL_QUESTIONS.map(k => [k, b.answers[k]])), comment: b.comment?.trim() || undefined }),
 }
 
+
+/** Código aleatório do aparelho enviado com as publicações (ver authorTag em webcrypto.mjs). */
+export const validAuthor = v => typeof v === 'string' && /^[A-Za-z0-9_-]{16,64}$/.test(v)

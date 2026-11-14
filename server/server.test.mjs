@@ -127,7 +127,7 @@ test('risco de autolesão vai para o topo da fila', async () => {
 test('rever a fila publica o que estava à espera e está limpo', async () => {
   const { retriage } = await import('./index.mjs')
   const before = (await queue()).length
-  const r = retriage()
+  const r = await retriage()
   assert.equal(r.checked, before)
   assert.equal(r.published, 0) // o que está na fila é suspeito ou é de profissionais
   assert.equal((await post('/api/mod/retriage', {})).status, 401)

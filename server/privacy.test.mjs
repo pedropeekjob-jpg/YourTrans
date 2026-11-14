@@ -2,15 +2,23 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 
 process.env.DATA_KEY = 'outra-chave'
-const { clientIp, openBuffer, openField, sealBuffer, sealField } = await import('./privacy.mjs')
+const { clientIp, openBuffer, sealBuffer } = await import('./privacy.mjs')
+const { authorTag, fieldCipher } = await import('./webcrypto.mjs')
 const { signV4 } = await import('./backup.mjs')
 
-test('campos cifrados voltam ao original e não mostram o texto', () => {
-  const sealed = sealField('pessoa@exemplo.pt')
+test('campos cifrados voltam ao original e não mostram o texto', async () => {
+  const c = fieldCipher('outra-chave')
+  const sealed = await c.seal('pessoa@exemplo.pt')
   assert.ok(sealed.startsWith('enc1:') && !sealed.includes('exemplo'))
-  assert.equal(openField(sealed), 'pessoa@exemplo.pt')
-  assert.equal(openField('texto antigo em claro'), 'texto antigo em claro')
+  assert.equal(await c.open(sealed), 'pessoa@exemplo.pt')
+  assert.equal(await c.open('texto antigo em claro'), 'texto antigo em claro')
   assert.deepEqual(openBuffer(sealBuffer(Buffer.from('base'))), Buffer.from('base'))
+})
+
+test('o que a versão antiga (node:crypto) cifrou continua a abrir, e as assinaturas não mudam', async () => {
+  const old = 'enc1:PwmnM_fSa3oz18EcZycDThePyShx0SrGqdVEYD2aZ8t9RKmJ4HiPPa_13fOs'
+  assert.equal(await fieldCipher('outra-chave').open(old), 'pessoa@exemplo.pt')
+  assert.equal(await authorTag('aparelho-0123456789abcd', 'segredo'), '7ns0RXQfC0EIsDxt')
 })
 
 test('IP: Cloudflare primeiro, depois o último do X-Forwarded-For', () => {
