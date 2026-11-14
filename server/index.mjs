@@ -12,6 +12,7 @@ import { fileURLToPath } from 'node:url'
 import { ALWAYS_HUMAN, fingerprint, screen } from './moderation.mjs'
 import { authorTag, clientIp, contactsEncrypted, openField, sealField, validAuthor } from './privacy.mjs'
 import { backupConfigured, runBackup } from './backup.mjs'
+import { initPush, validSubscription } from './push.mjs'
 import { K_EXPERIENCE, SEAL_MIN_REVIEWS, SEAL_MONTHS, SEAL_QUESTIONS, SEAL_THRESHOLD, STAGE_QUESTIONS, pick, validators } from './validation.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -81,6 +82,7 @@ const AUTHOR_SECRET = (() => {
   db.prepare("INSERT INTO meta (key, value) VALUES ('author-secret', ?)").run(v)
   return v
 })()
+export const push = initPush(db)
 const isBanned = tag => !!tag && !!db.prepare('SELECT 1 FROM banned WHERE author = ?').get(tag)
 // Procura de textos repetidos (corre a cada envio).
 db.exec('CREATE INDEX IF NOT EXISTS idx_type_fp ON submissions(type, fp)')
@@ -384,6 +386,7 @@ export const server = createServer(async (req, res) => {
 
     if (req.method === 'GET') {
       if (path === '/api/health') return send(res, 200, { ok: true })
+      if (path === '/api/push/key') return send(res, 200, { key: push.publicKey })
       if (publicRoutes[path]) return send(res, 200, cached(path, publicRoutes[path]))
       if (path === '/mod') {
         res.writeHead(200, { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store', 'x-frame-options': 'DENY' })
@@ -431,6 +434,17 @@ export const server = createServer(async (req, res) => {
         db.prepare('INSERT INTO submissions (id, type, payload, status, flags, month, auto, fp, author) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)')
           .run(randomBytes(9).toString('base64url'), type, JSON.stringify(sealContacts(type, payload)), status, JSON.stringify(flags), new Date().toISOString().slice(0, 7), status === 'approved' ? 1 : 0, fp, author)
         return send(res, 201, { ok: true, published: status === 'approved' })
+      }
+      if (path === '/api/push/sync') {
+        if (limited(req)) return send(res, 429, { error: 'Demasiados pedidos. Tenta mais tarde.' })
+        const { subscription, times } = await readBody(req)
+        if (!validSubscription(subscription) || !Array.isArray(times)) return send(res, 400, { error: 'Dados inválidos' })
+        return send(res, 200, { ok: true, scheduled: push.sync(subscription, times) })
+      }
+      if (path === '/api/push/forget') {
+        const { endpoint } = await readBody(req)
+        if (typeof endpoint === 'string') push.forget(endpoint)
+        return send(res, 200, { ok: true })
       }
       const sup = path.match(/^\/api\/stories\/([\w-]+)\/support$/)
       if (sup) {
@@ -504,5 +518,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     const r = retriage()
     if (r.checked) console.log(`Fila revista: ${r.published} publicados automaticamente, ${r.waiting} à espera de moderação.`)
   }
+  // Lembretes: vê a cada minuto o que está na hora de avisar.
+  setInterval(() => { push.sendDue().catch(() => {}) }, 60_000).unref()
   server.listen(PORT, () => console.log(`Servidor comunitário em http://localhost:${PORT}`))
 }

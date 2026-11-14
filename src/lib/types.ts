@@ -23,6 +23,8 @@ export interface Settings {
   /** Perfil: pessoa trans ou pessoa que apoia (família, amigues, trabalho, escola) */
   profile: Profile
   allyRole?: AllyRole
+  /** Avisos dos lembretes com a app fechada (Web Push). Desligado por omissão. */
+  pushReminders?: boolean
   /** ISO da última cópia de segurança exportada neste aparelho */
   lastBackup?: string
 }

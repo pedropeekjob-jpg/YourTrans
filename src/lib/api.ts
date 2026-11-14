@@ -66,6 +66,11 @@ export type StageQuestion = 'respeito' | 'informacao' | 'tempoRazoavel' | 'recom
 export interface StageReviewStat { track: string; n: number; scores?: Record<StageQuestion, number>; comments: { id: string; month: string; comment: string; author?: string }[] }
 
 export const api = {
+  /** Avisos de lembretes: chave pública do servidor, horas a avisar e esquecer o aparelho. */
+  pushKey: () => req<{ key: string }>('/api/push/key'),
+  pushSync: (subscription: PushSubscriptionJSON, times: number[]) =>
+    req<{ ok: true; scheduled: number }>('/api/push/sync', { method: 'POST', body: JSON.stringify({ subscription, times }) }),
+  pushForget: (endpoint: string) => req<{ ok: true }>('/api/push/forget', { method: 'POST', body: JSON.stringify({ endpoint }) }),
   experiences: () => req<ExperienceStat[]>('/api/experiences'),
   sendExperience: (e: { track: string; kind: ExperienceStat['kind']; sector: ExperienceStat['sector']; year: number; value: number; item?: string }) =>
     req<Sent>('/api/experiences', { method: 'POST', body: JSON.stringify(e) }),

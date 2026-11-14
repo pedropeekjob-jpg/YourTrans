@@ -256,3 +256,25 @@ test('bloquear um autor: as publicações saem e as novas ficam à espera', asyn
   // Outro aparelho continua a publicar normalmente.
   assert.equal((await (await post('/api/stories', { kind: 'testemunho', topic: 'voz', phase: 'meses', title: 'De outra pessoa', body: 'Mais um texto calmo com vinte letras.', author: 'outro-aparelho-0123456789' })).json()).published, true)
 })
+
+test('lembretes: guarda só horas futuras, envia vazio e apaga depois de enviar', async () => {
+  const { push } = await import('./index.mjs')
+  const key = (await (await fetch(base + '/api/push/key')).json()).key
+  assert.equal(Buffer.from(key, 'base64url').length, 65)
+  const sub = { endpoint: 'https://fcm.googleapis.com/fcm/send/abc123', keys: { p256dh: 'x', auth: 'y' } }
+  assert.equal((await post('/api/push/sync', { subscription: { endpoint: 'https://exemplo.pt/roubar' }, times: [] })).status, 400)
+  const soon = Date.now() + 120_000
+  const r = await (await post('/api/push/sync', { subscription: sub, times: [soon, Date.now() - 1000, soon] })).json()
+  assert.equal(r.scheduled, 1)
+  const calls = []
+  const fake = async (url, init) => { calls.push({ url, init }); return { ok: true, status: 201 } }
+  assert.equal(await push.sendDue(fake), 0, 'ainda não está na hora')
+  const realNow = Date.now
+  Date.now = () => soon + 60_000
+  try { assert.equal(await push.sendDue(fake), 1) } finally { Date.now = realNow }
+  assert.equal(calls[0].url, sub.endpoint)
+  assert.equal(calls[0].init.body, undefined, 'a notificação vai sem conteúdo')
+  assert.match(calls[0].init.headers.authorization, /^vapid t=[\w-]+\.[\w-]+\.[\w-]+, k=[\w-]+$/)
+  Date.now = () => soon + 120_000
+  try { assert.equal(await push.sendDue(fake), 0, 'cada hora só é enviada uma vez') } finally { Date.now = realNow }
+})
