@@ -4,6 +4,7 @@ import type { Provider, ReviewQuestion } from '../data/health'
 import type { Place } from './types'
 import type { Story } from '../data/stories'
 import type { SealCommitment, SealEntity, SealQuestion } from '../data/seal'
+import { ensureCommunityTerms } from './terms'
 
 /** Servidor da comunidade (Render, Frankfurt). VITE_API_URL sobrepõe-se; "off" desliga. */
 const RAW = (import.meta.env.VITE_API_URL as string | undefined) || 'https://casulo-comunidade.onrender.com'
@@ -16,6 +17,9 @@ export type Sent = { ok: true; published?: boolean }
 
 async function req<T>(path: string, init?: RequestInit): Promise<T> {
   if (!BASE) throw new Error('offline')
+  // Publicar pede, uma vez, que se aceitem as regras da comunidade (exigência das lojas).
+  // Denunciar, dar apoio e as sugestões privadas não publicam nada, por isso não pedem.
+  if (init?.method === 'POST' && !/^\/api\/(report|wishes)|\/support$/.test(path)) await ensureCommunityTerms()
   const res = await fetch(BASE + path, {
     ...init,
     headers: { 'content-type': 'application/json' },

@@ -1,5 +1,35 @@
 {
-  "appId": "pt.notas.app",
+  "appId": "space.casulo.app",
   "appName": "Casulo",
-  "webDir": "dist"
+  "webDir": "dist",
+  "loggingBehavior": "debug",
+  "android": {
+    "allowMixedContent": false,
+    "captureInput": false,
+    "webContentsDebuggingEnabled": false
+  },
+  "ios": {
+    "contentInset": "never",
+    "scrollEnabled": true,
+    "limitsNavigationsToAppBoundDomains": false
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 600,
+      "launchAutoHide": true,
+      "launchFadeOutDuration": 200,
+      "backgroundColor": "#07080e",
+      "showSpinner": false,
+      "androidScaleType": "CENTER_CROP"
+    },
+    "LocalNotifications": {
+      "smallIcon": "ic_stat_lembrete",
+      "iconColor": "#5bcefa"
+    },
+    "StatusBar": {
+      "style": "DARK",
+      "backgroundColor": "#07080e",
+      "overlaysWebView": false
+    }
+  }
 }

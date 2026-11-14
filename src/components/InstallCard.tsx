@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom'
 import { Icon } from './Icon'
 import { useToast } from './ui'
 import { appName, discreetName, promptInstall, setDiscreetName, useInstall } from '../lib/install'
+import { isNative } from '../lib/native'
+import { NativeSettings } from './Native'
 import { tr } from '../i18n'
 
 const APP_URL = 'https://casulo.space'
@@ -88,6 +90,8 @@ export function InstallSafety() {
 
 /** Escolher, antes de instalar, entre "Casulo" e o nome discreto "Notas". */
 export function DiscreetNameToggle({ onChange }: { onChange?: () => void }) {
+  // Na app das lojas o ícone muda na hora (isNative() nunca muda durante a sessão).
+  if (isNative()) return <NativeSettings />
   const [on, setOn] = useState(discreetName)
   const installed = useInstall() === 'installed'
   return (

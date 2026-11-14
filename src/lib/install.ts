@@ -4,6 +4,7 @@
 // explicamos os passos no Safari. Dentro do Instagram, TikTok e afins não é possível
 // instalar: é preciso abrir o endereço no browser do telemóvel.
 import { useEffect, useState } from 'react'
+import { isNative } from './native'
 
 interface InstallPromptEvent extends Event {
   prompt(): Promise<void>
@@ -32,7 +33,7 @@ if (typeof window !== 'undefined') {
 
 export function isInstalled(): boolean {
   if (typeof window === 'undefined') return false
-  return justInstalled || window.matchMedia?.('(display-mode: standalone)').matches || (navigator as unknown as { standalone?: boolean }).standalone === true
+  return isNative() || justInstalled || window.matchMedia?.('(display-mode: standalone)').matches || (navigator as unknown as { standalone?: boolean }).standalone === true
 }
 
 export function isIOS(ua = navigator.userAgent, platform = navigator.platform, touch = navigator.maxTouchPoints): boolean {

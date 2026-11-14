@@ -3,7 +3,7 @@ import { TopBar } from '../components/Layout'
 import { tr } from '../i18n'
 
 /** Política de privacidade. Atualizar a data sempre que o texto mudar. */
-export const PRIVACY_UPDATED = '2026-11-13'
+export const PRIVACY_UPDATED = '2026-11-14'
 export const PRIVACY_CONTACT = 'privacidade@casulo.space'
 /** Responsável pelo tratamento (pessoa singular). */
 export const PRIVACY_CONTROLLER = 'Pedro Oliveira'
@@ -58,7 +58,8 @@ export function Privacy() {
         <Section title={tr('3. Onde ficam e quem os trata')} items={[
           tr('O servidor da comunidade está alojado no Render, num centro de dados em Frankfurt (União Europeia).'),
           tr('A nossa aplicação não guarda endereços IP. Para travar abusos, usamos durante 24 horas uma impressão irreversível do IP, só em memória. O Render pode registar ligações técnicas nos seus próprios registos.'),
-          tr('A app é servida pelo GitHub Pages e o mapa usa o OpenFreeMap (dados OpenStreetMap). Ao abrir a app ou o mapa, o teu browser liga-se a estes serviços, que recebem o teu IP como em qualquer site.'),
+          tr('A app é servida pela Cloudflare e o mapa usa o OpenFreeMap (dados OpenStreetMap). Ao abrir a app ou o mapa, o teu aparelho liga-se a estes serviços, que recebem o teu IP como em qualquer site.'),
+          tr('Na versão da App Store e do Google Play, a Apple e a Google tratam os dados da transferência da app segundo as suas próprias políticas. A app não tem estatísticas, publicidade nem rastreio, e os lembretes são agendados no próprio aparelho, sem passar por servidores.'),
           tr('Não usamos cookies de publicidade, estatísticas de visitas, pixels nem rastreadores. Não vendemos nem partilhamos dados.'),
         ]} />
 

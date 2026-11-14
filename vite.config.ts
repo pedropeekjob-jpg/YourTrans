@@ -84,7 +84,9 @@ export default defineConfig({
       // só volta a descarregar o que mudou.
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,woff2}'],
-        globIgnores: ['**/maplibre-gl-*'],
+        globIgnores: ['**/maplibre-gl-*', 'privacidade/**', 'termos/**', 'suporte/**'],
+        // Páginas públicas para as lojas (scripts/paginas-legais.mjs): abrem sempre do servidor.
+        navigateFallbackDenylist: [/^\/(privacidade|termos|suporte)(\/|$)/],
         runtimeCaching: [
           { urlPattern: ({ url }) => url.origin === self.location.origin && /\/assets\/maplibre-gl-.*\.(js|css)$/.test(url.pathname),
             handler: 'CacheFirst', options: { cacheName: 'casulo-mapa', expiration: { maxEntries: 4 } } },

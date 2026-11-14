@@ -1,7 +1,20 @@
 node_modules
 dist
-android
-ios
 server/data
 *.log
 .wrangler/
+
+# Chaves de assinatura das apps (nunca no Git)
+*.jks
+*.keystore
+android/keystore.properties
+*.p12
+*.mobileprovision
+
+# Gerado em npm run build (scripts/paginas-legais.mjs)
+public/privacidade/
+public/termos/
+public/suporte/
+
+# Capturas para as lojas: geradas por npm run capturas (cópia na pasta partilhada do projeto)
+store/capturas/

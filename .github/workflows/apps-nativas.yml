@@ -1,0 +1,68 @@
+name: Apps nativas (verificar compilação)
+
+# Confirma que as apps Android e iOS compilam. Não assina nem envia nada para as lojas:
+# isso faz-se no Android Studio e no Xcode (ver store/README.md).
+# Corre só quando mudam ficheiros nativos num PR, ou à mão (Actions › Apps nativas › Run workflow),
+# para poupar execuções no GitHub.
+# No fim, o APK de teste fica em "Artifacts" na página da execução: dá para instalar num Android.
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'android/**'
+      - 'ios/**'
+      - 'capacitor.config.json'
+      - '.github/workflows/apps-nativas.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: apps-nativas-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - run: npm ci
+      - run: npm run build
+      - run: npx cap sync android
+      - name: Compilar APK de teste
+        working-directory: android
+        run: ./gradlew assembleDebug --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: casulo-android-teste
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 14
+
+  ios:
+    runs-on: macos-15
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npx cap sync ios
+      - name: Compilar para o simulador (sem assinatura)
+        run: |
+          xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug \
+            -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO build | tail -40
+          test ${PIPESTATUS[0]} -eq 0
