@@ -27,6 +27,8 @@ export interface Settings {
   pinNudgeSeen?: boolean
   /** Avisos dos lembretes com a app fechada (Web Push). Desligado por omissão. */
   pushReminders?: boolean
+  /** Modo viagem ligado: definições de antes, para repor ao desligar. */
+  travelPrev?: { disguise: boolean; autoLockMinutes: number; discreetNotifications: boolean }
   /** ISO da última cópia de segurança exportada neste aparelho */
   lastBackup?: string
 }
@@ -184,6 +186,8 @@ export interface Vault {
    * outras pessoas possam bloquear e a moderação possa agir. Não diz quem és; pode ser trocada.
    */
   authorId?: string
+  /** Treino de voz: média diária da altura (Hz). Nunca se guarda som. */
+  voiceLog?: { date: string; hz: number }[]
   /** Assinaturas que bloqueaste: deixas de ver o que publicam (fica só neste aparelho). */
   blockedAuthors: string[]
 }

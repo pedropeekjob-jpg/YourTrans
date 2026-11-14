@@ -55,6 +55,8 @@ const AllyPractice = page(() => import('./pages/Ally'), 'AllyPractice')
 const Receive = page(() => import('./pages/Ally'), 'Receive')
 const Search = page(() => import('./pages/Search'), 'Search')
 const NameCard = page(() => import('./pages/NameCard'), 'NameCard')
+const Voice = page(() => import('./pages/Voice'), 'Voice')
+const Travel = page(() => import('./pages/Travel'), 'Travel')
 
 function Shell() {
   return <><Screen /><RecoveryCodeSheet /><NewPinSheet /></>
@@ -114,6 +116,8 @@ function Screen() {
           <Route path="/eu" element={<Me />} />
           <Route path="/procurar" element={<Search />} />
           <Route path="/cartao-nome" element={<NameCard />} />
+          <Route path="/voz" element={<Voice />} />
+          <Route path="/viagem" element={<Travel />} />
           <Route path="/ajuda" element={<Help />} />
           <Route path="/partilhar" element={<Share />} />
           <Route path="/direitos" element={<Rights />} />

@@ -31,6 +31,8 @@ function screens(): SearchEntry[] {
     { title: tr('Selo Casulo'), text: tr('entidades inclusivas empresas'), to: '/selo', kind: k },
     { title: tr('Ajuda'), text: tr('SOS emergência linhas de apoio crise'), to: '/ajuda', kind: k },
     { title: tr('Cartão para balcões'), text: tr('rececionista atendimento chamar pelo nome'), to: '/cartao-nome', kind: k },
+    { title: tr('Treino de voz'), text: tr('altura Hz ressonância exercícios'), to: '/voz', kind: k },
+    { title: tr('Modo viagem'), text: tr('aeroporto fronteira scanner hormonas na bagagem'), to: '/viagem', kind: k },
     { title: tr('Definições'), text: tr('código PIN privacidade idioma país tema'), to: '/definicoes', kind: k },
     { title: tr('Os teus dados'), text: tr('cópia de segurança exportar outro aparelho'), to: '/dados', kind: k },
     { title: tr('Passar para outro aparelho'), text: tr('QR telemóvel novo'), to: '/passar', kind: k },
