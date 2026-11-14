@@ -48,7 +48,8 @@ export async function initDevice(): Promise<{ key: CryptoKey; vault: Vault }> {
   const vault = emptyVault()
   await set(DEVICE_KEY, key, store)
   await set(META, { v: 1, mode: 'device' } satisfies Meta, store)
-  await set(VAULT, await encryptJSON(key, vault), store)
+  saved = {}
+  await saveVault(key, vault)
   return { key, vault }
 }
 
@@ -147,16 +148,68 @@ export async function hasRecovery(): Promise<boolean> {
   return !!meta?.wrapRec
 }
 
+/**
+ * O cofre está dividido: o essencial (definições, listas pequenas) numa entrada e cada coleção que cresce
+ * (diário, efeitos, tomas…) na sua. Assim, escrever uma linha no diário já não recifra os registos todos.
+ * Cofres antigos (tudo numa entrada) abrem igual e passam ao novo formato na primeira gravação.
+ */
+export const SPLIT = ['journal', 'effects', 'doseLog', 'feelings', 'incidents', 'appointments', 'checkins', 'practiceDays', 'summaries', 'received'] as const
+type SplitKey = (typeof SPLIT)[number]
+const COL = 'col:'
+
+/** Última versão gravada de cada coleção (por referência), para só gravar o que mudou. */
+let saved: Partial<Record<SplitKey, unknown>> = {}
+
 async function loadVault(key: CryptoKey): Promise<Vault> {
+  saved = {}
   const sealed = await get<Sealed>(VAULT, store)
   if (!sealed) return emptyVault()
   const v = await decryptJSON<Vault>(key, sealed)
+  for (const k of SPLIT) {
+    const col = await get<Sealed>(COL + k, store)
+    if (col) {
+      const value = await decryptJSON<unknown>(key, col)
+      ;(v as unknown as Record<string, unknown>)[k] = value
+      saved[k] = value
+    }
+    // Sem entrada própria (cofre antigo): o valor veio do essencial e ainda não foi gravado à parte,
+    // por isso "saved" fica vazio e a primeira gravação escreve a coleção antes de a tirar do essencial.
+  }
   const base = emptyVault()
-  return { ...base, ...v, settings: { ...base.settings, ...v.settings } }
+  const out = { ...base, ...v, settings: { ...base.settings, ...v.settings } }
+  for (const k of SPLIT) if (k in saved) saved[k] = out[k]
+  return out
 }
 
+/** Prepara as escritas: o essencial sem as coleções e cada coleção que mudou (ou todas, com all). */
+async function vaultWrites(key: CryptoKey, vault: Vault, all: boolean): Promise<[string, unknown][]> {
+  const core: Record<string, unknown> = { ...vault }
+  const writes: [string, unknown][] = []
+  for (const k of SPLIT) {
+    delete core[k]
+    if (all || saved[k] !== vault[k]) writes.push([COL + k, await encryptJSON(key, vault[k])])
+  }
+  writes.push([VAULT, await encryptJSON(key, core)])
+  return writes
+}
+
+function markSaved(vault: Vault) {
+  saved = {}
+  for (const k of SPLIT) saved[k] = vault[k]
+}
+
+async function putAll(writes: [string, unknown][], remove: string[] = []): Promise<void> {
+  await store('readwrite', s => {
+    for (const [k, v] of writes) s.put(v, k)
+    for (const k of remove) s.delete(k)
+    return promisifyRequest(s.transaction)
+  })
+}
+
+/** Grava numa só transação: se a app fechar a meio, fica a versão anterior inteira. */
 export async function saveVault(key: CryptoKey, vault: Vault): Promise<void> {
-  await set(VAULT, await encryptJSON(key, vault), store)
+  await putAll(await vaultWrites(key, vault, false))
+  markSaved(vault)
 }
 
 /**
@@ -173,12 +226,9 @@ async function rekey(oldKey: CryptoKey, newKey: CryptoKey, vault: Vault, finalWr
       if (sealed) writes.push([k, await encryptBytes(newKey, await decryptBytes(oldKey, sealed))])
     }
   }
-  writes.push([VAULT, await encryptJSON(newKey, vault)], ...finalWrites)
-  await store('readwrite', s => {
-    for (const [k, v] of writes) s.put(v, k)
-    for (const k of remove) s.delete(k)
-    return promisifyRequest(s.transaction)
-  })
+  writes.push(...await vaultWrites(newKey, vault, true), ...finalWrites)
+  await putAll(writes, remove)
+  markSaved(vault)
 }
 
 /** Ativa (ou muda) o PIN: cria uma chave de dados nova, recifra tudo e devolve um código de recuperação novo. */
@@ -215,6 +265,7 @@ export async function deletePhoto(id: string): Promise<void> {
 
 /** Apaga absolutamente tudo deste dispositivo. */
 export async function wipeAll(): Promise<void> {
+  saved = {}
   await clear(store)
   try { localStorage.clear(); sessionStorage.clear() } catch { /* ignorado */ }
   if ('caches' in globalThis) {
