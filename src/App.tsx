@@ -10,6 +10,7 @@ import { NativeBridge } from './components/Native'
 import { TermsSheet } from './components/TermsSheet'
 import { useReminderPushSync } from './lib/notify'
 import { Onboarding } from './pages/Onboarding'
+import { PARTNER_PLANS_ON } from './lib/features'
 import { Home } from './pages/Home'
 
 /**
@@ -65,8 +66,9 @@ const Transparency = page(() => import('./pages/Business'), 'Transparency')
 const Services = page(() => import('./pages/Services'), 'Services')
 
 /** Páginas para entidades: abrem logo, sem passar pela apresentação da app (quem as visita é uma empresa). */
-const isBusinessLink = () => /^#\/(entidades|transparencia)(\/|\?|$)/.test(window.location.hash)
-const businessRoutes = [
+const isBusinessLink = () => PARTNER_PLANS_ON && /^#\/(entidades|transparencia)(\/|\?|$)/.test(window.location.hash)
+// Desligadas enquanto os pacotes para entidades estiverem desligados (PARTNER_PLANS_ON).
+const businessRoutes = !PARTNER_PLANS_ON ? [] : [
   <Route key="e" path="/entidades" element={<Business />} />,
   <Route key="p" path="/entidades/painel" element={<EntityPanel />} />,
   <Route key="t" path="/transparencia" element={<Transparency />} />,
@@ -132,7 +134,7 @@ function Screen() {
           <Route path="/selo" element={<Seal />} />
           <Route path="/selo/:id" element={<SealEntityPage />} />
           {businessRoutes}
-          <Route path="/servicos" element={<Services />} />
+          {PARTNER_PLANS_ON && <Route path="/servicos" element={<Services />} />}
           <Route path="/definicoes" element={<Settings />} />
           <Route path="/privacidade" element={<Privacy />} />
           <Route path="/sugerir" element={<Suggest />} />
@@ -165,7 +167,7 @@ function Screen() {
           <Route path="/comunidade" element={<Community />} />
           <Route path="/emprego" element={<Work />} />
           {businessRoutes}
-          <Route path="/servicos" element={<Services />} />
+          {PARTNER_PLANS_ON && <Route path="/servicos" element={<Services />} />}
           <Route path="/definicoes" element={<Settings />} />
           <Route path="/privacidade" element={<Privacy />} />
           <Route path="/sugerir" element={<Suggest />} />
