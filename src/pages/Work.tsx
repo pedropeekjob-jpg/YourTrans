@@ -4,6 +4,7 @@ import { Icon } from '../components/Icon'
 import { Progress, useToast } from '../components/ui'
 import { api, apiEnabled, type Job } from '../lib/api'
 import { SealBadge } from '../components/SealBadges'
+import { PARTNER_PLANS_ON } from '../lib/features'
 import { tr } from '../i18n'
 import { Link } from 'react-router-dom'
 import { PortugalOnly } from '../components/CountryInfoViews'
@@ -58,7 +59,7 @@ export function Work() {
           <h3>{tr('Empresas com inclusão trans real')}</h3>
           <p className="small">{tr('Avaliações feitas por pessoas trans, com critérios concretos e não só declarações. As melhores recebem o selo')}{' '}<b>{tr('Inclusão Trans')}</b> {tr('no ranking de empregadores.')}</p>
           <Link to="/selo" className="small">{tr('A tua empresa quer o Selo Casulo? Regista-a aqui.')}</Link>
-          <Link to="/entidades" className="small">{tr('Para empresas: pacotes, formação e ofertas de emprego')}</Link>
+          {PARTNER_PLANS_ON && <Link to="/entidades" className="small">{tr('Para empresas: pacotes, formação e ofertas de emprego')}</Link>}
         </section>
 
         {ranking.length > 0 && (

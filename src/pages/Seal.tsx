@@ -19,6 +19,7 @@ import {
   type SealCommitment, type SealEntity as SealEntityT, type SealQuestion,
 } from '../data/seal'
 import { paidLabel, policyLabel, serviceLabel, euros } from '../data/plans'
+import { PARTNER_PLANS_ON } from '../lib/features'
 import { tr } from '../i18n'
 import { BlockButton, useBlocking } from '../components/Block'
 
@@ -177,7 +178,7 @@ function Register() {
         <span className="small">{tr('Chave')}: <code style={{ userSelect: 'all', wordBreak: 'break-all' }}>{sent.key}</code></span>
         <span className="xs muted">{tr('A chave só aparece esta vez e não a guardamos. Serve para editar a ficha se aderirem a um pacote.')}</span>
       </div>
-      <Link className="btn sm secondary" style={{ justifySelf: 'start' }} to="/entidades">{tr('Ver pacotes para entidades')}</Link>
+      {PARTNER_PLANS_ON && <Link className="btn sm secondary" style={{ justifySelf: 'start' }} to="/entidades">{tr('Ver pacotes para entidades')}</Link>}
       <button className="btn secondary" onClick={() => { setSent(null); setForm(empty); setCommit({}) }}>{tr('Registar outra')}</button>
     </section>
   )

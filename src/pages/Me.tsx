@@ -7,6 +7,7 @@ import { LangPicker } from '../components/LangPicker'
 import { CountryPicker } from '../components/CountryPicker'
 import { CasuloLogo } from '../components/CasuloLogo'
 import { daysSinceBackup } from './DataCare'
+import { PARTNER_PLANS_ON } from '../lib/features'
 import { tr } from '../i18n'
 
 /** Separador "Eu": o diário pessoal, a aparência e as definições. */
@@ -51,11 +52,11 @@ export function Me() {
             <div className="grow"><h3>{tr('Momentos de euforia')}</h3><p className="small muted">{tr('Guarda-os para os dias difíceis')}</p></div>
             <Icon name="chevron" />
           </Link>
-          <Link to="/servicos" className="item">
+          {PARTNER_PLANS_ON && <Link to="/servicos" className="item">
             <div className="lead" style={{ background: 'var(--sky-soft)', color: 'var(--sky)' }}><Icon name="star" /></div>
             <div className="grow"><h3>{tr('Serviços especializados')}</h3><p className="small muted">{tr('Jurídico, voz, psicologia e imagem. Opcional, com sessões solidárias')}</p></div>
             <Icon name="chevron" />
-          </Link>
+          </Link>}
         </div>
 
         <div className="list">
@@ -108,7 +109,7 @@ export function Me() {
             <Icon name="chevron" />
           </Link>
         </div>
-        <p className="xs muted" style={{ textAlign: 'center' }}>{tr('O Casulo é gratuito e sem anúncios.')}{' '}<Link to="/transparencia">{tr('Como se sustenta')}</Link>{' · '}<Link to="/entidades">{tr('Para entidades')}</Link></p>
+        <p className="xs muted" style={{ textAlign: 'center' }}>{tr('O Casulo é gratuito e sem anúncios.')}{PARTNER_PLANS_ON && <>{' '}<Link to="/transparencia">{tr('Como se sustenta')}</Link>{' · '}<Link to="/entidades">{tr('Para entidades')}</Link></>}</p>
       </div>
     </>
   )

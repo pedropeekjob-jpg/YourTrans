@@ -3,7 +3,7 @@ import { useVault } from '../lib/vault-context'
 import { useCountry } from '../lib/useCountry'
 import { followCountryLang, tr } from '../i18n'
 
-/** Escolha do país do conteúdo. Não muda a língua nem recarrega a app. */
+/** Escolha do país do conteúdo. Muda também a língua da app para a do país (e recarrega-a). */
 export function CountryPicker() {
   const { vault, update } = useVault()
   const set = (c: CountryCode) => {
@@ -21,7 +21,7 @@ export function CountryPicker() {
           </optgroup>
         ))}
       </select>
-      <p className="xs muted">{tr('Muda as leis, o percurso de saúde e os contactos de apoio que vês, e a língua da app, se não tiveres escolhido outra. Fica guardado só neste telemóvel.')}</p>
+      <p className="xs muted">{tr('Muda as leis, o percurso de saúde e os contactos de apoio que vês, e passa a app para a língua desse país (depois podes escolher outra). Fica guardado só neste telemóvel.')}</p>
     </>
   )
 }

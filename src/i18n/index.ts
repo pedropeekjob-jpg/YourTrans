@@ -58,20 +58,19 @@ export function tr(s: string, ...args: unknown[]): string {
   return args.length ? out.replace(/\{(\d+)\}/g, (m, i) => (Number(i) < args.length ? String(args[Number(i)]) : m)) : out
 }
 
-const MANUAL = 'lang-manual'
-
-/** Muda a língua. `manual`: a pessoa escolheu-a no seletor, e a escolha do país deixa de a mudar. */
-export function setLang(l: Lang, manual = true) {
+/** Muda a língua e recarrega a app. */
+export function setLang(l: Lang) {
   try {
     localStorage.setItem(KEY, l)
-    if (manual) localStorage.setItem(MANUAL, '1')
+    // Versões anteriores guardavam aqui que a língua tinha sido escolhida à mão, e a partir
+    // daí mudar de país já não mudava a língua. Já não se usa.
+    localStorage.removeItem('lang-manual')
   } catch { /* sem armazenamento */ }
   location.reload()
 }
 
-/** Ao escolher um país, passa para a língua dele, a não ser que a pessoa já tenha escolhido uma à mão. */
+/** Ao escolher um país, a app passa para a língua dele (inglês quando ainda não a tem).
+ *  Depois, a pessoa pode escolher outra língua no seletor, e fica essa até mudar outra vez de país. */
 export function followCountryLang(l: Lang) {
-  let manual = false
-  try { manual = localStorage.getItem(MANUAL) === '1' } catch { /* sem armazenamento */ }
-  if (!manual && l !== lang) setLang(l, false)
+  if (l !== lang) setLang(l)
 }
