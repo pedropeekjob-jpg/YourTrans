@@ -59,6 +59,26 @@ export async function unlockDevice(): Promise<{ key: CryptoKey; vault: Vault }> 
   return { key, vault: await loadVault(key) }
 }
 
+// Mudar de língua ou de país recarrega a app. Para não pedir o PIN outra vez, a chave aberta
+// (não exportável: nem a app a consegue ler) passa a recarga guardada aqui, só por uns segundos.
+// O arranque seguinte apaga-a sempre, use-a ou não.
+const RELOAD_KEY = 'reload-key'
+const RELOAD_MAX_MS = 15_000
+
+export async function stashKeyForReload(key: CryptoKey): Promise<void> {
+  await set(RELOAD_KEY, { key, at: Date.now() }, store)
+}
+
+/** Abre o cofre com a chave deixada antes da recarga, se ainda for recente. */
+export async function unlockAfterReload(): Promise<{ key: CryptoKey; vault: Vault } | null> {
+  const stash = await get<{ key: CryptoKey; at: number }>(RELOAD_KEY, store)
+  if (!stash) return null
+  await del(RELOAD_KEY, store)
+  const age = Date.now() - stash.at
+  if (!(stash.key instanceof CryptoKey) || age < 0 || age > RELOAD_MAX_MS) return null
+  try { return { key: stash.key, vault: await loadVault(stash.key) } } catch { return null }
+}
+
 export class LockedOutError extends Error {
   constructor(public until: number) { super('locked') }
 }

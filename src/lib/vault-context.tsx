@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
 import * as storage from './storage'
+import { onBeforeLangReload } from '../i18n'
 import { newAuthorId, type Vault } from './types'
 import { setAuthor } from './api'
 import { appName } from './install'
@@ -81,10 +82,22 @@ export function VaultProvider({ children }: { children: ReactNode }) {
         setStatus('open')
       } else {
         setMode('pin')
-        setStatus('locked')
+        // Recarga por mudança de língua ou de país: continua aberto, sem pedir o PIN.
+        const opened = await storage.unlockAfterReload()
+        if (opened) {
+          keyRef.current = opened.key
+          setVault(opened.vault)
+          setStatus('open')
+        } else setStatus('locked')
       }
     })()
   }, [])
+
+  // Antes de a língua recarregar a app: grava o que falta e deixa a chave para a recarga.
+  useEffect(() => onBeforeLangReload(async () => {
+    await flush()
+    if (mode === 'pin' && status === 'open' && keyRef.current) await storage.stashKeyForReload(keyRef.current)
+  }), [flush, mode, status])
 
   const update = useCallback((fn: (v: Vault) => Vault) => {
     setVault(prev => {

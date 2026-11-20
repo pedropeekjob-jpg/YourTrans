@@ -58,8 +58,17 @@ export function tr(s: string, ...args: unknown[]): string {
   return args.length ? out.replace(/\{(\d+)\}/g, (m, i) => (Number(i) < args.length ? String(args[Number(i)]) : m)) : out
 }
 
+let beforeReload: (() => Promise<void>) | null = null
+
+/** Corre antes de a língua recarregar a app (o cofre usa-o para não pedir o PIN outra vez). */
+export function onBeforeLangReload(fn: () => Promise<void>): () => void {
+  beforeReload = fn
+  return () => { if (beforeReload === fn) beforeReload = null }
+}
+
 /** Muda a língua e recarrega a app. */
-export function setLang(l: Lang) {
+export async function setLang(l: Lang) {
+  try { await beforeReload?.() } catch { /* recarrega na mesma; no pior caso pede o PIN */ }
   try {
     localStorage.setItem(KEY, l)
     // Versões anteriores guardavam aqui que a língua tinha sido escolhida à mão, e a partir
@@ -72,5 +81,5 @@ export function setLang(l: Lang) {
 /** Ao escolher um país, a app passa para a língua dele (inglês quando ainda não a tem).
  *  Depois, a pessoa pode escolher outra língua no seletor, e fica essa até mudar outra vez de país. */
 export function followCountryLang(l: Lang) {
-  if (l !== lang) setLang(l)
+  if (l !== lang) void setLang(l)
 }
