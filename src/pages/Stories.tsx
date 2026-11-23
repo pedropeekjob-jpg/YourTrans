@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useVault } from '../lib/vault-context'
 import { Icon } from '../components/Icon'
 import { Empty, Sheet, useToast } from '../components/ui'
@@ -82,13 +82,20 @@ export function Stories({ initialTopic }: { initialTopic?: string }) {
                   <span className="badge">{topicLabel(s.topic)}</span>
                   <span className="badge">{phaseLabel(s.phase)}</span>
                 </div>
-                <h3>{s.title}</h3>
                 {hidden ? (
-                  <button className="card tint-amber" style={{ border: 0, textAlign: 'left', cursor: 'pointer' }} onClick={() => setRevealed([...revealed, s.id])}>
-                    <span className="small"><b>{tr('Aviso:')}</b> {s.warning}{tr('. Toca para ler.')}</span>
-                  </button>
+                  <>
+                    <h3>{s.title}</h3>
+                    <button className="card tint-amber" style={{ border: 0, textAlign: 'left', cursor: 'pointer' }} onClick={() => setRevealed([...revealed, s.id])}>
+                      <span className="small"><b>{tr('Aviso:')}</b> {s.warning}{tr('. Toca para ler.')}</span>
+                    </button>
+                  </>
                 ) : (
-                  <p className="small" style={{ whiteSpace: 'pre-wrap', display: '-webkit-box', WebkitLineClamp: 5, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{s.body}</p>
+                  // Tocar no título ou no texto abre a publicação inteira, com as respostas.
+                  <div role="button" tabIndex={0} className="stack" style={{ gap: 8, cursor: 'pointer' }} aria-label={tr('Abrir publicação: {0}', s.title)}
+                    onClick={() => setOpen(s)} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOpen(s) } }}>
+                    <h3>{s.title}</h3>
+                    <ClampedBody text={s.body} />
+                  </div>
                 )}
                 <div className="row between">
                   <span className="xs muted">{s.nickname || tr('Anónimo')} · {monthLabel(s.month)}</span>
@@ -120,6 +127,28 @@ export function Stories({ initialTopic }: { initialTopic?: string }) {
         }}
         onReported={id => { setList(l => l.filter(x => x.id !== id).map(x => ({ ...x, replies: x.replies.filter(r => r.id !== id) }))); setOpen(o => (o?.id === id ? null : o && { ...o, replies: o.replies.filter(r => r.id !== id) })) }} />
       <WriteSheet kind={writing} defaultTopic={topic || undefined} onClose={() => setWriting(null)} onPublished={reload} />
+    </>
+  )
+}
+
+// Mostra as primeiras linhas e, só quando o texto não cabe, um "Ler tudo" para abrir o resto.
+function ClampedBody({ text }: { text: string }) {
+  const ref = useRef<HTMLParagraphElement>(null)
+  const [cut, setCut] = useState(false)
+  useLayoutEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const check = () => setCut(el.scrollHeight > el.clientHeight + 1)
+    check()
+    if (typeof ResizeObserver === 'undefined') return
+    const ro = new ResizeObserver(check)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [text])
+  return (
+    <>
+      <p ref={ref} className="small" style={{ whiteSpace: 'pre-wrap', display: '-webkit-box', WebkitLineClamp: 5, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{text}</p>
+      {cut && <span className="small" style={{ color: 'var(--accent)', fontWeight: 700 }}>{tr('Ler tudo')}</span>}
     </>
   )
 }
