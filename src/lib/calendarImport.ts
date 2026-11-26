@@ -1,4 +1,6 @@
 // Importação de calendários e mensagens, toda feita no aparelho.
+import type { Appointment, Reminder, Vault } from './types'
+
 // Nada do que se lê aqui é enviado para nenhum servidor: o ficheiro .ics (ou o .zip que o
 // Google Calendar exporta) é lido no navegador e só os eventos que a pessoa escolhe entram no cofre.
 
@@ -236,4 +238,68 @@ export function parseMessage(text: string, now = new Date()): MessageGuess {
           : 'outro'
   const place = t.match(/\b(?:na|no|em)\s+((?:USF|UCSP|Centro de Sa[úu]de|Hospital|ULS|Cl[íi]nica)[^.,;\n]{0,50})/i)?.[1]?.trim()
   return { kind, date, hasTime, place, text: t.slice(0, 600) }
+}
+
+/* ---------- Guardar no cofre ---------- */
+
+/** Tipo de lembrete adivinhado pelo título do evento. */
+export function kindOf(title: string): 'hormona' | 'analises' | 'consulta' | 'outro' {
+  const t = title.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
+  if (/hormon|testosteron|estradiol|estrogen|gel\b|injec|adesivo|comprimido|progesteron|ciproterona|bicalutamida/.test(t)) return 'hormona'
+  if (/analise|exame|colheita|ecografia|rastreio|raio|tac\b|ressonancia/.test(t)) return 'analises'
+  if (/consulta|medic|endocrin|psicolog|psiquiatr|cirurg|usf|hospital|clinica/.test(t)) return 'consulta'
+  return 'outro'
+}
+
+/**
+ * Junta eventos escolhidos ao cofre, como consultas ou lembretes.
+ * Um evento que já tinha vindo (mesmo UID) é atualizado em vez de duplicado.
+ */
+export function addEvents(v: Vault, picked: ImportedEvent[], as: 'consultas' | 'lembretes', newId: () => string): Vault {
+  if (as === 'consultas') {
+    const appointments = [...v.appointments]
+    for (const e of picked) {
+      const data = { date: e.start.toISOString(), with: e.title, notes: e.location, sourceUid: e.uid }
+      const i = appointments.findIndex(a => a.sourceUid === e.uid)
+      if (i >= 0) appointments[i] = { ...appointments[i], ...data }
+      else appointments.push({ id: newId(), questions: [], ...data } satisfies Appointment)
+    }
+    return { ...v, appointments }
+  }
+  const reminders = [...v.reminders]
+  for (const e of picked) {
+    const notes = [e.location, e.description].filter(Boolean).join(' · ').slice(0, 300) || undefined
+    const data = { label: e.title, next: e.start.toISOString(), everyDays: e.everyDays, notes, sourceUid: e.uid }
+    const i = reminders.findIndex(r => r.sourceUid === e.uid)
+    if (i >= 0) reminders[i] = { ...reminders[i], ...data }
+    else reminders.push({ id: newId(), kind: kindOf(e.title), ...data } satisfies Reminder)
+  }
+  return { ...v, reminders }
+}
+
+/**
+ * Sincronização: atualiza a data, o título e o local do que já veio do calendário.
+ * Não acrescenta eventos novos (isso é sempre a pessoa que escolhe) nem apaga nada.
+ * Mantém as notas e as perguntas que a pessoa escreveu no Casulo.
+ */
+export function refreshLinked(v: Vault, events: ImportedEvent[]): { vault: Vault; changed: number } {
+  const byUid = new Map(events.map(e => [e.uid, e]))
+  let changed = 0
+  const appointments = v.appointments.map(a => {
+    const e = a.sourceUid ? byUid.get(a.sourceUid) : undefined
+    if (!e) return a
+    const date = e.start.toISOString()
+    if (a.date === date && a.with === e.title) return a
+    changed++
+    return { ...a, date, with: e.title }
+  })
+  const reminders = v.reminders.map(r => {
+    const e = r.sourceUid ? byUid.get(r.sourceUid) : undefined
+    if (!e) return r
+    const next = e.start.toISOString()
+    if (r.next === next && r.label === e.title) return r
+    changed++
+    return { ...r, next, label: e.title }
+  })
+  return { vault: changed ? { ...v, appointments, reminders } : v, changed }
 }

@@ -2637,5 +2637,10 @@
 "Lembrar-me em": "Me le rappeler le",
 "Guardar a mensagem nas notas (com os códigos para a farmácia)": "Garder le message dans les notes (avec les codes pour la pharmacie)",
 "Guardar a mensagem nas notas": "Garder le message dans les notes",
-"Confirma a data e a hora antes de guardar: a leitura automática pode enganar-se.": "Vérifie la date et l'heure avant d'enregistrer : la lecture automatique peut se tromper."
+"Confirma a data e a hora antes de guardar: a leitura automática pode enganar-se.": "Vérifie la date et l'heure avant d'enregistrer : la lecture automatique peut se tromper.",
+"{0} evento(s) atualizados a partir do calendário": "{0} événement(s) mis à jour depuis l'agenda",
+"Sem acesso ao calendário. Podes dar acesso nas definições do telemóvel.": "Pas d'accès à l'agenda. Tu peux l'autoriser dans les réglages du téléphone.",
+"Não foi possível ler o calendário do telemóvel": "Impossible de lire l'agenda du téléphone",
+"Do calendário do telemóvel": "Depuis l'agenda du téléphone",
+"Manter atualizado: quando uma consulta muda de data no calendário, muda aqui também.": "Garder à jour : quand un rendez-vous change de date dans l'agenda, il change ici aussi."
 }

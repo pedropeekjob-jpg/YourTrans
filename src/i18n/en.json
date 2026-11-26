@@ -2909,5 +2909,10 @@
 "Lembrar-me em": "Remind me on",
 "Guardar a mensagem nas notas (com os códigos para a farmácia)": "Keep the message in the notes (with the pharmacy codes)",
 "Guardar a mensagem nas notas": "Keep the message in the notes",
-"Confirma a data e a hora antes de guardar: a leitura automática pode enganar-se.": "Check the date and time before saving: automatic reading can get it wrong."
+"Confirma a data e a hora antes de guardar: a leitura automática pode enganar-se.": "Check the date and time before saving: automatic reading can get it wrong.",
+"{0} evento(s) atualizados a partir do calendário": "{0} event(s) updated from your calendar",
+"Sem acesso ao calendário. Podes dar acesso nas definições do telemóvel.": "No access to the calendar. You can allow it in your phone settings.",
+"Não foi possível ler o calendário do telemóvel": "Couldn't read your phone's calendar",
+"Do calendário do telemóvel": "From my phone's calendar",
+"Manter atualizado: quando uma consulta muda de data no calendário, muda aqui também.": "Keep up to date: when an appointment changes date in the calendar, it changes here too."
 }

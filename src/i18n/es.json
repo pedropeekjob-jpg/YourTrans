@@ -2641,5 +2641,10 @@
 "Lembrar-me em": "Recordarme el",
 "Guardar a mensagem nas notas (com os códigos para a farmácia)": "Guardar el mensaje en las notas (con los códigos para la farmacia)",
 "Guardar a mensagem nas notas": "Guardar el mensaje en las notas",
-"Confirma a data e a hora antes de guardar: a leitura automática pode enganar-se.": "Comprueba la fecha y la hora antes de guardar: la lectura automática puede equivocarse."
+"Confirma a data e a hora antes de guardar: a leitura automática pode enganar-se.": "Comprueba la fecha y la hora antes de guardar: la lectura automática puede equivocarse.",
+"{0} evento(s) atualizados a partir do calendário": "{0} evento(s) actualizados desde el calendario",
+"Sem acesso ao calendário. Podes dar acesso nas definições do telemóvel.": "Sin acceso al calendario. Puedes darlo en los ajustes del móvil.",
+"Não foi possível ler o calendário do telemóvel": "No se pudo leer el calendario del móvil",
+"Do calendário do telemóvel": "Del calendario del móvil",
+"Manter atualizado: quando uma consulta muda de data no calendário, muda aqui também.": "Mantener actualizado: cuando una cita cambia de fecha en el calendario, también cambia aquí."
 }

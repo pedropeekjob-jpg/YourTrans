@@ -2909,5 +2909,10 @@
 "Lembrar-me em": "Erinnere mich am",
 "Guardar a mensagem nas notas (com os códigos para a farmácia)": "Nachricht in den Notizen behalten (mit den Codes für die Apotheke)",
 "Guardar a mensagem nas notas": "Nachricht in den Notizen behalten",
-"Confirma a data e a hora antes de guardar: a leitura automática pode enganar-se.": "Prüfe Datum und Uhrzeit vor dem Speichern: das automatische Lesen kann sich irren."
+"Confirma a data e a hora antes de guardar: a leitura automática pode enganar-se.": "Prüfe Datum und Uhrzeit vor dem Speichern: das automatische Lesen kann sich irren.",
+"{0} evento(s) atualizados a partir do calendário": "{0} Termin(e) aus dem Kalender aktualisiert",
+"Sem acesso ao calendário. Podes dar acesso nas definições do telemóvel.": "Kein Zugriff auf den Kalender. Du kannst ihn in den Handy-Einstellungen erlauben.",
+"Não foi possível ler o calendário do telemóvel": "Der Kalender des Handys konnte nicht gelesen werden",
+"Do calendário do telemóvel": "Aus dem Kalender des Handys",
+"Manter atualizado: quando uma consulta muda de data no calendário, muda aqui também.": "Aktuell halten: Wenn sich ein Termin im Kalender verschiebt, ändert er sich auch hier."
 }

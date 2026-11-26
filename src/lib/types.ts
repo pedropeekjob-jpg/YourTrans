@@ -37,6 +37,8 @@ export interface Settings {
   adaptive?: boolean
   /** Atalhos fixados, pela ordem escolhida */
   pins?: string[]
+  /** App nativa: atualizar sozinho o que veio do calendário do telemóvel */
+  deviceCalendarSync?: boolean
   /** Já viu o aviso de que os atalhos aprendem com o uso */
   shortcutsNoticeSeen?: boolean
 }

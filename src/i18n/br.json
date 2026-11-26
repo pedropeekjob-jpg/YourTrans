@@ -1553,5 +1553,10 @@
 "Lembrar-me em": "Me lembrar em",
 "Guardar a mensagem nas notas (com os códigos para a farmácia)": "Guardar a mensagem nas notas (com os códigos para a farmácia)",
 "Guardar a mensagem nas notas": "Guardar a mensagem nas notas",
-"Confirma a data e a hora antes de guardar: a leitura automática pode enganar-se.": "Confira a data e a hora antes de salvar: a leitura automática pode errar."
+"Confirma a data e a hora antes de guardar: a leitura automática pode enganar-se.": "Confira a data e a hora antes de salvar: a leitura automática pode errar.",
+"{0} evento(s) atualizados a partir do calendário": "{0} evento(s) atualizados a partir da agenda",
+"Sem acesso ao calendário. Podes dar acesso nas definições do telemóvel.": "Sem acesso à agenda. Você pode liberar nas configurações do celular.",
+"Não foi possível ler o calendário do telemóvel": "Não foi possível ler a agenda do celular",
+"Do calendário do telemóvel": "Da agenda do celular",
+"Manter atualizado: quando uma consulta muda de data no calendário, muda aqui também.": "Manter atualizado: quando uma consulta muda de data na agenda, muda aqui também."
 }

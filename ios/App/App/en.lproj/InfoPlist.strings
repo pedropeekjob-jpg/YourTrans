@@ -6,3 +6,5 @@
 "NSPhotoLibraryUsageDescription" = "To add photos to your journal. Photos are stored encrypted on this device.";
 "NSPhotoLibraryAddUsageDescription" = "To save images you export from the app to your phone.";
 "NSFaceIDUsageDescription" = "To unlock Casulo with Face ID instead of your code.";
+"NSCalendarsFullAccessUsageDescription" = "To show appointments and tests from your calendar so you can choose which to bring in. Only upcoming events are read, on this device, and nothing is sent.";
+"NSCalendarsUsageDescription" = "To show appointments and tests from your calendar so you can choose which to bring in. Only upcoming events are read, on this device, and nothing is sent.";

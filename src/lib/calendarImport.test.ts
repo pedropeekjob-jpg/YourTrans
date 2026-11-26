@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { icsFromZip, nextOccurrence, parseIcs, parseIcsDate, parseMessage, rruleToDays, upcoming } from './calendarImport'
+import { addEvents, icsFromZip, nextOccurrence, parseIcs, parseIcsDate, parseMessage, refreshLinked, rruleToDays, upcoming } from './calendarImport'
+import { fromDeviceEvents } from './deviceCalendar'
 import { icsCalendar } from './ics'
 
 const google = [
@@ -116,5 +117,48 @@ describe('colar mensagem (SNS 24, centro de saúde)', () => {
   })
   it('data sem ano já passada fica para o ano seguinte', () => {
     expect(parseMessage('Consulta 10/01 às 9h', now).date).toEqual(new Date(2027, 0, 10, 9, 0))
+  })
+})
+
+describe('guardar e sincronizar', () => {
+  const base = { reminders: [], appointments: [] } as unknown as import('./types').Vault
+  const ev = (uid: string, iso: string, title = 'Consulta endocrinologia') => ({ uid, title, start: new Date(iso), allDay: false, everyDays: 0, location: 'ULS' })
+  let n = 0
+  const id = () => `id${++n}`
+
+  it('importar duas vezes não duplica', () => {
+    let v = addEvents(base, [ev('a', '2026-12-10T09:30:00Z')], 'consultas', id)
+    v = addEvents(v, [ev('a', '2026-12-11T09:30:00Z')], 'consultas', id)
+    expect(v.appointments.length).toBe(1)
+    expect(v.appointments[0].date).toBe('2026-12-11T09:30:00.000Z')
+    v = addEvents(v, [ev('b', '2026-12-03T08:00:00Z', 'Análises ao sangue')], 'lembretes', id)
+    expect(v.reminders[0]).toMatchObject({ kind: 'analises', sourceUid: 'b', everyDays: 0 })
+  })
+
+  it('sincronizar atualiza só o que veio do calendário e mantém as perguntas', () => {
+    let v = addEvents(base, [ev('a', '2026-12-10T09:30:00Z')], 'consultas', id)
+    v = { ...v, appointments: [...v.appointments.map(a => ({ ...a, questions: [{ id: 'q', text: 'Fertilidade?', done: false }] })), { id: 'manual', date: '2026-12-01T10:00:00.000Z', with: 'Psicologia', questions: [] }] }
+    const r = refreshLinked(v, [ev('a', '2026-12-17T09:30:00Z'), ev('outro', '2026-12-20T10:00:00Z')])
+    expect(r.changed).toBe(1)
+    expect(r.vault.appointments[0]).toMatchObject({ date: '2026-12-17T09:30:00.000Z', questions: [{ text: 'Fertilidade?' }] })
+    expect(r.vault.appointments[1].id).toBe('manual')
+    expect(r.vault.appointments.length).toBe(2)
+    expect(refreshLinked(r.vault, [ev('a', '2026-12-17T09:30:00Z')]).changed).toBe(0)
+  })
+})
+
+describe('calendário do telemóvel', () => {
+  it('fica com a próxima ocorrência e ignora passados e cancelados', () => {
+    const now = Date.UTC(2026, 10, 26, 12)
+    const d = (iso: string) => Date.parse(iso)
+    const evs = fromDeviceEvents([
+      { id: '1', title: 'Gel', startDate: d('2026-12-03T08:00:00Z'), isAllDay: false, location: null, description: null },
+      { id: '1', title: 'Gel', startDate: d('2026-11-27T08:00:00Z'), isAllDay: false, location: null, description: null },
+      { id: '2', title: 'Antigo', startDate: d('2026-11-20T08:00:00Z'), isAllDay: false, location: null, description: null },
+      { id: '3', title: 'Cancelado', startDate: d('2026-12-01T08:00:00Z'), isAllDay: false, location: null, description: null, status: 'canceled' },
+      { id: '4', title: ' ', startDate: d('2026-12-05T08:00:00Z'), isAllDay: true, location: ' USF ', description: null },
+    ], now)
+    expect(evs.map(e => [e.uid, e.start.toISOString()])).toEqual([['device:1', '2026-11-27T08:00:00.000Z'], ['device:4', '2026-12-05T08:00:00.000Z']])
+    expect(evs[1]).toMatchObject({ title: '(sem título)', location: 'USF', allDay: true })
   })
 })

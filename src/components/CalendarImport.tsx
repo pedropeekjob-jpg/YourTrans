@@ -1,10 +1,11 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useVault } from '../lib/vault-context'
 import { Icon } from './Icon'
 import { Sheet, fmtDate, useToast } from './ui'
-import { parseMessage, readCalendarFile, upcoming, type ImportedEvent, type MessageGuess } from '../lib/calendarImport'
+import { addEvents, parseMessage, readCalendarFile, refreshLinked, upcoming, type ImportedEvent, type MessageGuess } from '../lib/calendarImport'
+import { deviceCalendarAvailable, hasCalendarAccess, readDeviceEvents, requestCalendarAccess } from '../lib/deviceCalendar'
 import { downloadIcs, icsCalendar, type IcsEventInput } from '../lib/ics'
-import { uid, type Appointment, type Reminder, type Vault } from '../lib/types'
+import { uid, type Reminder, type Vault } from '../lib/types'
 import { tr } from '../i18n'
 
 type Target = 'lembretes' | 'consultas'
@@ -12,15 +13,6 @@ type Target = 'lembretes' | 'consultas'
 function toLocalInput(d: Date): string {
   const off = d.getTimezoneOffset() * 60_000
   return new Date(d.getTime() - off).toISOString().slice(0, 16)
-}
-
-/** Adivinha o tipo de lembrete pelo título do evento. */
-function kindOf(title: string): Reminder['kind'] {
-  const t = title.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
-  if (/hormon|testosteron|estradiol|estrogen|gel\b|injec|adesivo|comprimido|progesteron|ciproterona|bicalutamida/.test(t)) return 'hormona'
-  if (/analise|exame|colheita|ecografia|rastreio|raio|tac\b|ressonancia/.test(t)) return 'analises'
-  if (/consulta|medic|endocrin|psicolog|psiquiatr|cirurg|usf|hospital|clinica/.test(t)) return 'consulta'
-  return 'outro'
 }
 
 /** Junta lembretes e consultas futuras num só ficheiro .ics. */
@@ -47,7 +39,37 @@ export function CalendarTools({ target }: { target: Target }) {
   const [events, setEvents] = useState<ImportedEvent[] | null>(null)
   const [paste, setPaste] = useState(false)
   const [help, setHelp] = useState(false)
+  const { update } = useVault()
   const count = vault.reminders.length + vault.appointments.length
+  const native = deviceCalendarAvailable()
+  const syncOn = !!vault.settings.deviceCalendarSync
+
+  // Sincronização: ao abrir, se a pessoa já deu acesso, atualiza o que veio do calendário do telemóvel.
+  useEffect(() => {
+    if (!native || !syncOn) return
+    let off = false
+    void (async () => {
+      if (!(await hasCalendarAccess())) return
+      try {
+        const evs = await readDeviceEvents()
+        if (off) return
+        let n = 0
+        update(v => { const r = refreshLinked(v, evs); n = r.changed; return r.vault })
+        if (n) toast(tr('{0} evento(s) atualizados a partir do calendário', n))
+      } catch { /* sem acesso: fica como está */ }
+    })()
+    return () => { off = true }
+  }, [native, syncOn]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const fromPhone = async () => {
+    try {
+      if (!(await requestCalendarAccess())) { toast(tr('Sem acesso ao calendário. Podes dar acesso nas definições do telemóvel.')); return }
+      const evs = await readDeviceEvents()
+      if (!evs.length) { toast(tr('Este calendário não tem eventos futuros')); return }
+      if (!syncOn) update(v => ({ ...v, settings: { ...v.settings, deviceCalendarSync: true } }))
+      setEvents(evs)
+    } catch { toast(tr('Não foi possível ler o calendário do telemóvel')) }
+  }
 
   const pick = async (f: File | undefined) => {
     if (!f) return
@@ -70,6 +92,13 @@ export function CalendarTools({ target }: { target: Target }) {
         </summary>
         <div className="stack" style={{ marginTop: 8 }}>
           <p className="xs muted">{tr('Traz consultas e exames do teu calendário (Google, Apple, Outlook) ou de uma mensagem do SNS 24. Tudo é lido neste aparelho: o Casulo não acede à tua conta nem envia nada para nenhum servidor.')}</p>
+          {native && <button className="btn sm" onClick={() => void fromPhone()}><Icon name="calendar" size={16} />{tr('Do calendário do telemóvel')}</button>}
+          {native && syncOn && (
+            <label className="row xs muted" style={{ gap: 8 }}>
+              <input type="checkbox" checked onChange={() => update(v => ({ ...v, settings: { ...v.settings, deviceCalendarSync: false } }))} />
+              {tr('Manter atualizado: quando uma consulta muda de data no calendário, muda aqui também.')}
+            </label>
+          )}
           <div className="grid2">
             <button className="btn sm secondary" onClick={() => fileRef.current?.click()}><Icon name="calendar" size={16} />{tr('Importar calendário')}</button>
             <button className="btn sm secondary" onClick={() => setPaste(true)}><Icon name="copy" size={16} />{tr('Colar mensagem')}</button>
@@ -108,27 +137,7 @@ function ImportSheet({ events, target, onClose }: { events: ImportedEvent[]; tar
 
   const save = () => {
     const picked = events.filter(e => chosen.has(e.uid))
-    update(v => {
-      if (as === 'consultas') {
-        const appointments = [...v.appointments]
-        for (const e of picked) {
-          const data = { date: e.start.toISOString(), with: e.title, notes: e.location, sourceUid: e.uid }
-          const i = appointments.findIndex(a => a.sourceUid === e.uid)
-          if (i >= 0) appointments[i] = { ...appointments[i], ...data }
-          else appointments.push({ id: uid(), questions: [], ...data } satisfies Appointment)
-        }
-        return { ...v, appointments }
-      }
-      const reminders = [...v.reminders]
-      for (const e of picked) {
-        const notes = [e.location, e.description].filter(Boolean).join(' · ').slice(0, 300) || undefined
-        const data = { label: e.title, next: e.start.toISOString(), everyDays: e.everyDays, notes, sourceUid: e.uid }
-        const i = reminders.findIndex(r => r.sourceUid === e.uid)
-        if (i >= 0) reminders[i] = { ...reminders[i], ...data }
-        else reminders.push({ id: uid(), kind: kindOf(e.title), ...data } satisfies Reminder)
-      }
-      return { ...v, reminders }
-    })
+    update(v => addEvents(v, picked, as, uid))
     toast(tr('{0} evento(s) guardados em {1}', picked.length, as === 'consultas' ? tr('Consultas') : tr('Lembretes')))
     onClose()
   }
