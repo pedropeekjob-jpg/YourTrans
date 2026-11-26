@@ -52,6 +52,8 @@ export interface Reminder {
   /** Repetição em dias (0 = única) */
   everyDays: number
   notes?: string
+  /** UID do evento no calendário de onde veio (importar outra vez atualiza em vez de duplicar) */
+  sourceUid?: string
 }
 
 export interface DoseLog { id: string; reminderId: string; at: string }
@@ -80,6 +82,8 @@ export interface Appointment {
   with: string
   questions: { id: string; text: string; done: boolean }[]
   notes?: string
+  /** UID do evento no calendário de onde veio */
+  sourceUid?: string
 }
 
 export interface TrustedContact { id: string; name: string; phone: string }
