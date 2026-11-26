@@ -2914,5 +2914,22 @@
 "Sem acesso ao calendário. Podes dar acesso nas definições do telemóvel.": "No access to the calendar. You can allow it in your phone settings.",
 "Não foi possível ler o calendário do telemóvel": "Couldn't read your phone's calendar",
 "Do calendário do telemóvel": "From my phone's calendar",
-"Manter atualizado: quando uma consulta muda de data no calendário, muda aqui também.": "Keep up to date: when an appointment changes date in the calendar, it changes here too."
+"Manter atualizado: quando uma consulta muda de data no calendário, muda aqui também.": "Keep up to date: when an appointment changes date in the calendar, it changes here too.",
+"Ligação ao Google cancelada": "Google connection cancelled",
+"Não foi possível ligar ao Google. Tenta outra vez.": "Couldn't connect to Google. Try again.",
+"Não foi possível ler o Google Calendar. Tenta outra vez.": "Couldn't read Google Calendar. Try again.",
+"A ler o Google Calendar…": "Reading Google Calendar…",
+"Atualizar do Google Calendar": "Update from Google Calendar",
+"Ligar ao Google Calendar": "Connect Google Calendar",
+"Só leitura. A ligação é feita diretamente entre este aparelho e a Google: o Casulo nunca vê nem guarda a tua conta, e só entram os eventos que escolheres.": "Read only. The connection goes straight between this device and Google: Casulo never sees or stores your account, and only the events you choose come in.",
+"Retirar o acesso na conta Google": "Remove access in your Google Account",
+"Do calendário do telemóvel (inclui o Google)": "From my phone's calendar (includes Google)",
+"Outras formas": "Other ways",
+"Traz consultas e exames do teu calendário ou do SNS 24": "Bring appointments and tests from your calendar or health service",
+"Ligação ao calendário (opcional)": "Calendar connection (optional)",
+"Só se tocares em \"Ligar ao Google Calendar\" (no site) ou em \"Do calendário do telemóvel\" (nas apps). O acesso é só de leitura: no Google, a permissão pedida é ver os eventos do teu calendário principal.": "Only if you tap \"Connect Google Calendar\" (on the website) or \"From my phone's calendar\" (in the apps). Access is read only: on Google, the permission requested is to view events on your primary calendar.",
+"A ligação é feita diretamente entre o teu aparelho e a Google. A autorização dura no máximo uma hora, é usada uma vez e é apagada; não é guardada nem passa pelos nossos servidores. Nunca vemos o teu calendário.": "The connection goes straight between your device and Google. The authorisation lasts at most one hour, is used once and then deleted; it is not stored and does not go through our servers. We never see your calendar.",
+"Só ficam no Casulo os eventos que escolhes, cifrados no aparelho como os outros lembretes e consultas. O resto do calendário não é guardado.": "Only the events you choose stay in Casulo, encrypted on the device like your other reminders and appointments. The rest of your calendar is not stored.",
+"O uso e a transferência de informação recebida das APIs da Google cumprem a Política de Dados do Utilizador dos Serviços de API da Google, incluindo os requisitos de Uso Limitado. Não usamos estes dados para publicidade nem para treinar modelos de IA, não os vendemos e não os passamos a ninguém.": "Casulo's use and transfer to any other app of information received from Google APIs will adhere to the Google API Services User Data Policy, including the Limited Use requirements. We do not use this data for advertising or to train AI models, we do not sell it and we do not pass it on to anyone.",
+"Podes retirar o acesso quando quiseres em myaccount.google.com/permissions (ou nas definições do telemóvel, para o calendário do telemóvel).": "You can remove access at any time at myaccount.google.com/permissions (or in your phone settings, for the phone calendar)."
 }

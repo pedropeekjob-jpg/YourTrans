@@ -25,7 +25,7 @@ function contentSecurityPolicy(): Plugin {
           "style-src 'self' 'unsafe-inline'",
           "img-src 'self' data: blob:",
           "font-src 'self' data:",
-          `connect-src 'self' https://tiles.openfreemap.org https://casulo-comunidade.onrender.com https://api.casulo.space ${api}`.trim(),
+          `connect-src 'self' https://www.googleapis.com https://tiles.openfreemap.org https://casulo-comunidade.onrender.com https://api.casulo.space ${api}`.trim(),
           "worker-src 'self' blob:",
           "child-src 'self' blob:",
           "media-src 'self' blob: data:",

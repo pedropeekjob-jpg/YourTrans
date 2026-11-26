@@ -2914,5 +2914,22 @@
 "Sem acesso ao calendário. Podes dar acesso nas definições do telemóvel.": "Kein Zugriff auf den Kalender. Du kannst ihn in den Handy-Einstellungen erlauben.",
 "Não foi possível ler o calendário do telemóvel": "Der Kalender des Handys konnte nicht gelesen werden",
 "Do calendário do telemóvel": "Aus dem Kalender des Handys",
-"Manter atualizado: quando uma consulta muda de data no calendário, muda aqui também.": "Aktuell halten: Wenn sich ein Termin im Kalender verschiebt, ändert er sich auch hier."
+"Manter atualizado: quando uma consulta muda de data no calendário, muda aqui também.": "Aktuell halten: Wenn sich ein Termin im Kalender verschiebt, ändert er sich auch hier.",
+"Ligação ao Google cancelada": "Verbindung mit Google abgebrochen",
+"Não foi possível ligar ao Google. Tenta outra vez.": "Verbindung mit Google nicht möglich. Versuch es noch einmal.",
+"Não foi possível ler o Google Calendar. Tenta outra vez.": "Google Kalender konnte nicht gelesen werden. Versuch es noch einmal.",
+"A ler o Google Calendar…": "Google Kalender wird gelesen…",
+"Atualizar do Google Calendar": "Aus Google Kalender aktualisieren",
+"Ligar ao Google Calendar": "Google Kalender verbinden",
+"Só leitura. A ligação é feita diretamente entre este aparelho e a Google: o Casulo nunca vê nem guarda a tua conta, e só entram os eventos que escolheres.": "Nur lesen. Die Verbindung läuft direkt zwischen diesem Gerät und Google: Casulo sieht und speichert dein Konto nie, und nur die Termine, die du auswählst, werden übernommen.",
+"Retirar o acesso na conta Google": "Zugriff im Google-Konto entfernen",
+"Do calendário do telemóvel (inclui o Google)": "Aus dem Kalender des Handys (inkl. Google)",
+"Outras formas": "Andere Wege",
+"Traz consultas e exames do teu calendário ou do SNS 24": "Hol dir Termine und Untersuchungen aus deinem Kalender oder vom Gesundheitsdienst",
+"Ligação ao calendário (opcional)": "Kalenderverbindung (optional)",
+"Só se tocares em \"Ligar ao Google Calendar\" (no site) ou em \"Do calendário do telemóvel\" (nas apps). O acesso é só de leitura: no Google, a permissão pedida é ver os eventos do teu calendário principal.": "Nur wenn du auf „Google Kalender verbinden“ (auf der Website) oder „Aus dem Kalender des Handys“ (in den Apps) tippst. Der Zugriff ist nur lesend: bei Google wird die Berechtigung angefragt, die Termine deines Hauptkalenders zu sehen.",
+"A ligação é feita diretamente entre o teu aparelho e a Google. A autorização dura no máximo uma hora, é usada uma vez e é apagada; não é guardada nem passa pelos nossos servidores. Nunca vemos o teu calendário.": "Die Verbindung läuft direkt zwischen deinem Gerät und Google. Die Autorisierung gilt höchstens eine Stunde, wird einmal verwendet und dann gelöscht; sie wird nicht gespeichert und läuft nicht über unsere Server. Wir sehen deinen Kalender nie.",
+"Só ficam no Casulo os eventos que escolhes, cifrados no aparelho como os outros lembretes e consultas. O resto do calendário não é guardado.": "Nur die Termine, die du auswählst, bleiben in Casulo, verschlüsselt auf dem Gerät wie deine anderen Erinnerungen und Termine. Der Rest des Kalenders wird nicht gespeichert.",
+"O uso e a transferência de informação recebida das APIs da Google cumprem a Política de Dados do Utilizador dos Serviços de API da Google, incluindo os requisitos de Uso Limitado. Não usamos estes dados para publicidade nem para treinar modelos de IA, não os vendemos e não os passamos a ninguém.": "Die Nutzung und Weitergabe von Informationen aus Google-APIs entspricht der Nutzerdatenrichtlinie für Google API-Dienste, einschließlich der Anforderungen zur eingeschränkten Nutzung. Wir nutzen diese Daten nicht für Werbung oder zum Training von KI-Modellen, verkaufen sie nicht und geben sie an niemanden weiter.",
+"Podes retirar o acesso quando quiseres em myaccount.google.com/permissions (ou nas definições do telemóvel, para o calendário do telemóvel).": "Du kannst den Zugriff jederzeit unter myaccount.google.com/permissions entfernen (oder in den Handy-Einstellungen für den Kalender des Handys)."
 }

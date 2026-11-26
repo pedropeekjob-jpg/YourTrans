@@ -39,6 +39,8 @@ export interface Settings {
   pins?: string[]
   /** App nativa: atualizar sozinho o que veio do calendário do telemóvel */
   deviceCalendarSync?: boolean
+  /** Web: já ligou o Google Calendar (só para mostrar "Atualizar"; o token nunca é guardado) */
+  googleLinked?: boolean
   /** Já viu o aviso de que os atalhos aprendem com o uso */
   shortcutsNoticeSeen?: boolean
 }
