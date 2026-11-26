@@ -31,7 +31,17 @@ export interface Settings {
   travelPrev?: { disguise: boolean; autoLockMinutes: number; discreetNotifications: boolean }
   /** ISO da última cópia de segurança exportada neste aparelho */
   lastBackup?: string
+  /** Estilo de cor (todos partem da bandeira trans). Sem valor: "bandeira". */
+  palette?: Palette
+  /** Atalhos do Hoje adaptam-se ao uso. Sem valor: ligado. */
+  adaptive?: boolean
+  /** Atalhos fixados, pela ordem escolhida */
+  pins?: string[]
+  /** Já viu o aviso de que os atalhos aprendem com o uso */
+  shortcutsNoticeSeen?: boolean
 }
+
+export type Palette = 'bandeira' | 'rosa' | 'pastel' | 'contraste'
 
 export interface Reminder {
   id: string
@@ -190,6 +200,10 @@ export interface Vault {
   voiceLog?: { date: string; hz: number }[]
   /** Assinaturas que bloqueaste: deixas de ver o que publicam (fica só neste aparelho). */
   blockedAuthors: string[]
+  /** Uso de cada funcionalidade, para os atalhos (só neste aparelho, cifrado como o resto). */
+  usage?: Record<string, { s: number; t: number }>
+  /** Última funcionalidade aberta, para "Continuar onde ficaste" */
+  lastScreen?: { id: string; at: number }
 }
 
 export function emptyVault(): Vault {

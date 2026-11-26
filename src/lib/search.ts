@@ -37,6 +37,7 @@ function screens(): SearchEntry[] {
     { title: tr('Os teus dados'), text: tr('cópia de segurança exportar outro aparelho'), to: '/dados', kind: k },
     { title: tr('Passar para outro aparelho'), text: tr('QR telemóvel novo'), to: '/passar', kind: k },
     { title: tr('Política de privacidade'), text: tr('RGPD dados'), to: '/privacidade', kind: k },
+    { title: tr('Os teus atalhos'), text: tr('ver tudo fixar personalizar adaptar'), to: '/atalhos', kind: k },
     { title: tr('Procurei e não encontrei'), text: tr('sugestão falta'), to: '/sugerir', kind: k },
   ]
 }

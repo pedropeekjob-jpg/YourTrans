@@ -397,3 +397,75 @@ textarea.input { min-height: 110px; resize: vertical; }
 .voice-meter { position: relative; height: 18px; border-radius: 9px; background: var(--surface-2, rgba(127,127,127,.18)); margin: 12px 0 4px; overflow: hidden; }
 .voice-band { position: absolute; top: 0; bottom: 0; background: var(--accent-soft); }
 .voice-needle { position: absolute; top: -2px; bottom: -2px; width: 4px; margin-left: -2px; border-radius: 2px; background: var(--accent); transition: left .08s linear; }
+
+/* Atalhos que se adaptam ao uso (ecrã Hoje) */
+.shortcuts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.shortcut {
+  position: relative; display: grid; justify-items: center; align-content: start; gap: 6px; padding: 12px 4px 10px;
+  border-radius: 18px; background: var(--surface); box-shadow: var(--shadow); text-decoration: none; color: var(--text);
+  text-align: center; font-size: .75rem; line-height: 1.2; min-height: 92px; transition: transform .15s;
+}
+.shortcut:active { transform: scale(.96); }
+.shortcut-ico { width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; flex-shrink: 0; }
+.shortcut-label { overflow-wrap: anywhere; }
+.shortcut-pin { position: absolute; top: 4px; right: 6px; font-size: .65rem; }
+.pin-btn { filter: grayscale(1); opacity: .45; }
+.pin-btn.on { filter: none; opacity: 1; box-shadow: 0 0 0 1.5px var(--accent); }
+.icon-btn:disabled { opacity: .3; cursor: default; }
+.usage-bar { display: grid; grid-template-columns: minmax(0, 9em) minmax(0, 1fr); gap: 10px; align-items: center; }
+.usage-track { height: 8px; border-radius: 99px; background: var(--surface-2); overflow: hidden; }
+.usage-track i { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--flag-blue), var(--flag-pink)); }
+
+/* Estilos de cor. Todos partem da bandeira trans; cada um tem versão clara e escura.
+   O claro vem primeiro; o escuro (mais específico) sobrepõe-se quando o tema é escuro. */
+.palette-picker { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.palette-prev { width: 100%; height: 14px; border-radius: 8px; display: flex; overflow: hidden; margin-bottom: 4px; border: 1px solid var(--line); }
+.palette-prev i { flex: 1; }
+.palette-prev.bandeira i:nth-child(odd) { background: #5bcefa; } .palette-prev.bandeira i:nth-child(even) { background: #f5a9b8; } .palette-prev.bandeira i:nth-child(3) { background: #fff; }
+.palette-prev.rosa i:nth-child(odd) { background: #ff8fb1; } .palette-prev.rosa i:nth-child(even) { background: #5bcefa; } .palette-prev.rosa i:nth-child(3) { background: #fff; }
+.palette-prev.pastel i:nth-child(odd) { background: #a9def5; } .palette-prev.pastel i:nth-child(even) { background: #f7c3cf; } .palette-prev.pastel i:nth-child(3) { background: #fbf7f8; }
+.palette-prev.contraste i:nth-child(1) { background: #7fdcff; } .palette-prev.contraste i:nth-child(2), .palette-prev.contraste i:nth-child(4) { background: #000; } .palette-prev.contraste i:nth-child(3) { background: #fff; } .palette-prev.contraste i:nth-child(5) { background: #ffb3c8; }
+
+:root[data-palette='rosa'] {
+  --accent: #c2457a; --accent-ink: #ffffff; --accent-soft: #fdebf0; --rose: #2a78ad; --rose-soft: #e2f2fb; --glow: none; --glow-pink: none;
+}
+:root[data-palette='pastel'] {
+  --bg: #fbfaf8; --surface: #ffffff; --surface-2: #f5f2ef; --accent: #3f7ea3; --accent-ink: #ffffff; --accent-soft: #edf6fb;
+  --rose: #b86a80; --rose-soft: #fbf0f3; --mint: #4f957b; --amber: #a9813f; --glow: none; --glow-pink: none;
+  --hero: linear-gradient(155deg, #e3f4fc 0%, #fbfdff 48%, #fcedf1 100%);
+}
+:root[data-palette='contraste'] {
+  --bg: #ffffff; --surface: #ffffff; --surface-2: #efefef; --text: #000000; --muted: #2e2e2e; --line: #767676;
+  --accent: #00508a; --accent-ink: #ffffff; --accent-soft: #dcecf8; --rose: #a3124a; --glow: none; --glow-pink: none;
+  --shadow: 0 0 0 1.5px #767676; --hero-ink: #000000; --hero-muted: #2e2e2e;
+}
+:root[data-theme='dark'][data-palette='rosa'] {
+  --accent: #ff8fb1; --accent-ink: #05060a; --accent-soft: rgba(255, 143, 177, .14); --rose: #5bcefa; --rose-soft: rgba(91, 206, 250, .13);
+  --glow: 0 0 18px rgba(255, 143, 177, .35); --glow-pink: 0 0 18px rgba(91, 206, 250, .35);
+}
+:root[data-theme='dark'][data-palette='pastel'] {
+  --bg: #11131b; --surface: #191c27; --surface-2: #20243a; --accent: #a9def5; --accent-ink: #05060a; --accent-soft: rgba(169, 222, 245, .12);
+  --rose: #f7c3cf; --rose-soft: rgba(247, 195, 207, .12); --mint: #b5e8d3; --amber: #f3d9a6; --glow: none; --glow-pink: none;
+  --hero: radial-gradient(120% 90% at 0% 0%, rgba(169, 222, 245, .16), transparent 55%), radial-gradient(110% 90% at 100% 100%, rgba(247, 195, 207, .16), transparent 55%), #171a26;
+}
+:root[data-theme='dark'][data-palette='contraste'] {
+  --bg: #000000; --surface: #0a0a0a; --surface-2: #161616; --text: #ffffff; --muted: #e2e0ee; --line: #8a8aa3;
+  --accent: #7fdcff; --accent-ink: #000000; --accent-soft: rgba(127, 220, 255, .18); --rose: #ffb3c8; --glow: none; --glow-pink: none;
+  --shadow: 0 0 0 1.5px #8a8aa3; --hero-ink: #ffffff; --hero-muted: #e2e0ee;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light'])[data-palette='rosa'] {
+    --accent: #ff8fb1; --accent-ink: #05060a; --accent-soft: rgba(255, 143, 177, .14); --rose: #5bcefa; --rose-soft: rgba(91, 206, 250, .13);
+    --glow: 0 0 18px rgba(255, 143, 177, .35); --glow-pink: 0 0 18px rgba(91, 206, 250, .35);
+  }
+  :root:not([data-theme='light'])[data-palette='pastel'] {
+    --bg: #11131b; --surface: #191c27; --surface-2: #20243a; --accent: #a9def5; --accent-ink: #05060a; --accent-soft: rgba(169, 222, 245, .12);
+    --rose: #f7c3cf; --rose-soft: rgba(247, 195, 207, .12); --mint: #b5e8d3; --amber: #f3d9a6; --glow: none; --glow-pink: none;
+    --hero: radial-gradient(120% 90% at 0% 0%, rgba(169, 222, 245, .16), transparent 55%), radial-gradient(110% 90% at 100% 100%, rgba(247, 195, 207, .16), transparent 55%), #171a26;
+  }
+  :root:not([data-theme='light'])[data-palette='contraste'] {
+    --bg: #000000; --surface: #0a0a0a; --surface-2: #161616; --text: #ffffff; --muted: #e2e0ee; --line: #8a8aa3;
+    --accent: #7fdcff; --accent-ink: #000000; --accent-soft: rgba(127, 220, 255, .18); --rose: #ffb3c8; --glow: none; --glow-pink: none;
+    --shadow: 0 0 0 1.5px #8a8aa3; --hero-ink: #ffffff; --hero-muted: #e2e0ee;
+  }
+}

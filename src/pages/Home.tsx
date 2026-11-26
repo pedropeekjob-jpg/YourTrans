@@ -11,6 +11,7 @@ import { useState } from 'react'
 import { tr } from '../i18n'
 import { useCountry } from '../lib/useCountry'
 import { InstallCard } from '../components/InstallCard'
+import { ShortcutsSection } from '../components/Shortcuts'
 import { installNudgeSnoozed, snoozeInstallNudge, useInstall } from '../lib/install'
 
 export const moods = ['😞', '😕', '😐', '🙂', '🤩']
@@ -122,6 +123,8 @@ export function Home() {
             </div>
           </div>
         </section>
+
+        <ShortcutsSection />
 
         {installState !== 'installed' && !installHidden && (installOpen
           ? <InstallCard onClose={() => { snoozeInstallNudge(); setInstallHidden(true) }} />
