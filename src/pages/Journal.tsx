@@ -12,6 +12,7 @@ import { uid, type Appointment, type JournalEntry, type Reminder, type Vault } f
 import { moods } from './Home'
 import { locale, tr } from '../i18n'
 import { disablePush, enablePush, notificationsSupported } from '../lib/notify'
+import { CalendarTools } from '../components/CalendarImport'
 
 /** Diário pessoal (texto, fotos e euforias). Lembretes, efeitos e consultas vivem em Saúde › Tratamento. */
 export function Journal() {
@@ -254,7 +255,7 @@ export function Reminders() {
   }
   const exportIcs = (r: Reminder) => {
     const neutral = vault.settings.discreetNotifications
-    downloadIcs('lembrete', icsEvent({ title: neutral ? tr('Lembrete') : r.label, start: new Date(r.next), everyDays: r.everyDays || undefined, description: neutral ? undefined : r.notes }))
+    downloadIcs('lembrete', icsEvent({ uid: `casulo-r-${r.id}`, title: neutral ? tr('Lembrete') : r.label, start: new Date(r.next), everyDays: r.everyDays || undefined, description: neutral ? undefined : r.notes }))
   }
 
   return (
@@ -272,6 +273,7 @@ export function Reminders() {
           <p className="xs muted" style={{ marginTop: 6 }}>{tr('Para isto funcionar, o servidor do Casulo guarda o endereço de notificações deste aparelho e as horas dos avisos dos próximos 35 dias. Não guarda o texto, o tipo de lembrete nem quem és, e cada hora é apagada depois do aviso. A notificação diz só "Tens um lembrete" (ou "Tens uma nota" com o texto neutro). Ao desligar, o servidor esquece este aparelho.')}</p>
         </details>
       )}
+      <CalendarTools target="lembretes" />
       {list.length === 0 ? (
         <Empty icon="bell" title={tr('Sem lembretes')} text={tr('Cria lembretes para a toma de hormonas, análises ou consultas.')} />
       ) : (
@@ -440,13 +442,17 @@ export function Appointments() {
         <button className="btn" onClick={() => setOpen(true)}><Icon name="plus" size={18} />{tr('Consulta')}</button>
         <button className="btn secondary" onClick={() => setSummary(true)}><Icon name="doc" size={18} />{tr('Resumo')}</button>
       </div>
+      <CalendarTools target="consultas" />
       {list.length === 0 ? (
         <Empty icon="calendar" title={tr('Prepara a próxima consulta')} text={tr('Junta as perguntas que queres fazer e leva um resumo dos teus registos.')} />
       ) : list.map(a => (
         <section key={a.id} className="card">
           <div className="row between">
-            <div><h3>{a.with || tr('Consulta')}</h3><p className="small muted">{fmtDate(a.date, { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}</p></div>
+            <div><h3>{a.with || tr('Consulta')}</h3><p className="small muted">{fmtDate(a.date, { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}</p>{a.notes && <p className="xs muted" style={{ whiteSpace: 'pre-wrap' }}>{a.notes}</p>}</div>
+            <div className="row" style={{ gap: 4 }}>
+            <button className="btn ghost sm" aria-label={tr('Calendário')} onClick={() => { const neutral = vault.settings.discreetNotifications; downloadIcs('consulta', icsEvent({ uid: `casulo-a-${a.id}`, title: neutral ? tr('Lembrete') : a.with || tr('Consulta'), start: new Date(a.date), durationMin: 60, alarmMin: 60, description: neutral ? undefined : a.notes })) }}><Icon name="calendar" size={16} /></button>
             <button className="btn ghost sm" aria-label={tr('Apagar')} onClick={() => update(v => ({ ...v, appointments: v.appointments.filter(x => x.id !== a.id) }))}><Icon name="trash" size={16} /></button>
+            </div>
           </div>
           {a.questions.map(q => (
             <div key={q.id} className="row" style={{ alignItems: 'flex-start' }}>

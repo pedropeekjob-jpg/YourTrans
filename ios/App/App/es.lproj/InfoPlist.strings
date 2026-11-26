@@ -6,3 +6,5 @@
 "NSPhotoLibraryUsageDescription" = "Para añadir fotos a tu diario. Las fotos se guardan cifradas en este dispositivo.";
 "NSPhotoLibraryAddUsageDescription" = "Para guardar en el móvil las imágenes que exportas de la app.";
 "NSFaceIDUsageDescription" = "Para desbloquear Casulo con Face ID en lugar del código.";
+"NSCalendarsFullAccessUsageDescription" = "Para mostrar las citas y pruebas de tu calendario y que elijas cuáles traer. Solo se leen los próximos eventos, en este dispositivo, y no se envía nada.";
+"NSCalendarsUsageDescription" = "Para mostrar las citas y pruebas de tu calendario y que elijas cuáles traer. Solo se leen los próximos eventos, en este dispositivo, y no se envía nada.";

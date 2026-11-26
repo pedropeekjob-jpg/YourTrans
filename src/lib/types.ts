@@ -37,6 +37,8 @@ export interface Settings {
   adaptive?: boolean
   /** Atalhos fixados, pela ordem escolhida */
   pins?: string[]
+  /** App nativa: atualizar sozinho o que veio do calendário do telemóvel */
+  deviceCalendarSync?: boolean
   /** Já viu o aviso de que os atalhos aprendem com o uso */
   shortcutsNoticeSeen?: boolean
 }
@@ -52,6 +54,8 @@ export interface Reminder {
   /** Repetição em dias (0 = única) */
   everyDays: number
   notes?: string
+  /** UID do evento no calendário de onde veio (importar outra vez atualiza em vez de duplicar) */
+  sourceUid?: string
 }
 
 export interface DoseLog { id: string; reminderId: string; at: string }
@@ -80,6 +84,8 @@ export interface Appointment {
   with: string
   questions: { id: string; text: string; done: boolean }[]
   notes?: string
+  /** UID do evento no calendário de onde veio */
+  sourceUid?: string
 }
 
 export interface TrustedContact { id: string; name: string; phone: string }

@@ -43,6 +43,10 @@
 	<string>Para juntares fotos ao teu diário. As fotos ficam cifradas neste aparelho.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Para guardares no telemóvel as imagens que exportas da app.</string>
+	<key>NSCalendarsFullAccessUsageDescription</key>
+	<string>Para mostrar as consultas e exames do teu calendário e escolheres quais trazer. Lemos só os próximos eventos, neste aparelho, e nada é enviado.</string>
+	<key>NSCalendarsUsageDescription</key>
+	<string>Para mostrar as consultas e exames do teu calendário e escolheres quais trazer. Lemos só os próximos eventos, neste aparelho, e nada é enviado.</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>Para desbloquear o Casulo com o Face ID em vez do código.</string>
 	<key>UIUserInterfaceStyle</key>

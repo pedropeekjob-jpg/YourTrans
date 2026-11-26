@@ -6,3 +6,5 @@
 "NSPhotoLibraryUsageDescription" = "Pour ajouter des photos à ton journal. Les photos sont chiffrées sur cet appareil.";
 "NSPhotoLibraryAddUsageDescription" = "Pour enregistrer sur ton téléphone les images que tu exportes de l’app.";
 "NSFaceIDUsageDescription" = "Pour déverrouiller Casulo avec Face ID au lieu du code.";
+"NSCalendarsFullAccessUsageDescription" = "Pour afficher les rendez-vous et examens de ton agenda et choisir ceux à récupérer. Seuls les événements à venir sont lus, sur cet appareil, et rien n'est envoyé.";
+"NSCalendarsUsageDescription" = "Pour afficher les rendez-vous et examens de ton agenda et choisir ceux à récupérer. Seuls les événements à venir sont lus, sur cet appareil, et rien n'est envoyé.";

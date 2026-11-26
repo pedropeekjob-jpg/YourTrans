@@ -6,3 +6,5 @@
 "NSPhotoLibraryUsageDescription" = "Um Fotos zu deinem Tagebuch hinzuzufügen. Fotos werden verschlüsselt auf diesem Gerät gespeichert.";
 "NSPhotoLibraryAddUsageDescription" = "Um Bilder, die du aus der App exportierst, auf deinem Telefon zu speichern.";
 "NSFaceIDUsageDescription" = "Um Casulo mit Face ID statt mit deinem Code zu entsperren.";
+"NSCalendarsFullAccessUsageDescription" = "Um Termine und Untersuchungen aus deinem Kalender anzuzeigen, damit du auswählst, welche übernommen werden. Nur bevorstehende Termine werden auf diesem Gerät gelesen, nichts wird gesendet.";
+"NSCalendarsUsageDescription" = "Um Termine und Untersuchungen aus deinem Kalender anzuzeigen, damit du auswählst, welche übernommen werden. Nur bevorstehende Termine werden auf diesem Gerät gelesen, nichts wird gesendet.";

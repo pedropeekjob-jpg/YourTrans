@@ -76,6 +76,8 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <!-- Lembretes de hormonas, análises e consultas -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Ler (só ler) as consultas do calendário do telemóvel, quando a pessoa pede -->
+    <uses-permission android:name="android.permission.READ_CALENDAR" />
     <!-- Treino de voz: o som é analisado no aparelho e nunca gravado -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />

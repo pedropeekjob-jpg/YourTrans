@@ -1,24 +1,48 @@
-// Exporta lembretes para o calendário (.ics), com título neutro opcional.
+// Exporta lembretes e consultas para o calendário (.ics), com título neutro opcional.
 function stamp(d: Date): string {
   return d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '')
 }
 
-export function icsEvent(opts: { title: string; start: Date; durationMin?: number; everyDays?: number; description?: string; allDay?: boolean }): string {
-  const end = new Date(opts.start.getTime() + (opts.durationMin ?? 30) * 60_000)
-  const lines = [
-    'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Notas//PT', 'BEGIN:VEVENT',
-    `UID:${crypto.randomUUID()}`, `DTSTAMP:${stamp(new Date())}`,
-    opts.allDay
-      ? `DTSTART;VALUE=DATE:${opts.start.toISOString().slice(0, 10).replace(/-/g, '')}`
-      : `DTSTART:${stamp(opts.start)}`,
-    ...(opts.allDay ? [] : [`DTEND:${stamp(end)}`]),
-    `SUMMARY:${opts.title.replace(/[,;\n]/g, ' ')}`,
-    ...(opts.description ? [`DESCRIPTION:${opts.description.replace(/\n/g, '\\n').replace(/[,;]/g, ' ')}`] : []),
-    ...(opts.everyDays ? [`RRULE:FREQ=DAILY;INTERVAL=${opts.everyDays}`] : []),
-    'BEGIN:VALARM', 'TRIGGER:-PT15M', 'ACTION:DISPLAY', 'DESCRIPTION:Lembrete', 'END:VALARM',
-    'END:VEVENT', 'END:VCALENDAR',
+const esc = (s: string) => s.replace(/\\/g, '\\\\').replace(/\r?\n/g, '\\n').replace(/([,;])/g, '\\$1')
+
+export interface IcsEventInput {
+  title: string
+  start: Date
+  durationMin?: number
+  everyDays?: number
+  description?: string
+  location?: string
+  allDay?: boolean
+  /** UID estável: voltar a importar no calendário atualiza em vez de duplicar */
+  uid?: string
+  /** Aviso antes, em minutos (omisso: 15) */
+  alarmMin?: number
+}
+
+function vevent(o: IcsEventInput): string[] {
+  const end = new Date(o.start.getTime() + (o.durationMin ?? 30) * 60_000)
+  const day = (d: Date) => `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`
+  return [
+    'BEGIN:VEVENT',
+    `UID:${o.uid ?? crypto.randomUUID()}`, `DTSTAMP:${stamp(new Date())}`,
+    o.allDay ? `DTSTART;VALUE=DATE:${day(o.start)}` : `DTSTART:${stamp(o.start)}`,
+    ...(o.allDay ? [] : [`DTEND:${stamp(end)}`]),
+    `SUMMARY:${esc(o.title)}`,
+    ...(o.location ? [`LOCATION:${esc(o.location)}`] : []),
+    ...(o.description ? [`DESCRIPTION:${esc(o.description)}`] : []),
+    ...(o.everyDays ? [`RRULE:FREQ=DAILY;INTERVAL=${o.everyDays}`] : []),
+    'BEGIN:VALARM', `TRIGGER:-PT${o.alarmMin ?? 15}M`, 'ACTION:DISPLAY', 'DESCRIPTION:Lembrete', 'END:VALARM',
+    'END:VEVENT',
   ]
-  return lines.join('\r\n')
+}
+
+/** Um calendário com vários eventos. */
+export function icsCalendar(events: IcsEventInput[]): string {
+  return ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Notas//PT', 'CALSCALE:GREGORIAN', ...events.flatMap(vevent), 'END:VCALENDAR'].join('\r\n')
+}
+
+export function icsEvent(opts: IcsEventInput): string {
+  return icsCalendar([opts])
 }
 
 export function downloadIcs(name: string, content: string) {
