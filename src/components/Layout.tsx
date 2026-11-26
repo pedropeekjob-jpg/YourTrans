@@ -3,6 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom'
 import { useVault } from '../lib/vault-context'
 import { Icon } from './Icon'
 import { tr } from '../i18n'
+import { useUsageTracking } from './Shortcuts'
 
 const tabs = [
   { to: '/', label: tr('Hoje'), icon: 'home', end: true },
@@ -24,6 +25,7 @@ export function Layout({ children }: { children: ReactNode }) {
   const { panic, vault } = useVault()
   const escPresses = useRef<number[]>([])
   const disguise = vault.settings.disguise
+  useUsageTracking()
 
   // Modo privado: carregar em Esc 3 vezes seguidas sai para o site do tempo (e bloqueia, se houver código).
   useEffect(() => {

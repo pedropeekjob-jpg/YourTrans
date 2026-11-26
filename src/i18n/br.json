@@ -1502,5 +1502,18 @@
 "Neste momento não há sessões solidárias disponíveis.": "No momento não há sessões solidárias disponíveis.",
 "Cancelado. Podes tentar outra vez.": "Cancelado. Você pode tentar de novo.",
 "O gestor de passkeys deste aparelho não dá a chave de que precisamos. No Android, confirma que o Chrome está atualizado e que as passkeys ficam no Gestor de palavras-passe da Google (Definições do Android › Palavras-passe e contas). No iPhone, precisa do iOS 18 ou mais recente. Entretanto, o código continua a funcionar.": "O gerenciador de passkeys deste aparelho não fornece a chave de que precisamos. No Android, confira se o Chrome está atualizado e se as passkeys ficam no Gerenciador de senhas do Google (Configurações do Android › Senhas e contas). No iPhone, precisa do iOS 18 ou mais recente. Enquanto isso, o código continua funcionando.",
-"Não foi possível ativar. Se aparecer uma lista de dispositivos, escolhe \"Este dispositivo\".": "Não foi possível ativar. Se aparecer uma lista de dispositivos, escolha \"Este dispositivo\"."
+"Não foi possível ativar. Se aparecer uma lista de dispositivos, escolhe \"Este dispositivo\".": "Não foi possível ativar. Se aparecer uma lista de dispositivos, escolha \"Este dispositivo\".",
+"Os teus atalhos": "Seus atalhos",
+"Onde ficaste da última vez": "Onde você parou da última vez",
+"Estes atalhos aprendem com o que usas mais. Isso fica só neste aparelho, cifrado, e nunca é enviado. Podes fixar os teus, desligar ou apagar o histórico.": "Estes atalhos aprendem com o que você mais usa. Isso fica só neste dispositivo, criptografado, e nunca é enviado. Você pode fixar os seus, desligar ou apagar o histórico.",
+"Percebi": "Entendi",
+"Usas com frequência": "Você usa com frequência",
+"Os fixados ficam sempre em primeiro lugar, pela ordem que escolheres. O resto dos atalhos segue o que usas mais.": "Os fixados ficam sempre em primeiro lugar, na ordem que você escolher. O resto dos atalhos segue o que você mais usa.",
+"A adaptação ao uso está desligada: os atalhos são os fixados e os das tuas escolhas iniciais.": "A adaptação ao uso está desligada: os atalhos são os fixados e os das suas escolhas iniciais.",
+"Ainda não fixaste nada. Toca em 📌 numa funcionalidade abaixo.": "Você ainda não fixou nada. Toque em 📌 numa funcionalidade abaixo.",
+"Atalhos à tua medida": "Atalhos do seu jeito",
+"Os atalhos do Hoje põem à frente o que usas mais. O registo fica só neste aparelho, cifrado como o diário, e nunca é enviado. Desligado, deixa de registar.": "Os atalhos do Hoje colocam na frente o que você mais usa. O registro fica só neste dispositivo, criptografado como o diário, e nunca é enviado. Desligado, para de registrar.",
+"Apagar o histórico de uso? Os atalhos fixados ficam.": "Apagar o histórico de uso? Os atalhos fixados continuam.",
+"O Casulo de sempre: azul à frente, rosa a acompanhar": "O Casulo de sempre: azul na frente, rosa acompanhando",
+"Rosa à frente": "Rosa na frente"
 }

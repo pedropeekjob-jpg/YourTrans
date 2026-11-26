@@ -1,4 +1,5 @@
 // Área de quem apoia: família, amigues, colegas, chefias e professores.
+import { ShortcutsSection } from '../components/Shortcuts'
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useVault } from '../lib/vault-context'
@@ -52,6 +53,8 @@ export function AllyHome() {
             <Ring value={done / lessons.length} color="var(--accent)" track="var(--hero-glass)" />
           </div>
         </section>
+
+        <ShortcutsSection />
 
         {person ? (
           <Link to="/cartoes" className="card tint-sky" style={{ textDecoration: 'none', color: 'inherit' }}>

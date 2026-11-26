@@ -64,6 +64,7 @@ const Business = page(() => import('./pages/Business'), 'Business')
 const EntityPanel = page(() => import('./pages/Business'), 'EntityPanel')
 const Transparency = page(() => import('./pages/Business'), 'Transparency')
 const Services = page(() => import('./pages/Services'), 'Services')
+const Shortcuts = page(() => import('./pages/Shortcuts'), 'Shortcuts')
 
 /** Páginas para entidades: abrem logo, sem passar pela apresentação da app (quem as visita é uma empresa). */
 const isBusinessLink = () => PARTNER_PLANS_ON && /^#\/(entidades|transparencia)(\/|\?|$)/.test(window.location.hash)
@@ -92,6 +93,13 @@ function Screen() {
     if (theme === 'system') document.documentElement.removeAttribute('data-theme')
     else document.documentElement.setAttribute('data-theme', theme)
   }, [vault?.settings.theme])
+
+  // Estilo de cor: todos partem da bandeira trans; "bandeira" é o de sempre.
+  useEffect(() => {
+    const palette = vault?.settings.palette
+    if (!palette || palette === 'bandeira') document.documentElement.removeAttribute('data-palette')
+    else document.documentElement.setAttribute('data-palette', palette)
+  }, [vault?.settings.palette])
 
   useReminderPushSync(vault?.reminders, vault?.settings.pushReminders, vault?.settings.discreetNotifications)
 
@@ -140,6 +148,7 @@ function Screen() {
           <Route path="/sugerir" element={<Suggest />} />
           <Route path="/dados" element={<DataCare />} />
           <Route path="/passar" element={<Transfer />} />
+          <Route path="/atalhos" element={<Shortcuts />} />
           <Route path="*" element={<AllyHome />} />
         </Routes>
         ) : (
@@ -173,6 +182,7 @@ function Screen() {
           <Route path="/sugerir" element={<Suggest />} />
           <Route path="/dados" element={<DataCare />} />
           <Route path="/passar" element={<Transfer />} />
+          <Route path="/atalhos" element={<Shortcuts />} />
           <Route path="*" element={<Home />} />
         </Routes>
         )}

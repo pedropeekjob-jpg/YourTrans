@@ -5,7 +5,9 @@ import { TopBar } from '../components/Layout'
 import { Icon } from '../components/Icon'
 import { LangPicker } from '../components/LangPicker'
 import { CountryPicker } from '../components/CountryPicker'
-import { ThemePicker } from '../components/ThemePicker'
+import { PalettePicker, ThemePicker } from '../components/ThemePicker'
+import { useFeatures } from '../components/Shortcuts'
+import { learned } from '../lib/shortcuts'
 import { CasuloLogo } from '../components/CasuloLogo'
 import { Seg, useToast } from '../components/ui'
 import { BackupCard } from './DataCare'
@@ -102,7 +104,11 @@ export function Settings() {
         <section className="card">
           <h3>{tr('Aparência')}</h3>
           <ThemePicker />
+          <b className="small">{tr('Estilo de cor')}</b>
+          <PalettePicker />
         </section>
+
+        <Personalize />
 
         <CommunityIdentity />
 
@@ -201,6 +207,46 @@ function CommunityIdentity() {
         if (!confirm(tr('Trocar de assinatura? O que publicares a seguir deixa de estar ligado ao que já publicaste.'))) return
         update(v => ({ ...v, authorId: newAuthorId() })); toast(tr('Assinatura trocada'))
       }}>{tr('Trocar assinatura')}</button>
+    </section>
+  )
+}
+
+/** Atalhos que se adaptam ao uso: ligar, ver o que foi aprendido e apagar. Tudo só neste aparelho. */
+function Personalize() {
+  const { vault, update } = useVault()
+  const toast = useToast()
+  const { list } = useFeatures()
+  const adaptive = vault.settings.adaptive !== false
+  const top = learned(list, vault.usage, Date.now())
+  const max = Math.max(1, ...top.map(x => x.score))
+  return (
+    <section className="card" id="personalizar">
+      <h3>{tr('Atalhos à tua medida')}</h3>
+      <label className="row" style={{ gap: 10, alignItems: 'flex-start' }}>
+        <input type="checkbox" checked={adaptive} onChange={e => update(v => ({ ...v, settings: { ...v.settings, adaptive: e.target.checked } }))} style={{ marginTop: 4 }} />
+        <span className="stack" style={{ gap: 2 }}>
+          <b className="small">{tr('Adaptar ao meu uso')}</b>
+          <span className="xs muted">{tr('Os atalhos do Hoje põem à frente o que usas mais. O registo fica só neste aparelho, cifrado como o diário, e nunca é enviado. Desligado, deixa de registar.')}</span>
+        </span>
+      </label>
+      {adaptive && (top.length ? (
+        <div className="stack" style={{ gap: 6 }}>
+          <span className="xs muted">{tr('O que o Casulo aprendeu')}</span>
+          {top.map(({ f, score }) => (
+            <div key={f.id} className="usage-bar"><span className="small">{f.title}</span><span className="usage-track"><i style={{ width: `${(score / max) * 100}%` }} /></span></div>
+          ))}
+        </div>
+      ) : <p className="xs muted">{tr('Ainda não há histórico de uso.')}</p>)}
+      <div className="row wrap">
+        <Link to="/atalhos" className="btn sm secondary">{tr('Editar atalhos')}</Link>
+        {(vault.usage && Object.keys(vault.usage).length > 0 || vault.lastScreen) && (
+          <button className="btn sm ghost" onClick={() => {
+            if (!confirm(tr('Apagar o histórico de uso? Os atalhos fixados ficam.'))) return
+            update(v => ({ ...v, usage: {}, lastScreen: undefined }))
+            toast(tr('Histórico de uso apagado'))
+          }}><Icon name="trash" size={16} />{tr('Apagar histórico de uso')}</button>
+        )}
+      </div>
     </section>
   )
 }
