@@ -2642,5 +2642,22 @@
 "Sem acesso ao calendário. Podes dar acesso nas definições do telemóvel.": "Pas d'accès à l'agenda. Tu peux l'autoriser dans les réglages du téléphone.",
 "Não foi possível ler o calendário do telemóvel": "Impossible de lire l'agenda du téléphone",
 "Do calendário do telemóvel": "Depuis l'agenda du téléphone",
-"Manter atualizado: quando uma consulta muda de data no calendário, muda aqui também.": "Garder à jour : quand un rendez-vous change de date dans l'agenda, il change ici aussi."
+"Manter atualizado: quando uma consulta muda de data no calendário, muda aqui também.": "Garder à jour : quand un rendez-vous change de date dans l'agenda, il change ici aussi.",
+"Ligação ao Google cancelada": "Connexion à Google annulée",
+"Não foi possível ligar ao Google. Tenta outra vez.": "Impossible de se connecter à Google. Réessaie.",
+"Não foi possível ler o Google Calendar. Tenta outra vez.": "Impossible de lire Google Agenda. Réessaie.",
+"A ler o Google Calendar…": "Lecture de Google Agenda…",
+"Atualizar do Google Calendar": "Mettre à jour depuis Google Agenda",
+"Ligar ao Google Calendar": "Connecter Google Agenda",
+"Só leitura. A ligação é feita diretamente entre este aparelho e a Google: o Casulo nunca vê nem guarda a tua conta, e só entram os eventos que escolheres.": "Lecture seule. La connexion se fait directement entre cet appareil et Google : Casulo ne voit ni ne garde jamais ton compte, et seuls les événements que tu choisis entrent.",
+"Retirar o acesso na conta Google": "Retirer l'accès dans le compte Google",
+"Do calendário do telemóvel (inclui o Google)": "Depuis l'agenda du téléphone (inclut Google)",
+"Outras formas": "Autres façons",
+"Traz consultas e exames do teu calendário ou do SNS 24": "Récupère tes rendez-vous et examens depuis ton agenda ou le service de santé",
+"Ligação ao calendário (opcional)": "Connexion à l'agenda (facultatif)",
+"Só se tocares em \"Ligar ao Google Calendar\" (no site) ou em \"Do calendário do telemóvel\" (nas apps). O acesso é só de leitura: no Google, a permissão pedida é ver os eventos do teu calendário principal.": "Seulement si tu touches « Connecter Google Agenda » (sur le site) ou « Depuis l'agenda du téléphone » (dans les apps). L'accès est en lecture seule : chez Google, l'autorisation demandée est de voir les événements de ton agenda principal.",
+"A ligação é feita diretamente entre o teu aparelho e a Google. A autorização dura no máximo uma hora, é usada uma vez e é apagada; não é guardada nem passa pelos nossos servidores. Nunca vemos o teu calendário.": "La connexion se fait directement entre ton appareil et Google. L'autorisation dure au maximum une heure, sert une fois puis est supprimée ; elle n'est pas conservée et ne passe pas par nos serveurs. Nous ne voyons jamais ton agenda.",
+"Só ficam no Casulo os eventos que escolhes, cifrados no aparelho como os outros lembretes e consultas. O resto do calendário não é guardado.": "Seuls les événements que tu choisis restent dans Casulo, chiffrés sur l'appareil comme tes autres rappels et rendez-vous. Le reste de l'agenda n'est pas conservé.",
+"O uso e a transferência de informação recebida das APIs da Google cumprem a Política de Dados do Utilizador dos Serviços de API da Google, incluindo os requisitos de Uso Limitado. Não usamos estes dados para publicidade nem para treinar modelos de IA, não os vendemos e não os passamos a ninguém.": "L'utilisation et le transfert des informations reçues des API Google respectent la Règle relative aux données utilisateur dans les services d'API Google, y compris les exigences d'utilisation limitée. Nous n'utilisons pas ces données pour la publicité ni pour entraîner des modèles d'IA, nous ne les vendons pas et ne les transmettons à personne.",
+"Podes retirar o acesso quando quiseres em myaccount.google.com/permissions (ou nas definições do telemóvel, para o calendário do telemóvel).": "Tu peux retirer l'accès à tout moment sur myaccount.google.com/permissions (ou dans les réglages du téléphone, pour l'agenda du téléphone)."
 }

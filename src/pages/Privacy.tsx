@@ -3,7 +3,7 @@ import { TopBar } from '../components/Layout'
 import { tr } from '../i18n'
 
 /** Política de privacidade. Atualizar a data sempre que o texto mudar. */
-export const PRIVACY_UPDATED = '2026-11-14'
+export const PRIVACY_UPDATED = '2026-11-26'
 export const PRIVACY_CONTACT = 'privacidade@casulo.space'
 /** Responsável pelo tratamento (pessoa singular). */
 export const PRIVACY_CONTROLLER = 'Pedro Oliveira'
@@ -62,6 +62,14 @@ export function Privacy() {
           tr('Guardamos o endereço de notificações do teu browser (cifrado) e as horas dos próximos avisos, no máximo 40 dias à frente. Não guardamos o texto, o tipo de lembrete nem quem és.'),
           tr('O aviso vai vazio: é o teu telemóvel que escreve "Tens um lembrete" (ou um texto neutro). Passa pelo serviço de notificações do teu browser (Google, Mozilla, Apple ou Microsoft).'),
           tr('Cada hora é apagada depois de enviada. Ao desligar, apagamos tudo; sem avisos futuros, o endereço é apagado ao fim de 60 dias.'),
+        ]} />
+
+        <Section title={tr('Ligação ao calendário (opcional)')} items={[
+          tr('Só se tocares em "Ligar ao Google Calendar" (no site) ou em "Do calendário do telemóvel" (nas apps). O acesso é só de leitura: no Google, a permissão pedida é ver os eventos do teu calendário principal.'),
+          tr('A ligação é feita diretamente entre o teu aparelho e a Google. A autorização dura no máximo uma hora, é usada uma vez e é apagada; não é guardada nem passa pelos nossos servidores. Nunca vemos o teu calendário.'),
+          tr('Só ficam no Casulo os eventos que escolhes, cifrados no aparelho como os outros lembretes e consultas. O resto do calendário não é guardado.'),
+          tr('O uso e a transferência de informação recebida das APIs da Google cumprem a Política de Dados do Utilizador dos Serviços de API da Google, incluindo os requisitos de Uso Limitado. Não usamos estes dados para publicidade nem para treinar modelos de IA, não os vendemos e não os passamos a ninguém.'),
+          tr('Podes retirar o acesso quando quiseres em myaccount.google.com/permissions (ou nas definições do telemóvel, para o calendário do telemóvel).'),
         ]} />
 
         <Section title={tr('4. Onde ficam e quem os trata')} items={[

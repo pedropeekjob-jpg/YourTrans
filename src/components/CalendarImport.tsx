@@ -3,6 +3,7 @@ import { useVault } from '../lib/vault-context'
 import { Icon } from './Icon'
 import { Sheet, fmtDate, useToast } from './ui'
 import { addEvents, parseMessage, readCalendarFile, refreshLinked, upcoming, type ImportedEvent, type MessageGuess } from '../lib/calendarImport'
+import { googleAvailable, readGoogleEvents, startGoogleLink, takeGoogleToken } from '../lib/googleCalendar'
 import { deviceCalendarAvailable, hasCalendarAccess, readDeviceEvents, requestCalendarAccess } from '../lib/deviceCalendar'
 import { downloadIcs, icsCalendar, type IcsEventInput } from '../lib/ics'
 import { uid, type Reminder, type Vault } from '../lib/types'
@@ -29,20 +30,23 @@ export function exportAll(v: Vault): string {
 }
 
 /**
- * Ligação ao calendário e às mensagens do SNS 24, tudo no aparelho:
- * importar um ficheiro .ics/.zip, colar uma mensagem e exportar tudo para o calendário.
+ * Ligação ao calendário e às mensagens do SNS 24, tudo no aparelho.
+ * Caminho principal: ligar à conta Google (web) ou ao calendário do telemóvel (apps nativas).
+ * Alternativas: importar um ficheiro .ics/.zip, colar uma mensagem e exportar tudo.
  */
 export function CalendarTools({ target }: { target: Target }) {
-  const { vault } = useVault()
+  const { vault, update } = useVault()
   const toast = useToast()
   const fileRef = useRef<HTMLInputElement>(null)
   const [events, setEvents] = useState<ImportedEvent[] | null>(null)
   const [paste, setPaste] = useState(false)
   const [help, setHelp] = useState(false)
-  const { update } = useVault()
+  const [busy, setBusy] = useState(false)
   const count = vault.reminders.length + vault.appointments.length
   const native = deviceCalendarAvailable()
+  const google = googleAvailable()
   const syncOn = !!vault.settings.deviceCalendarSync
+  const linked = !!vault.settings.googleLinked
 
   // Sincronização: ao abrir, se a pessoa já deu acesso, atualiza o que veio do calendário do telemóvel.
   useEffect(() => {
@@ -60,6 +64,25 @@ export function CalendarTools({ target }: { target: Target }) {
     })()
     return () => { off = true }
   }, [native, syncOn]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Regresso da Google: usa o token uma vez, atualiza o que já tinha vindo e mostra a lista.
+  useEffect(() => {
+    if (!google) return
+    const t = takeGoogleToken()
+    if (!t) return
+    if ('error' in t) { toast(t.error === 'access_denied' ? tr('Ligação ao Google cancelada') : tr('Não foi possível ligar ao Google. Tenta outra vez.')); return }
+    setBusy(true)
+    readGoogleEvents(t.token)
+      .then(evs => {
+        let n = 0
+        update(v => { const r = refreshLinked(v, evs); n = r.changed; return { ...r.vault, settings: { ...r.vault.settings, googleLinked: true } } })
+        if (n) toast(tr('{0} evento(s) atualizados a partir do calendário', n))
+        if (!evs.length) toast(tr('Este calendário não tem eventos futuros'))
+        else setEvents(evs)
+      })
+      .catch(() => toast(tr('Não foi possível ler o Google Calendar. Tenta outra vez.')))
+      .finally(() => setBusy(false))
+  }, [google]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const fromPhone = async () => {
     try {
@@ -83,31 +106,54 @@ export function CalendarTools({ target }: { target: Target }) {
     finally { if (fileRef.current) fileRef.current.value = '' }
   }
 
+  const unlink = () => update(v => ({ ...v, settings: { ...v.settings, googleLinked: false } }))
+
   return (
     <>
-      <details className="card flat">
-        <summary className="row" style={{ gap: 8, cursor: 'pointer' }}>
+      <section className="card flat stack" style={{ gap: 8 }}>
+        <div className="row" style={{ gap: 8 }}>
           <Icon name="calendar" size={18} />
           <span className="small grow"><b>{tr('Calendário e SNS 24')}</b></span>
-        </summary>
-        <div className="stack" style={{ marginTop: 8 }}>
-          <p className="xs muted">{tr('Traz consultas e exames do teu calendário (Google, Apple, Outlook) ou de uma mensagem do SNS 24. Tudo é lido neste aparelho: o Casulo não acede à tua conta nem envia nada para nenhum servidor.')}</p>
-          {native && <button className="btn sm" onClick={() => void fromPhone()}><Icon name="calendar" size={16} />{tr('Do calendário do telemóvel')}</button>}
-          {native && syncOn && (
-            <label className="row xs muted" style={{ gap: 8 }}>
-              <input type="checkbox" checked onChange={() => update(v => ({ ...v, settings: { ...v.settings, deviceCalendarSync: false } }))} />
-              {tr('Manter atualizado: quando uma consulta muda de data no calendário, muda aqui também.')}
-            </label>
-          )}
-          <div className="grid2">
-            <button className="btn sm secondary" onClick={() => fileRef.current?.click()}><Icon name="calendar" size={16} />{tr('Importar calendário')}</button>
-            <button className="btn sm secondary" onClick={() => setPaste(true)}><Icon name="copy" size={16} />{tr('Colar mensagem')}</button>
-          </div>
-          <button className="btn sm ghost" disabled={!count} onClick={() => downloadIcs('casulo', exportAll(vault))}><Icon name="share" size={16} />{tr('Enviar tudo para o meu calendário')}</button>
-          <button className="btn sm ghost" onClick={() => setHelp(true)}>{tr('Como tiro o ficheiro do Google Calendar?')}</button>
-          <input ref={fileRef} type="file" hidden accept=".ics,.ical,.ifb,.zip,text/calendar,application/zip" onChange={e => void pick(e.target.files?.[0])} />
         </div>
-      </details>
+        {google && (
+          <>
+            <button className="btn sm" disabled={busy} onClick={() => startGoogleLink(`/saude?tab=tratamento&sub=${target}`)}>
+              <Icon name="calendar" size={16} />{busy ? tr('A ler o Google Calendar…') : linked ? tr('Atualizar do Google Calendar') : tr('Ligar ao Google Calendar')}
+            </button>
+            <p className="xs muted">{tr('Só leitura. A ligação é feita diretamente entre este aparelho e a Google: o Casulo nunca vê nem guarda a tua conta, e só entram os eventos que escolheres.')}</p>
+            {linked && (
+              <div className="row" style={{ gap: 4 }}>
+                <button className="btn sm ghost" onClick={unlink}>{tr('Desligar')}</button>
+                <a className="btn sm ghost" href="https://myaccount.google.com/permissions" target="_blank" rel="noreferrer"><Icon name="external" size={14} />{tr('Retirar o acesso na conta Google')}</a>
+              </div>
+            )}
+          </>
+        )}
+        {native && (
+          <>
+            <button className="btn sm" onClick={() => void fromPhone()}><Icon name="calendar" size={16} />{tr('Do calendário do telemóvel (inclui o Google)')}</button>
+            {syncOn && (
+              <label className="row xs muted" style={{ gap: 8 }}>
+                <input type="checkbox" checked onChange={() => update(v => ({ ...v, settings: { ...v.settings, deviceCalendarSync: false } }))} />
+                {tr('Manter atualizado: quando uma consulta muda de data no calendário, muda aqui também.')}
+              </label>
+            )}
+          </>
+        )}
+        <details open={!google && !native}>
+          <summary className="xs" style={{ cursor: 'pointer', fontWeight: 600, color: 'var(--accent)' }}>{google || native ? tr('Outras formas') : tr('Traz consultas e exames do teu calendário ou do SNS 24')}</summary>
+          <div className="stack" style={{ marginTop: 8 }}>
+            <p className="xs muted">{tr('Traz consultas e exames do teu calendário (Google, Apple, Outlook) ou de uma mensagem do SNS 24. Tudo é lido neste aparelho: o Casulo não acede à tua conta nem envia nada para nenhum servidor.')}</p>
+            <div className="grid2">
+              <button className="btn sm secondary" onClick={() => fileRef.current?.click()}><Icon name="calendar" size={16} />{tr('Importar calendário')}</button>
+              <button className="btn sm secondary" onClick={() => setPaste(true)}><Icon name="copy" size={16} />{tr('Colar mensagem')}</button>
+            </div>
+            <button className="btn sm ghost" disabled={!count} onClick={() => downloadIcs('casulo', exportAll(vault))}><Icon name="share" size={16} />{tr('Enviar tudo para o meu calendário')}</button>
+            <button className="btn sm ghost" onClick={() => setHelp(true)}>{tr('Como tiro o ficheiro do Google Calendar?')}</button>
+            <input ref={fileRef} type="file" hidden accept=".ics,.ical,.ifb,.zip,text/calendar,application/zip" onChange={e => void pick(e.target.files?.[0])} />
+          </div>
+        </details>
+      </section>
       {events && <ImportSheet events={events} target={target} onClose={() => setEvents(null)} />}
       {paste && <PasteSheet onClose={() => setPaste(false)} />}
       <Sheet open={help} onClose={() => setHelp(false)} title={tr('Do Google Calendar para o Casulo')}>
